@@ -40,8 +40,8 @@ const menuGroups = [
           </svg>
         ),
         label: "Dashboard",
-        route: "#",
-        children: [{ label: "eCommerce", route: "/" }],
+        route: "/",
+        //children: [{ label: "eCommerce", route: "/" }],
       },
       {
         icon: (

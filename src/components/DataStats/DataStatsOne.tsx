@@ -24,7 +24,7 @@ const dataStatsList = [
       </svg>
     ),
     color: "#3FD97F",
-    title: "Total Views",
+    title: "Total Sales",
     value: "3.456K",
     growthRate: 0.43,
   },
@@ -46,8 +46,8 @@ const dataStatsList = [
       </svg>
     ),
     color: "#FF9C55",
-    title: "Total Profit",
-    value: "$42.2K",
+    title: "Total Revenue",
+    value: "R 42.2K",
     growthRate: 4.35,
   },
   {
@@ -74,7 +74,7 @@ const dataStatsList = [
       </svg>
     ),
     color: "#8155FF",
-    title: "Total Product",
+    title: "Total Credit",
     value: "2.450",
     growthRate: 2.59,
   },
@@ -112,7 +112,7 @@ const dataStatsList = [
       </svg>
     ),
     color: "#18BFFF",
-    title: "Total Users",
+    title: "Total Retailers",
     value: "3.465",
     growthRate: -0.95,
   },
