@@ -5,29 +5,29 @@ import Image from "next/image";
 
 const notificationList = [
   {
-    image: "/images/user/user-15.png",
-    title: "Piter Joined the Team!",
-    subTitle: "Congratulate him",
+    image: "/images/store.png",
+    title: "New Retailer Added",
+    subTitle: "Added by [subAdmin]",
   },
   {
-    image: "/images/user/user-02.png",
-    title: "New message received",
-    subTitle: "Devid sent you new message",
+    image: "/images/store.png",
+    title: "New Retailer Added",
+    subTitle: "Added by [subAdmin]",
   },
   {
-    image: "/images/user/user-26.png",
-    title: "New Payment received",
-    subTitle: "Check your earnings",
+    image: "/images/terminal.jpg",
+    title: "New Terminal Added",
+    subTitle: "Added by [retailer]",
   },
   {
-    image: "/images/user/user-28.png",
-    title: "Jolly completed tasks",
-    subTitle: "Assign her newtasks",
+    image: "/images/terminal.jpg",
+    title: "New Terminal Added",
+    subTitle: "Added by [retailer]",
   },
   {
-    image: "/images/user/user-27.png",
-    title: "Roman Joined the Team!",
-    subTitle: "Congratulate him",
+    image: "/images/terminal.jpg",
+    title: "New Terminal Added",
+    subTitle: "Added by [retailer]",
   },
 ];
 
@@ -36,7 +36,10 @@ const DropdownNotification = () => {
   const [notifying, setNotifying] = useState(true);
 
   return (
-    <ClickOutside onClick={() => setDropdownOpen(false)} className="relative hidden sm:block">
+    <ClickOutside
+      onClick={() => setDropdownOpen(false)}
+      className="relative hidden sm:block"
+    >
       <li>
         <Link
           onClick={() => {
