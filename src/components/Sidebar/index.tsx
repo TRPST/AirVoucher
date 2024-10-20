@@ -65,7 +65,7 @@ const menuGroups = [
         route: "#",
         children: [
           { label: "Retailers List", route: "#" },
-          { label: "Register Retailers", route: "#" },
+          { label: "Add New Retailer", route: "#" },
           { label: "Retailers Status", route: "#" },
           { label: "Authorizations", route: "#" },
         ],
