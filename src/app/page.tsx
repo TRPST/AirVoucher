@@ -4,7 +4,7 @@ import DefaultLayout from "@/components/Layouts/DefaultLaout";
 import React from "react";
 
 export const metadata: Metadata = {
-  title: "AirVoucher",
+  title: "AIRVoucher",
   description: "New AirVoucher System",
 };
 
