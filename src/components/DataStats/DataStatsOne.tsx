@@ -25,7 +25,7 @@ const dataStatsList = [
     ),
     color: "#3FD97F",
     title: "Total Sales",
-    value: "3.456K",
+    value: "R 57.90K",
     growthRate: 0.43,
   },
   {
@@ -47,7 +47,7 @@ const dataStatsList = [
     ),
     color: "#FF9C55",
     title: "Total Revenue",
-    value: "R 42.2K",
+    value: "R 42.20K",
     growthRate: 4.35,
   },
   {
@@ -75,7 +75,7 @@ const dataStatsList = [
     ),
     color: "#8155FF",
     title: "Total Credit",
-    value: "2.450",
+    value: "R20.45K",
     growthRate: 2.59,
   },
   {
@@ -113,7 +113,7 @@ const dataStatsList = [
     ),
     color: "#18BFFF",
     title: "Total Retailers",
-    value: "3.465",
+    value: "475",
     growthRate: -0.95,
   },
 ];
