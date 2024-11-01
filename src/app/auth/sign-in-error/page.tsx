@@ -1,4 +1,3 @@
-"use client";
 import React from "react";
 import Link from "next/link";
 import Image from "next/image";
@@ -8,10 +7,10 @@ import DefaultLayout from "@/components/Layouts/DefaultLaout";
 import Signin from "@/components/Auth/Signin";
 import dynamic from "next/dynamic";
 
-// export const metadata: Metadata = {
-//   title: "Next.js Login Page | NextAdmin - Next.js Dashboard Kit",
-//   description: "This is Next.js Login Page NextAdmin Dashboard Kit",
-// };
+export const metadata: Metadata = {
+  title: "Next.js Login Page | NextAdmin - Next.js Dashboard Kit",
+  description: "This is Next.js Login Page NextAdmin Dashboard Kit",
+};
 
 const SignIn: React.FC = () => {
   return (

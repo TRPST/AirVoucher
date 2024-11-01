@@ -40,7 +40,7 @@ const menuGroups = [
           </svg>
         ),
         label: "Dashboard",
-        route: "/",
+        route: "dashboard",
         //children: [{ label: "eCommerce", route: "/" }],
       },
       {
@@ -64,10 +64,10 @@ const menuGroups = [
         label: "Retailers",
         route: "#",
         children: [
-          { label: "Retailers List", route: "#" },
-          { label: "Add New Retailer", route: "#" },
-          { label: "Retailers Status", route: "#" },
-          { label: "Authorizations", route: "#" },
+          { label: "Add New Retailer", route: "addRetailers" },
+          { label: "Retailers List", route: "retailersList" },
+          // { label: "Retailers Status", route: "retailersStatus" },
+          { label: "Authorizations", route: "retailersAuthorizations" },
         ],
       },
       {
@@ -91,9 +91,9 @@ const menuGroups = [
         label: "Sub Admins",
         route: "#",
         children: [
-          { label: "Manage Sub Admins", route: "#" },
-          { label: "Retailers Assignment", route: "#" },
-          { label: "Activate/Deactivate Sub-Admins", route: "#" },
+          { label: "Manage Sub Admins", route: "manageSubAdmins" },
+          // { label: "Retailers Assignment", route: "#" },
+          // { label: "Activate/Deactivate Sub-Admins", route: "#" },
         ],
       },
       {
@@ -117,9 +117,9 @@ const menuGroups = [
         label: "Commission Groups",
         route: "#",
         children: [
-          { label: "Create Commission Group", route: "#" },
-          { label: "View Existing Groups", route: "#" },
-          { label: "Supplier Prioritization", route: "#" },
+          { label: "Manage Commission Groups", route: "manageComissionGroups" },
+          // { label: "View Existing Groups", route: "#" },
+          // { label: "Supplier Prioritization", route: "#" },
         ],
       },
       {
@@ -143,8 +143,8 @@ const menuGroups = [
         label: "Suppliers",
         route: "#",
         children: [
-          { label: "Supplier List", route: "#" },
-          { label: "Supplier Activation", route: "#" },
+          { label: "Manage Suppliers", route: "manageSuppliers" },
+          // { label: "Supplier Activation", route: "#" },
         ],
       },
       {
@@ -168,9 +168,9 @@ const menuGroups = [
         label: "Terminals",
         route: "#",
         children: [
-          { label: "View Terminals", route: "#" },
-          { label: "Activate/Deactivate Terminals", route: "#" },
-          { label: "Register New Terminal", route: "#" },
+          { label: "Manage Terminals", route: "manageTerminals" },
+          // { label: "Activate/Deactivate Terminals", route: "#" },
+          // { label: "Register New Terminal", route: "#" },
         ],
       },
       {

@@ -1,14 +1,34 @@
-"use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
+import { signInAction } from "@/app/actions";
+import { createClient } from "utils/supabase/server";
+import { redirect } from "next/navigation";
+import { FormMessage, Message } from "@/components/form-message";
+//import { useRouter } from "next/router";
 
-export default function SigninWithPassword() {
-  const [data, setData] = useState({
-    remember: false,
-  });
+export default function SigninWithPassword(props: {
+  searchParams: Promise<Message>;
+}) {
+  // const [data, setData] = useState({
+  //   remember: false,
+  // });
+  //const searchParams = await props.searchParams;
+
+  const [actionState, setActionState] = useState<string | null>(null);
+
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault(); // Prevent the default form submission behavior
+
+    console.log("Form submitted");
+    //event.preventDefault();
+    const formData = new FormData(event.target as HTMLFormElement);
+    const result = await signInAction(formData);
+    console.log("Result: ", result);
+    setActionState(result);
+  };
 
   return (
-    <form>
+    <form onSubmit={handleSubmit}>
       <div className="mb-4">
         <label
           htmlFor="email"
@@ -43,7 +63,6 @@ export default function SigninWithPassword() {
           </span>
         </div>
       </div>
-
       <div className="mb-5">
         <label
           htmlFor="password"
@@ -85,6 +104,9 @@ export default function SigninWithPassword() {
           </span>
         </div>
       </div>
+      {actionState && (
+        <div className="alert alert-error mb-5 text-red-500">{actionState}</div>
+      )}
 
       <div className="mb-6 flex items-center justify-between gap-2 py-2">
         <label
@@ -99,7 +121,8 @@ export default function SigninWithPassword() {
           />
           <span
             className={`mr-2.5 inline-flex h-5.5 w-5.5 items-center justify-center rounded-md border border-stroke bg-white text-white text-opacity-0 peer-checked:border-primary peer-checked:bg-primary peer-checked:text-opacity-100 dark:border-stroke-dark dark:bg-white/5 ${
-              data.remember ? "bg-primary" : ""
+              // data.remember ? "bg-primary" : ""
+              false ? "bg-primary" : ""
             }`}
           >
             <svg
@@ -121,21 +144,19 @@ export default function SigninWithPassword() {
         </label>
 
         <Link
-          href="/auth/forgot-password"
+          href="#"
           className="select-none font-satoshi text-base font-medium text-dark underline duration-300 hover:text-primary dark:text-white dark:hover:text-primary"
         >
           Forgot Password?
         </Link>
       </div>
-
       <div className="mb-4.5">
-        <button
-          type="submit"
-          className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg bg-primary p-4 font-medium text-white transition hover:bg-opacity-90"
-        >
+        <button className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg bg-primary p-4 font-medium text-white transition hover:bg-opacity-90">
           Sign In
         </button>
       </div>
+
+      {/* <FormMessage message={searchParams} /> */}
     </form>
   );
 }
