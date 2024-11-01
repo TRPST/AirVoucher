@@ -4,7 +4,8 @@ import { signInAction } from "@/app/actions";
 import { createClient } from "utils/supabase/server";
 import { redirect } from "next/navigation";
 import { FormMessage, Message } from "@/components/form-message";
-//import { useRouter } from "next/router";
+import { Spinner } from "@nextui-org/spinner";
+import Loader from "@/components/common/Loader";
 
 export default function SigninWithPassword(props: {
   searchParams: Promise<Message>;
@@ -15,16 +16,27 @@ export default function SigninWithPassword(props: {
   //const searchParams = await props.searchParams;
 
   const [actionState, setActionState] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (event: React.FormEvent) => {
+    setLoading(true);
     event.preventDefault(); // Prevent the default form submission behavior
 
     console.log("Form submitted");
-    //event.preventDefault();
-    const formData = new FormData(event.target as HTMLFormElement);
-    const result = await signInAction(formData);
-    console.log("Result: ", result);
-    setActionState(result);
+    try {
+      const formData = new FormData(event.target as HTMLFormElement);
+      const result = await signInAction(formData);
+      console.log("Result: ", result);
+      if (result) {
+        setActionState(result);
+        setLoading(false);
+      }
+    } catch (error) {
+      console.error("Error: ", error);
+      setLoading(false);
+    } finally {
+      //setLoading(false);
+    }
   };
 
   return (
@@ -151,9 +163,15 @@ export default function SigninWithPassword(props: {
         </Link>
       </div>
       <div className="mb-4.5">
-        <button className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg bg-primary p-4 font-medium text-white transition hover:bg-opacity-90">
-          Sign In
-        </button>
+        {loading ? (
+          <div className="flex justify-center">
+            <div className="h-8 w-8 animate-spin rounded-full border-4 border-solid border-primary border-t-transparent"></div>
+          </div>
+        ) : (
+          <button className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg bg-primary p-4 font-medium text-white transition hover:bg-opacity-90">
+            Sign In
+          </button>
+        )}
       </div>
 
       {/* <FormMessage message={searchParams} /> */}
