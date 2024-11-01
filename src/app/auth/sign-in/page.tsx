@@ -8,11 +8,6 @@ import DefaultLayout from "@/components/Layouts/DefaultLaout";
 import Signin from "@/components/Auth/Signin";
 import dynamic from "next/dynamic";
 
-// export const metadata: Metadata = {
-//   title: "Next.js Login Page | NextAdmin - Next.js Dashboard Kit",
-//   description: "This is Next.js Login Page NextAdmin Dashboard Kit",
-// };
-
 const SignIn: React.FC = () => {
   return (
     <>
@@ -48,7 +43,7 @@ const SignIn: React.FC = () => {
 
               <p className="w-full font-medium text-dark-4 dark:text-dark-6">
                 Please sign in to your account by completing <br />
-                the necessary fields
+                the necessary fieldsssss
               </p>
 
               <div className="mt-31">
