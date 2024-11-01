@@ -69,7 +69,7 @@ const AddRetailer = () => {
             Add New Retailer
           </h2>
           <p className="mb-4 text-center text-gray-600 dark:text-gray-400">
-            Fill in the retailer's details to add them to the platform.
+            Fill in the retailer&apos;s details to add them to the platform.
           </p>
           {error && <p className="mb-4 text-center text-red-500">{error}</p>}
           {success && (
