@@ -169,7 +169,7 @@ const menuGroups = [
         route: "#",
         children: [
           { label: "Manage Terminals", route: "manageTerminals" },
-          // { label: "Activate/Deactivate Terminals", route: "#" },
+          { label: "Voucher Services", route: "voucherService" },
           // { label: "Register New Terminal", route: "#" },
         ],
       },
