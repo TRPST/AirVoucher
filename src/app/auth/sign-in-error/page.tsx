@@ -1,4 +1,3 @@
-"use client";
 import React from "react";
 import Link from "next/link";
 import Image from "next/image";
@@ -8,10 +7,10 @@ import DefaultLayout from "@/components/Layouts/DefaultLaout";
 import Signin from "@/components/Auth/Signin";
 import dynamic from "next/dynamic";
 
-// export const metadata: Metadata = {
-//   title: "Next.js Login Page | NextAdmin - Next.js Dashboard Kit",
-//   description: "This is Next.js Login Page NextAdmin Dashboard Kit",
-// };
+export const metadata: Metadata = {
+  title: "Next.js Login Page | NextAdmin - Next.js Dashboard Kit",
+  description: "This is Next.js Login Page NextAdmin Dashboard Kit",
+};
 
 const SignIn: React.FC = () => {
   return (
@@ -25,14 +24,14 @@ const SignIn: React.FC = () => {
               <Link className="mb-10 inline-block" href="/">
                 <Image
                   className="hidden dark:block"
-                  src={"/images/logo/airvoucher-logo.png"}
+                  src={"/images/logo/logo.svg"}
                   alt="Logo"
                   width={176}
                   height={32}
                 />
                 <Image
                   className="dark:hidden"
-                  src={"/images/logo/airvoucher-logo.png"}
+                  src={"/images/logo/logo-dark.svg"}
                   alt="Logo"
                   width={176}
                   height={32}

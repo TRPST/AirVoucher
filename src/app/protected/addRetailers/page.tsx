@@ -1,8 +1,11 @@
 "use client"; // Add this at the top to make it a Client Component
 
 import DefaultLayout from "@/components/Layouts/DefaultLaout";
+import { redirect } from "next/navigation";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { createClient } from "utils/supabase/server";
+import { checkUserSignedIn } from "@/app/actions";
 
 const AddRetailer = () => {
   const [retailerID, setRetailerID] = useState(""); // Added state for Retailer ID
@@ -15,6 +18,14 @@ const AddRetailer = () => {
   const [success, setSuccess] = useState(false);
 
   const generateUniqueRetailerID = () => `RE${String(Date.now()).slice(-4)}`; // Function to generate unique Retailer ID
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      await checkUserSignedIn();
+    };
+
+    checkAuth();
+  }, []);
 
   const handleAddRetailer = (e: React.FormEvent) => {
     e.preventDefault();
@@ -58,7 +69,7 @@ const AddRetailer = () => {
             Add New Retailer
           </h2>
           <p className="mb-4 text-center text-gray-600 dark:text-gray-400">
-            Fill in the retailer's details to add them to the platform.
+            Fill in the retailer&apos;s details to add them to the platform.
           </p>
           {error && <p className="mb-4 text-center text-red-500">{error}</p>}
           {success && (
@@ -94,7 +105,7 @@ const AddRetailer = () => {
                 id="retailerName"
                 value={retailerName}
                 onChange={(e) => setRetailerName(e.target.value)}
-                className="w-full rounded-lg border px-4 py-2"
+                className="w-full rounded-lg border px-4 py-2 dark:bg-gray-700"
                 placeholder="Enter retailer's name"
               />
             </div>
@@ -110,7 +121,7 @@ const AddRetailer = () => {
                 id="location"
                 value={location}
                 onChange={(e) => setLocation(e.target.value)}
-                className="w-full rounded-lg border px-4 py-2"
+                className="w-full rounded-lg border px-4 py-2 dark:bg-gray-700"
                 placeholder="Enter retailer's location"
               />
             </div>
@@ -126,7 +137,7 @@ const AddRetailer = () => {
                 id="contactNumber"
                 value={contactNumber}
                 onChange={(e) => setContactNumber(e.target.value)}
-                className="w-full rounded-lg border px-4 py-2"
+                className="w-full rounded-lg border px-4 py-2 dark:bg-gray-700"
                 placeholder="Enter contact number"
               />
             </div>
@@ -142,7 +153,7 @@ const AddRetailer = () => {
                 id="terminalID"
                 value={terminalID}
                 onChange={(e) => setTerminalID(e.target.value)}
-                className="w-full rounded-lg border px-4 py-2"
+                className="w-full rounded-lg border px-4 py-2 dark:bg-gray-700"
                 placeholder="Enter terminal ID"
               />
             </div>
@@ -157,7 +168,7 @@ const AddRetailer = () => {
                 id="services"
                 value={services}
                 onChange={(e) => setServices(e.target.value)}
-                className="w-full rounded-lg border px-4 py-2"
+                className="w-full rounded-lg border px-4 py-2 dark:bg-gray-700"
                 placeholder="Enter details of services offered"
               ></textarea>
             </div>

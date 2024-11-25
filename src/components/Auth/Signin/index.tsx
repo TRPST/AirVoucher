@@ -2,7 +2,16 @@
 import Link from "next/link";
 import React from "react";
 import GoogleSigninButton from "../GoogleSigninButton";
-import SigninWithPassword from "../SigninWithPassword";
+//import SigninWithPassword from "../SigninWithPassword";
+import { Message } from "@/components/form-message";
+import dynamic from "next/dynamic";
+
+const SigninWithPassword = dynamic(
+  () => import("@/components/Auth/SigninWithPassword"),
+  {
+    ssr: false,
+  },
+);
 
 export default function Signin() {
   return (
@@ -18,13 +27,13 @@ export default function Signin() {
       </div>
 
       <div>
-        <SigninWithPassword />
+        <SigninWithPassword searchParams={Promise.resolve({} as Message)} />
       </div>
 
       <div className="mt-6 text-center">
         <p>
           Don’t have any account?{" "}
-          <Link href="/auth/signup" className="text-primary">
+          <Link href="#" className="text-primary">
             Sign Up
           </Link>
         </p>

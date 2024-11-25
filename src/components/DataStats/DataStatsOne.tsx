@@ -75,7 +75,7 @@ const dataStatsList = [
     ),
     color: "#8155FF",
     title: "Total Credit",
-    value: "R20.45K",
+    value: "R 20.45K",
     growthRate: 2.59,
   },
   {
