@@ -1,0 +1,187 @@
+import React from "react";
+import Modal from "@mui/material/Modal";
+import { Box, Typography } from "@mui/material";
+
+interface AddRetailerModalProps {
+  open: boolean;
+  handleClose: () => void;
+  handleAddRetailer: (e: React.FormEvent) => void;
+  error: string;
+  success: boolean;
+  retailerID: string;
+  retailerName: string;
+  location: string;
+  contactNumber: string;
+  terminalID: string;
+  services: string;
+  setRetailerName: (value: string) => void;
+  setLocation: (value: string) => void;
+  setContactNumber: (value: string) => void;
+  setTerminalID: (value: string) => void;
+  setServices: (value: string) => void;
+  generateUniqueRetailerID: () => string;
+}
+
+const AddRetailerModal: React.FC<AddRetailerModalProps> = ({
+  open,
+  handleClose,
+  handleAddRetailer,
+  error,
+  success,
+  retailerID,
+  retailerName,
+  location,
+  contactNumber,
+  terminalID,
+  services,
+  setRetailerName,
+  setLocation,
+  setContactNumber,
+  setTerminalID,
+  setServices,
+  generateUniqueRetailerID,
+}) => {
+  //console.log("Closer? :", handleClose);
+  return (
+    <Modal
+      open={open}
+      onClose={handleClose}
+      aria-labelledby="modal-modal-title"
+      aria-describedby="modal-modal-description"
+    >
+      <Box
+        sx={{
+          position: "absolute",
+          top: "50%",
+          left: "50%",
+          transform: "translate(-50%, -50%)",
+          width: 500,
+          bgcolor: "background.paper",
+          border: "2px solid #000",
+          boxShadow: 24,
+          p: 4,
+          maxHeight: "80vh",
+          overflowY: "auto",
+        }}
+        className=" bg-white p-8 shadow-lg dark:bg-gray-800"
+      >
+        <h2 className="mb-6 text-center text-3xl font-semibold text-gray-800 dark:text-white">
+          Add New Retailer
+        </h2>
+        <p className="mb-4 text-center text-gray-600 dark:text-gray-400">
+          Fill in the retailer&apos;s details to add them to the platform.
+        </p>
+        {error && <p className="mb-4 text-center text-red-500">{error}</p>}
+        {success && (
+          <p className="mb-4 text-center text-green-500">
+            Retailer added successfully!
+          </p>
+        )}
+        <form onSubmit={handleAddRetailer} className="space-y-6">
+          <div>
+            <label
+              htmlFor="retailerID"
+              className="mb-2 block font-semibold text-gray-700 dark:text-gray-300"
+            >
+              Retailer ID (auto-generated)
+            </label>
+            <input
+              type="text"
+              id="retailerID"
+              value={retailerID || generateUniqueRetailerID()} // Show generated ID
+              readOnly
+              className="w-full rounded-lg border bg-gray-100 px-4 py-2 dark:bg-gray-700"
+            />
+          </div>
+          <div>
+            <label
+              htmlFor="retailerName"
+              className="mb-3 block font-semibold text-gray-700 dark:text-gray-300"
+            >
+              Retailer Name
+            </label>
+            <input
+              type="text"
+              id="retailerName"
+              value={retailerName}
+              onChange={(e) => setRetailerName(e.target.value)}
+              className="w-full rounded-lg border px-4 py-2 dark:bg-gray-700"
+              placeholder="Enter retailer's name"
+            />
+          </div>
+          <div>
+            <label
+              htmlFor="location"
+              className="mb-2 block font-semibold text-gray-700 dark:text-gray-300"
+            >
+              Location
+            </label>
+            <input
+              type="text"
+              id="location"
+              value={location}
+              onChange={(e) => setLocation(e.target.value)}
+              className="w-full rounded-lg border px-4 py-2 dark:bg-gray-700"
+              placeholder="Enter retailer's location"
+            />
+          </div>
+          <div>
+            <label
+              htmlFor="contactNumber"
+              className="mb-2 block font-semibold text-gray-700 dark:text-gray-300"
+            >
+              Contact Number
+            </label>
+            <input
+              type="text"
+              id="contactNumber"
+              value={contactNumber}
+              onChange={(e) => setContactNumber(e.target.value)}
+              className="w-full rounded-lg border px-4 py-2 dark:bg-gray-700"
+              placeholder="Enter contact number"
+            />
+          </div>
+          <div>
+            <label
+              htmlFor="terminalID"
+              className="mb-2 block font-semibold text-gray-700 dark:text-gray-300"
+            >
+              Terminal ID
+            </label>
+            <input
+              type="text"
+              id="terminalID"
+              value={terminalID}
+              onChange={(e) => setTerminalID(e.target.value)}
+              className="w-full rounded-lg border px-4 py-2 dark:bg-gray-700"
+              placeholder="Enter terminal ID"
+            />
+          </div>
+          <div>
+            <label
+              htmlFor="services"
+              className="mb-2 block font-semibold text-gray-700 dark:text-gray-300"
+            >
+              Services Offered
+            </label>
+            <textarea
+              id="services"
+              value={services}
+              onChange={(e) => setServices(e.target.value)}
+              className="w-full rounded-lg border px-4 py-2 dark:bg-gray-700"
+              placeholder="Enter details of services offered"
+            ></textarea>
+          </div>
+          <button
+            type="submit"
+            className="w-full rounded-lg bg-blue-600 py-3 font-semibold text-white shadow transition duration-300 hover:bg-blue-700"
+          >
+            Add Retailer
+          </button>
+        </form>
+      </Box>
+    </Modal>
+  );
+};
+
+export default AddRetailerModal;

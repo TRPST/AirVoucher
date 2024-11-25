@@ -2,7 +2,10 @@
 
 import Breadcrumb from "@/components/Breadcrumbs/Breadcrumb";
 import DefaultLayout from "@/components/Layouts/DefaultLaout";
+import { Box, Modal, Typography } from "@mui/material";
 import React, { useState } from "react";
+import TableCell from "./TableCell";
+import AddRetailerModal from "./AddRetailerModal";
 
 const RetailersList = () => {
   const [retailers, setRetailers] = useState([
@@ -29,6 +32,15 @@ const RetailersList = () => {
     // Add more sample data or fetch from an API
   ]);
 
+  const [retailerID, setRetailerID] = useState(""); // Added state for Retailer ID
+  const [retailerName, setRetailerName] = useState("");
+  const [location, setLocation] = useState("");
+  const [contactNumber, setContactNumber] = useState("");
+  const [terminalID, setTerminalID] = useState("");
+  const [services, setServices] = useState("");
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState(false);
+
   const toggleRetailerStatus = (index: number) => {
     const updatedRetailers = [...retailers];
     updatedRetailers[index].status =
@@ -36,12 +48,79 @@ const RetailersList = () => {
     setRetailers(updatedRetailers);
   };
 
+  const tableHeaders = [
+    "Retailer ID",
+    "Retailer Name",
+    "Type",
+    "Location",
+    "Contact Person",
+    "Contact Number",
+    "Swiping Terminal",
+    "Status",
+    "Activate/Deactivate",
+  ];
+
+  const [addRetailerModalOpen, setAddRetailerModalOpen] = useState(false);
+
+  const handleAddRetailer = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (
+      retailerName.trim() === "" ||
+      contactNumber.trim() === "" ||
+      location.trim() === "" ||
+      terminalID.trim() === ""
+    ) {
+      setError("All fields are required.");
+      setSuccess(false);
+      return;
+    }
+
+    const newRetailer = {
+      retailerID: retailerID || generateUniqueRetailerID(), // Use existing ID or generate a new one
+      retailerName,
+      location,
+      contactNumber,
+      terminalID,
+      services,
+    };
+
+    console.log("Retailer added:", newRetailer);
+
+    setError("");
+    setSuccess(true);
+    setRetailerName("");
+    setLocation("");
+    setContactNumber("");
+    setTerminalID("");
+    setServices("");
+    setRetailerID(""); // Reset retailer ID
+  };
+
+  const generateUniqueRetailerID = () => `RE${String(Date.now()).slice(-4)}`; // Function to generate unique Retailer ID
+
+  const handleOpen = () => {
+    console.log("Opening modal");
+    !addRetailerModalOpen ? setAddRetailerModalOpen(true) : null;
+  };
+  const handleClose = () => {
+    console.log("Closing modal");
+    setAddRetailerModalOpen(false);
+  };
+
   return (
     <DefaultLayout>
       <div className="container mx-auto p-6">
-        <h2 className="mb-6 text-3xl font-bold text-gray-800 dark:text-white">
-          Retailers List
-        </h2>
+        <div className="flex flex-row items-center justify-between">
+          <h2 className="mb-6 text-3xl font-bold text-gray-800 dark:text-white">
+            Retailers List
+          </h2>
+          <p
+            className="cursor-pointer font-bold text-gray-800 dark:text-white"
+            onClick={handleOpen}
+          >
+            Add Retailer
+          </p>
+        </div>
         <p className="mb-4 text-gray-600 dark:text-gray-400">
           Below is the list of retailers and their current status. You can
           manage their details and monitor their activity here.
@@ -50,33 +129,14 @@ const RetailersList = () => {
           <table className="min-w-full border-collapse rounded-lg bg-white shadow-md dark:bg-gray-800">
             <thead>
               <tr className="bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300">
-                <th className="border border-gray-300 px-4 py-2 text-left text-sm font-semibold dark:border-gray-600">
-                  Retailer ID
-                </th>
-                <th className="border border-gray-300 px-4 py-2 text-left text-sm font-semibold dark:border-gray-600">
-                  Retailer Name
-                </th>
-                <th className="border border-gray-300 px-4 py-2 text-left text-sm font-semibold dark:border-gray-600">
-                  Type
-                </th>
-                <th className="border border-gray-300 px-4 py-2 text-left text-sm font-semibold dark:border-gray-600">
-                  Location
-                </th>
-                <th className="border border-gray-300 px-4 py-2 text-left text-sm font-semibold dark:border-gray-600">
-                  Contact Person
-                </th>
-                <th className="border border-gray-300 px-4 py-2 text-left text-sm font-semibold dark:border-gray-600">
-                  Contact Number
-                </th>
-                <th className="border border-gray-300 px-4 py-2 text-left text-sm font-semibold dark:border-gray-600">
-                  Swiping Terminal
-                </th>
-                <th className="border border-gray-300 px-4 py-2 text-left text-sm font-semibold dark:border-gray-600">
-                  Status
-                </th>
-                <th className="border border-gray-300 px-4 py-2 text-left text-sm font-semibold dark:border-gray-600">
-                  Activate/Deactivate
-                </th>
+                {tableHeaders.map((header) => (
+                  <th
+                    key={header}
+                    className="border border-gray-300 px-4 py-2 text-left text-sm font-semibold dark:border-gray-600"
+                  >
+                    {header}
+                  </th>
+                ))}
               </tr>
             </thead>
             <tbody>
@@ -89,30 +149,14 @@ const RetailersList = () => {
                       : "bg-white dark:bg-gray-800"
                   } transition-colors duration-200 hover:bg-gray-100 dark:hover:bg-gray-700`}
                 >
-                  <td className="border border-gray-300 px-4 py-2 text-gray-800 dark:border-gray-600 dark:text-white">
-                    {retailer.id}
-                  </td>
-                  <td className="border border-gray-300 px-4 py-2 text-gray-800 dark:border-gray-600 dark:text-white">
-                    {retailer.name}
-                  </td>
-                  <td className="border border-gray-300 px-4 py-2 text-gray-800 dark:border-gray-600 dark:text-white">
-                    {retailer.type}
-                  </td>
-                  <td className="border border-gray-300 px-4 py-2 text-gray-800 dark:border-gray-600 dark:text-white">
-                    {retailer.location}
-                  </td>
-                  <td className="border border-gray-300 px-4 py-2 text-gray-800 dark:border-gray-600 dark:text-white">
-                    {retailer.contactPerson}
-                  </td>
-                  <td className="border border-gray-300 px-4 py-2 text-gray-800 dark:border-gray-600 dark:text-white">
-                    {retailer.contactNumber}
-                  </td>
-                  <td className="border border-gray-300 px-4 py-2 text-gray-800 dark:border-gray-600 dark:text-white">
-                    {retailer.swipingTerminalStatus}
-                  </td>
-                  <td className="border border-gray-300 px-4 py-2 text-gray-800 dark:border-gray-600 dark:text-white">
-                    {retailer.status}
-                  </td>
+                  <TableCell>{retailer.id}</TableCell>
+                  <TableCell>{retailer.name}</TableCell>
+                  <TableCell>{retailer.type}</TableCell>
+                  <TableCell>{retailer.location}</TableCell>
+                  <TableCell>{retailer.contactPerson}</TableCell>
+                  <TableCell>{retailer.contactNumber}</TableCell>
+                  <TableCell>{retailer.swipingTerminalStatus}</TableCell>
+                  <TableCell>{retailer.status}</TableCell>
                   <td className="border border-gray-300 px-4 py-2 text-center text-gray-800 dark:border-gray-600 dark:text-white">
                     <label className="flex items-center space-x-3">
                       <span>
@@ -133,8 +177,40 @@ const RetailersList = () => {
           </table>
         </div>
       </div>
+
+      <AddRetailerModal
+        open={addRetailerModalOpen}
+        handleClose={handleClose}
+        handleAddRetailer={handleAddRetailer}
+        error={error}
+        success={success}
+        retailerID={retailerID}
+        retailerName={retailerName}
+        location={location}
+        contactNumber={contactNumber}
+        terminalID={terminalID}
+        services={services}
+        setRetailerName={setRetailerName}
+        setLocation={setLocation}
+        setContactNumber={setContactNumber}
+        setTerminalID={setTerminalID}
+        setServices={setServices}
+        generateUniqueRetailerID={generateUniqueRetailerID}
+      />
     </DefaultLayout>
   );
 };
 
 export default RetailersList;
+
+const style = {
+  position: "absolute",
+  top: "50%",
+  left: "50%",
+  transform: "translate(-50%, -50%)",
+  width: 400,
+  bgcolor: "background.paper",
+  border: "2px solid #000",
+  boxShadow: 24,
+  p: 4,
+};
