@@ -35,10 +35,10 @@ const ManageAdmins = () => {
     fetchAdmins();
   }, []);
 
-  const toggleActiveStatus = (user_id: string) => {
+  const toggleActiveStatus = (id: string) => {
     setAdmins(
       admins.map((admin) =>
-        admin.user_id === user_id ? { ...admin, active: !admin.active } : admin,
+        admin.id === id ? { ...admin, active: !admin.active } : admin,
       ),
     );
   };
@@ -46,7 +46,7 @@ const ManageAdmins = () => {
   const toggleTerminalAccess = (id: string) => {
     setAdmins(
       admins.map((admin) =>
-        admin.user_id === id
+        admin.id === id
           ? { ...admin, terminalAccess: !admin.terminal_access }
           : admin,
       ),
@@ -56,8 +56,7 @@ const ManageAdmins = () => {
   const handleAssignRetailer = (adminId: string, retailer: string) => {
     setAdmins(
       admins.map((admin) =>
-        admin.user_id === adminId &&
-        !admin.assigned_retailers?.includes(retailer)
+        admin.id === adminId && !admin.assigned_retailers?.includes(retailer)
           ? {
               ...admin,
               assignedRetailers: [
@@ -73,7 +72,7 @@ const ManageAdmins = () => {
   const handleDeassignRetailer = (adminId: string, retailer: string) => {
     setAdmins(
       admins.map((admin) =>
-        admin.user_id === adminId
+        admin.id === adminId
           ? {
               ...admin,
               assignedRetailers: admin.assigned_retailers?.filter(
@@ -86,7 +85,7 @@ const ManageAdmins = () => {
   };
 
   const handleRemoveAdmin = (id: string) => {
-    setAdmins(admins.filter((admin) => admin.user_id !== id));
+    setAdmins(admins.filter((admin) => admin.id !== id));
   };
 
   return (
@@ -104,7 +103,7 @@ const ManageAdmins = () => {
           ) : (
             admins.map((admin) => (
               <div
-                key={admin.user_id}
+                key={admin.id}
                 className="mb-4 rounded-lg bg-white p-6 shadow-lg dark:bg-gray-800"
               >
                 <div className="mb-4 flex items-center justify-between">
@@ -118,7 +117,7 @@ const ManageAdmins = () => {
                   </div>
                   <div className="space-x-2">
                     <button
-                      onClick={() => toggleActiveStatus(admin.user_id)}
+                      onClick={() => toggleActiveStatus(admin.id)}
                       className={`rounded-lg px-4 py-2 ${
                         admin.active ? "bg-red-500" : "bg-green-500"
                       } text-white`}
@@ -136,7 +135,7 @@ const ManageAdmins = () => {
                         : "Activate Terminal"}
                     </button> */}
                     <button
-                      onClick={() => handleRemoveAdmin(admin.user_id)}
+                      onClick={() => handleRemoveAdmin(admin.id)}
                       className="rounded-lg bg-gray-500 px-4 py-2 text-white transition duration-300 hover:bg-gray-600"
                     >
                       Remove
@@ -156,7 +155,7 @@ const ManageAdmins = () => {
                       {retailer}
                       <button
                         onClick={() =>
-                          handleDeassignRetailer(admin.user_id, retailer)
+                          handleDeassignRetailer(admin.id, retailer)
                         }
                         className="ml-2 text-red-500"
                       >
@@ -171,7 +170,7 @@ const ManageAdmins = () => {
                 </h5>
                 <select
                   onChange={(e) =>
-                    handleAssignRetailer(admin.user_id, e.target.value)
+                    handleAssignRetailer(admin.id, e.target.value)
                   }
                   className="w-full rounded-lg border border-gray-300 bg-gray-50 px-4 py-2 text-gray-900 focus:border-blue-500 focus:ring focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-blue-600 dark:focus:ring-blue-600"
                   value=""

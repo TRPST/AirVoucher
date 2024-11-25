@@ -16,7 +16,7 @@ const ManageAdmins = () => {
     "Retailer3",
   ]);
   const [newAdmin, setNewAdmin] = useState<Admin>({
-    user_id: "",
+    id: "",
     name: "",
     email: "",
     password: "",
@@ -54,7 +54,7 @@ const ManageAdmins = () => {
     }
 
     const admin: Admin = {
-      user_id: generateUniqueID(),
+      id: generateUniqueID(),
       name: newAdmin.name,
       email: newAdmin.email,
       password: newAdmin.password,

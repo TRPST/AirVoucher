@@ -1,7 +1,7 @@
 type Role = "superAdmin" | "admin" | "retailer" | "terminal";
 
 export type Admin = {
-  user_id: string;
+  id: string;
   name: string;
   email: string;
   password: string;
