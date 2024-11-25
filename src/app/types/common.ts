@@ -1,12 +1,12 @@
 type Role = "superAdmin" | "admin" | "retailer" | "terminal";
 
 export type Admin = {
-  id: string;
+  user_id: string;
   name: string;
   email: string;
   password: string;
   active: boolean;
   role: Role;
-  terminalAccess: boolean;
-  assignedRetailers?: string[];
+  terminal_access: boolean;
+  assigned_retailers?: string[];
 };

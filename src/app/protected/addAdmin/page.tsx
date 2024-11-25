@@ -16,14 +16,14 @@ const ManageAdmins = () => {
     "Retailer3",
   ]);
   const [newAdmin, setNewAdmin] = useState<Admin>({
-    id: "",
+    user_id: "",
     name: "",
     email: "",
     password: "",
     active: true,
     role: "admin",
-    terminalAccess: false,
-    assignedRetailers: [],
+    terminal_access: false,
+    assigned_retailers: [],
   });
 
   const [error, setError] = useState("");
@@ -39,7 +39,7 @@ const ManageAdmins = () => {
     newAdmin.password,
     newAdmin.active,
     newAdmin.role,
-    newAdmin.terminalAccess,
+    newAdmin.terminal_access,
   ]);
 
   const generateUniqueID = () => `AD${String(Date.now()).slice(-4)}`;
@@ -54,14 +54,14 @@ const ManageAdmins = () => {
     }
 
     const admin: Admin = {
-      id: generateUniqueID(),
+      user_id: generateUniqueID(),
       name: newAdmin.name,
       email: newAdmin.email,
       password: newAdmin.password,
       active: true,
       role: newAdmin.role,
-      terminalAccess: false,
-      assignedRetailers: [],
+      terminal_access: false,
+      assigned_retailers: [],
     };
 
     try {
@@ -78,56 +78,6 @@ const ManageAdmins = () => {
     } finally {
       setLoading(false);
     }
-  };
-
-  const toggleActiveStatus = (id: string) => {
-    setAdmins(
-      admins.map((admin) =>
-        admin.id === id ? { ...admin, active: !admin.active } : admin,
-      ),
-    );
-  };
-
-  const toggleTerminalAccess = (id: string) => {
-    setAdmins(
-      admins.map((admin) =>
-        admin.id === id
-          ? { ...admin, terminalAccess: !admin.terminalAccess }
-          : admin,
-      ),
-    );
-  };
-
-  const handleAssignRetailer = (AdminId: string, retailer: string) => {
-    setAdmins(
-      admins.map((admin) =>
-        admin.id === AdminId && !admin.assignedRetailers.includes(retailer)
-          ? {
-              ...admin,
-              assignedRetailers: [...admin.assignedRetailers, retailer],
-            }
-          : admin,
-      ),
-    );
-  };
-
-  const handleDeassignRetailer = (AdminId: string, retailer: string) => {
-    setAdmins(
-      admins.map((admin) =>
-        admin.id === AdminId
-          ? {
-              ...admin,
-              assignedRetailers: admin.assignedRetailers.filter(
-                (r) => r !== retailer,
-              ),
-            }
-          : admin,
-      ),
-    );
-  };
-
-  const handleRemoveAdmin = (id: string) => {
-    setAdmins(admins.filter((admin) => admin.id !== id));
   };
 
   const generateSecurePassword = () => {
@@ -218,11 +168,11 @@ const ManageAdmins = () => {
                 Terminal Access
                 <div className="ml-4">
                   <Switch
-                    checked={newAdmin.terminalAccess}
+                    checked={newAdmin.terminal_access}
                     onChange={(e) => {
                       setNewAdmin({
                         ...newAdmin,
-                        terminalAccess: e.target.checked,
+                        terminal_access: e.target.checked,
                       });
                     }}
                   />
