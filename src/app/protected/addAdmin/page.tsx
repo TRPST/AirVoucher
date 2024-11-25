@@ -198,7 +198,7 @@ const ManageAdmins = () => {
               </button>
             </div>
             <div style={{ marginTop: 10 }}>
-              <div className="flex w-[250px] items-center justify-between">
+              <div className="flex w-full items-center justify-between">
                 Active
                 <div className="ml-4">
                   <Switch
@@ -214,7 +214,7 @@ const ManageAdmins = () => {
               </div>
             </div>
             <div style={{ marginTop: 0 }}>
-              <div className="flex w-[250px] flex-row items-center justify-between">
+              <div className="flex w-full flex-row items-center justify-between">
                 Terminal Access
                 <div className="ml-4">
                   <Switch
@@ -230,7 +230,7 @@ const ManageAdmins = () => {
               </div>
             </div>
             <div style={{ marginTop: 0 }}>
-              <div className="flex w-[250px] flex-row items-center justify-between">
+              <div className="flex w-full flex-row items-center justify-between">
                 Super Admin
                 <div className="ml-4">
                   <Switch

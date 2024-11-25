@@ -65,7 +65,7 @@ const menuGroups = [
         route: "#",
         children: [
           { label: "Add New Admin", route: "addAdmin" },
-          { label: "Manage Admins", route: "manageSubAdmins" },
+          { label: "Manage Admins", route: "manageAdmins" },
           // { label: "Retailers Assignment", route: "#" },
           // { label: "Activate/Deactivate Sub-Admins", route: "#" },
         ],

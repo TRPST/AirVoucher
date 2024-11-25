@@ -71,6 +71,21 @@ export const signUpAdminAction = async (admin: Admin) => {
   return { success: "User created successfully" };
 };
 
+export const getAdminsAction = async () => {
+  const supabase = await createClient();
+
+  const { data: users, error } = await supabase
+    .from("users")
+    .select("*")
+    .in("role", ["admin", "superAdmin"]);
+
+  if (error) {
+    return { error: error.message };
+  }
+
+  return { users };
+};
+
 export const checkUserSignedIn = async () => {
   const supabase = await createClient();
   const {
