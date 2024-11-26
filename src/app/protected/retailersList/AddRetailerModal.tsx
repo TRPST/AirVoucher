@@ -9,17 +9,20 @@ interface AddRetailerModalProps {
   error: string;
   success: boolean;
   retailerID: string;
-  retailerName: string;
+  name: string;
+  email: string;
+  password: string;
   location: string;
-  contactNumber: string;
+  contactNo: string;
   terminalID: string;
-  services: string;
-  setRetailerName: (value: string) => void;
+  setName: (value: string) => void;
+  setEmail: (value: string) => void;
+  setPassword: (value: string) => void;
   setLocation: (value: string) => void;
-  setContactNumber: (value: string) => void;
+  setContactNo: (value: string) => void;
   setTerminalID: (value: string) => void;
-  setServices: (value: string) => void;
   generateUniqueRetailerID: () => string;
+  generateSecurePassword: () => void;
 }
 
 const AddRetailerModal: React.FC<AddRetailerModalProps> = ({
@@ -29,17 +32,18 @@ const AddRetailerModal: React.FC<AddRetailerModalProps> = ({
   error,
   success,
   retailerID,
-  retailerName,
+  name,
+  email,
+  password,
   location,
-  contactNumber,
-  terminalID,
-  services,
-  setRetailerName,
+  contactNo,
+  setName,
+  setEmail,
+  setPassword,
   setLocation,
-  setContactNumber,
-  setTerminalID,
-  setServices,
+  setContactNo,
   generateUniqueRetailerID,
+  generateSecurePassword,
 }) => {
   //console.log("Closer? :", handleClose);
   return (
@@ -103,11 +107,68 @@ const AddRetailerModal: React.FC<AddRetailerModalProps> = ({
             <input
               type="text"
               id="retailerName"
-              value={retailerName}
-              onChange={(e) => setRetailerName(e.target.value)}
+              value={name}
+              onChange={(e) => setName(e.target.value)}
               className="w-full rounded-lg border px-4 py-2 dark:bg-gray-700"
               placeholder="Enter retailer's name"
             />
+          </div>
+          <div>
+            <label
+              htmlFor="retailerName"
+              className="mb-3 block font-semibold text-gray-700 dark:text-gray-300"
+            >
+              Retailer Email
+            </label>
+            <input
+              type="text"
+              id="retailerName"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full rounded-lg border px-4 py-2 dark:bg-gray-700"
+              placeholder="Enter retailer's name"
+            />
+          </div>
+          <div>
+            <label
+              htmlFor="retailerName"
+              className="mb-3 block font-semibold text-gray-700 dark:text-gray-300"
+            >
+              Contact Number
+            </label>
+            <input
+              type="text"
+              id="retailerName"
+              value={contactNo}
+              onChange={(e) => setContactNo(e.target.value)}
+              className="w-full rounded-lg border px-4 py-2 dark:bg-gray-700"
+              placeholder="Enter retailer's name"
+            />
+          </div>
+          <div>
+            <label
+              htmlFor="retailerName"
+              className="mb-3 block font-semibold text-gray-700 dark:text-gray-300"
+            >
+              Password
+            </label>
+
+            <div className="flex items-center space-x-2">
+              <input
+                type="text"
+                placeholder="Password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full rounded-lg border border-gray-300 bg-gray-50 px-4 py-2 text-gray-900 shadow-sm dark:bg-gray-700 dark:text-white"
+              />
+              <button
+                type="button"
+                onClick={() => generateSecurePassword()}
+                className="rounded-lg bg-blue-500 px-4 py-2 text-white shadow-sm hover:bg-blue-600 focus:outline-none focus:ring focus:ring-blue-500"
+              >
+                Generate
+              </button>
+            </div>
           </div>
           <div>
             <label
@@ -124,53 +185,6 @@ const AddRetailerModal: React.FC<AddRetailerModalProps> = ({
               className="w-full rounded-lg border px-4 py-2 dark:bg-gray-700"
               placeholder="Enter retailer's location"
             />
-          </div>
-          <div>
-            <label
-              htmlFor="contactNumber"
-              className="mb-2 block font-semibold text-gray-700 dark:text-gray-300"
-            >
-              Contact Number
-            </label>
-            <input
-              type="text"
-              id="contactNumber"
-              value={contactNumber}
-              onChange={(e) => setContactNumber(e.target.value)}
-              className="w-full rounded-lg border px-4 py-2 dark:bg-gray-700"
-              placeholder="Enter contact number"
-            />
-          </div>
-          <div>
-            <label
-              htmlFor="terminalID"
-              className="mb-2 block font-semibold text-gray-700 dark:text-gray-300"
-            >
-              Terminal ID
-            </label>
-            <input
-              type="text"
-              id="terminalID"
-              value={terminalID}
-              onChange={(e) => setTerminalID(e.target.value)}
-              className="w-full rounded-lg border px-4 py-2 dark:bg-gray-700"
-              placeholder="Enter terminal ID"
-            />
-          </div>
-          <div>
-            <label
-              htmlFor="services"
-              className="mb-2 block font-semibold text-gray-700 dark:text-gray-300"
-            >
-              Services Offered
-            </label>
-            <textarea
-              id="services"
-              value={services}
-              onChange={(e) => setServices(e.target.value)}
-              className="w-full rounded-lg border px-4 py-2 dark:bg-gray-700"
-              placeholder="Enter details of services offered"
-            ></textarea>
           </div>
           <button
             type="submit"

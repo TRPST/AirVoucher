@@ -33,11 +33,12 @@ const RetailersList = () => {
   ]);
 
   const [retailerID, setRetailerID] = useState(""); // Added state for Retailer ID
-  const [retailerName, setRetailerName] = useState("");
+  const [name, setName] = useState("");
   const [location, setLocation] = useState("");
-  const [contactNumber, setContactNumber] = useState("");
+  const [contactNo, setContactNo] = useState("");
   const [terminalID, setTerminalID] = useState("");
-  const [services, setServices] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
 
@@ -65,8 +66,8 @@ const RetailersList = () => {
   const handleAddRetailer = (e: React.FormEvent) => {
     e.preventDefault();
     if (
-      retailerName.trim() === "" ||
-      contactNumber.trim() === "" ||
+      name.trim() === "" ||
+      contactNo.trim() === "" ||
       location.trim() === "" ||
       terminalID.trim() === ""
     ) {
@@ -77,22 +78,20 @@ const RetailersList = () => {
 
     const newRetailer = {
       retailerID: retailerID || generateUniqueRetailerID(), // Use existing ID or generate a new one
-      retailerName,
+      name,
       location,
-      contactNumber,
+      contactNo,
       terminalID,
-      services,
     };
 
     console.log("Retailer added:", newRetailer);
 
     setError("");
     setSuccess(true);
-    setRetailerName("");
+    setName("");
     setLocation("");
-    setContactNumber("");
+    setContactNo("");
     setTerminalID("");
-    setServices("");
     setRetailerID(""); // Reset retailer ID
   };
 
@@ -105,6 +104,17 @@ const RetailersList = () => {
   const handleClose = () => {
     console.log("Closing modal");
     setAddRetailerModalOpen(false);
+  };
+
+  const generateSecurePassword = () => {
+    const charset =
+      "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+|}{[]:;?><,./-=";
+    let password = "";
+    for (let i = 0; i < 12; i++) {
+      const randomIndex = Math.floor(Math.random() * charset.length);
+      password += charset[randomIndex];
+    }
+    setPassword(password);
   };
 
   return (
@@ -185,17 +195,20 @@ const RetailersList = () => {
         error={error}
         success={success}
         retailerID={retailerID}
-        retailerName={retailerName}
+        name={name}
         location={location}
-        contactNumber={contactNumber}
+        contactNo={contactNo}
         terminalID={terminalID}
-        services={services}
-        setRetailerName={setRetailerName}
+        setName={setName}
         setLocation={setLocation}
-        setContactNumber={setContactNumber}
+        setContactNo={setContactNo}
         setTerminalID={setTerminalID}
-        setServices={setServices}
         generateUniqueRetailerID={generateUniqueRetailerID}
+        email={email}
+        setEmail={setEmail}
+        password={password}
+        setPassword={setPassword}
+        generateSecurePassword={generateSecurePassword}
       />
     </DefaultLayout>
   );
