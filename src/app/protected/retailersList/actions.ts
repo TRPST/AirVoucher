@@ -1,49 +1,20 @@
 "use server";
 
-import { encodedRedirect } from "../../../../utils/utils";
 import { createClient } from "../../../../utils/supabase/server";
 import { headers } from "next/headers";
-import { redirect } from "next/navigation";
 import { Retailer } from "../../types/common";
-
-export const signUpAction = async (formData: FormData) => {
-  const email = formData.get("email")?.toString();
-  const password = formData.get("password")?.toString();
-  const supabase = await createClient();
-  const origin = (await headers()).get("origin");
-
-  if (!email || !password) {
-    return { error: "Email and password are required" };
-  }
-
-  const { error } = await supabase.auth.signUp({
-    email,
-    password,
-    options: {
-      emailRedirectTo: `${origin}/auth/callback`,
-    },
-  });
-
-  if (error) {
-    if (error) {
-      return { error: error.message };
-    }
-  } else {
-    return { success: "User created successfully" };
-  }
-};
 
 export const signUpRetailerAction = async (retailer: Retailer) => {
   const supabase = await createClient();
   const origin = (await headers()).get("origin");
 
-  if (!retailer.email || !retailer.contactNo) {
+  if (!retailer.email || !retailer.contact_number) {
     return { error: "Retailer email and contact are required" };
   }
 
   const { data, error } = await supabase.auth.signUp({
-    email: admin.email,
-    password: admin.password,
+    email: retailer.email,
+    password: retailer.password,
   });
 
   if (error) {
@@ -54,34 +25,47 @@ export const signUpRetailerAction = async (retailer: Retailer) => {
   if (!userId) {
     return { error: "User ID not found" };
   }
-  const { error: upsertError } = await supabase.from("users").upsert({
+
+  const { error: retailerUserError } = await supabase.from("users").upsert({
     id: userId,
-    name: admin.name,
-    email: admin.email,
-    role: admin.role, // or any other role you want to assign
-    active: admin.active,
-    terminal_access: admin.terminal_access,
-    assigned_retailers: admin.assigned_retailers,
+    name: retailer.contact_person,
+    email: retailer.email,
+    role: "retailer",
+    active: retailer.active,
   });
 
-  if (upsertError) {
-    return { error: upsertError.message };
+  if (retailerUserError) {
+    return { error: retailerUserError.message };
   }
 
-  return { success: "User created successfully" };
+  const { error: retailerError } = await supabase.from("retailers").upsert({
+    id: retailer.id,
+    name: retailer.name,
+    email: retailer.email,
+    contact_number: retailer.contact_number,
+    contact_person: retailer.contact_person,
+    location: retailer.location,
+    active: retailer.active,
+  });
+
+  if (retailerError) {
+    return { error: retailerError.message };
+  }
+
+  return { success: "Retailer and user created successfully" };
 };
 
-export const getAdminsAction = async () => {
+export const getRetailersAction = async () => {
   const supabase = await createClient();
 
-  const { data: users, error } = await supabase
-    .from("users")
+  const { data: retailers, error } = await supabase
+    .from("retailers")
     .select("*")
-    .in("role", ["admin", "superAdmin"]);
+    .order("created_at", { ascending: false });
 
   if (error) {
     return { error: error.message };
   }
 
-  return { users };
+  return { retailers };
 };

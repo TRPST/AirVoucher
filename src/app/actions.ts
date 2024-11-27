@@ -60,8 +60,8 @@ export const signUpAdminAction = async (admin: Admin) => {
     email: admin.email,
     role: admin.role, // or any other role you want to assign
     active: admin.active,
-    terminal_access: admin.terminal_access,
-    assigned_retailers: admin.assigned_retailers,
+    terminal_access: admin.terminalAccess,
+    assigned_retailers: admin.assignedRetailers,
   });
 
   if (upsertError) {

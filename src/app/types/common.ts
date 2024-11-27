@@ -7,17 +7,18 @@ export type Admin = {
   password: string;
   active: boolean;
   role: Role;
-  terminalAccess: boolean;
-  assignedRetailers?: string[];
+  terminal_access: boolean;
+  assigned_retailers?: string[];
 };
 
 export type Retailer = {
   id: string;
   name: string;
   email: string;
-  contactNo: string;
-  contactPerson: string;
+  password: string;
+  contact_number: string;
+  contact_person: string;
   location: string;
   active: boolean;
-  createdAt: string;
+  terminal_access: boolean;
 };
