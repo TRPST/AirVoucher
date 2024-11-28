@@ -69,3 +69,41 @@ export const getRetailersAction = async () => {
 
   return { retailers };
 };
+
+//function to edit retailer based on updatedRetailer state
+export const editRetailerAction = async (updatedRetailer: Retailer) => {
+  const supabase = await createClient();
+
+  const { error } = await supabase.from("retailers").upsert({
+    id: updatedRetailer.id,
+    name: updatedRetailer.name,
+    email: updatedRetailer.email,
+    contact_number: updatedRetailer.contact_number,
+    contact_person: updatedRetailer.contact_person,
+    location: updatedRetailer.location,
+    active: updatedRetailer.active,
+    terminal_access: updatedRetailer.terminal_access,
+  });
+
+  if (error) {
+    return { error: error.message };
+  }
+
+  return { success: "Retailer updated successfully" };
+};
+
+//function to delete retailer based on retailerId
+export const deleteRetailerAction = async (retailerId: string) => {
+  const supabase = await createClient();
+
+  const { error } = await supabase
+    .from("retailers")
+    .delete()
+    .eq("id", retailerId);
+
+  if (error) {
+    return { error: error.message };
+  }
+
+  return { success: "Retailer deleted successfully" };
+};

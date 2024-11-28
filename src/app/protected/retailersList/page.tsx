@@ -7,15 +7,18 @@ import React, { useEffect, useState } from "react";
 import TableCell from "./TableCell";
 import AddRetailerModal from "./AddRetailerModal";
 import { Retailer } from "@/app/types/common";
-import { getRetailersAction, signUpRetailerAction } from "./actions";
+import {
+  deleteRetailerAction,
+  editRetailerAction,
+  getRetailersAction,
+  signUpRetailerAction,
+} from "./actions";
+import EditRetailerModal from "./EditRetailerModal";
 
 const RetailersList = () => {
   const [retailers, setRetailers] = useState<Retailer[]>([]);
-
   const [addRetailerModalOpen, setAddRetailerModalOpen] = useState(false);
-
   const generateUniqueRetailerID = () => `RE${String(Date.now()).slice(-4)}`; // Function to generate unique Retailer ID
-
   const [newRetailer, setNewRetailer] = useState<Retailer>({
     id: generateUniqueRetailerID(),
     name: "",
@@ -27,21 +30,23 @@ const RetailersList = () => {
     active: true,
     terminal_access: true,
   });
-
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
   const [fetchingRetailers, setFetchingRetailers] = useState(false);
 
-  const toggleRetailerStatus = (index: number) => {
-    const updatedRetailers = [...retailers];
-    // updatedRetailers[index].status =
-    //   updatedRetailers[index].status === "Active" ? "Inactive" : "Active";
-    setRetailers(updatedRetailers);
-  };
+  const [editRetailerModalOpen, setEditRetailerModalOpen] = useState(false);
+  const [updatedRetailer, setUpdatedRetailer] = useState<Retailer | null>(null);
 
-  const fetchRetailers = async () => {
-    setFetchingRetailers(true);
+  const [editError, setEditError] = useState("");
+  const [editSuccess, setEditSuccess] = useState("");
+  const [editLoading, setEditLoading] = useState(false);
+
+  const [confirmDeleteRetailer, setConfirmDeleteRetailer] = useState(false);
+
+  const fetchRetailers = async (doLoad: Boolean) => {
+    if (doLoad) setFetchingRetailers(true);
+
     const { retailers, error } = await getRetailersAction();
     //console.log("Retailers: ", retailers);
     if (error) {
@@ -55,8 +60,14 @@ const RetailersList = () => {
   };
 
   useEffect(() => {
-    fetchRetailers();
+    fetchRetailers(true);
   }, []);
+
+  useEffect(() => {
+    if (success !== "") fetchRetailers(false);
+    if (editSuccess !== "") fetchRetailers(false);
+    //fetchRetailers();
+  }, [success, editSuccess]);
 
   const handleAddRetailer = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -69,7 +80,6 @@ const RetailersList = () => {
       setError("All fields are required.");
       return;
     }
-
     try {
       setLoading(true);
       const result = await signUpRetailerAction(newRetailer);
@@ -86,17 +96,72 @@ const RetailersList = () => {
     }
   };
 
+  const handleEditRetailer = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!updatedRetailer) return;
+    if (
+      updatedRetailer.name.trim() === "" ||
+      updatedRetailer.contact_person.trim() === "" ||
+      updatedRetailer.contact_number.trim() === "" ||
+      updatedRetailer.location.trim() === ""
+    ) {
+      setEditError("All fields are required.");
+      return;
+    }
+    try {
+      setEditLoading(true);
+      const result = await editRetailerAction(updatedRetailer);
+      console.log("Result: ", result);
+      if (result.error) {
+        setEditError(result.error);
+      } else {
+        setEditSuccess("Retailer updated successfully!");
+      }
+    } catch (error) {
+      console.error("Error: ", error);
+    } finally {
+      setEditLoading(false);
+    }
+  };
+
+  //function to handle delete retailer
+  const handleDeleteRetailer = async (id: string) => {
+    try {
+      setEditLoading(true);
+      const result = await deleteRetailerAction(id);
+      console.log("Result: ", result);
+      if (result.error) {
+        setEditError(result.error);
+      } else {
+        setEditSuccess("Retailer deleted successfully!");
+      }
+    } catch (error) {
+      console.error("Error: ", error);
+    } finally {
+      setEditLoading(false);
+    }
+  };
+
   useEffect(() => {
     setError("");
     setSuccess("");
   }, [newRetailer]);
 
+  useEffect(() => {
+    setEditError("");
+    setEditSuccess("");
+  }, [updatedRetailer]);
+
   const handleOpen = () => {
-    //console.log("Opening modal");
-    !addRetailerModalOpen ? setAddRetailerModalOpen(true) : null;
+    setAddRetailerModalOpen(true);
   };
+
+  const handleEditOpen = (retailer: Retailer) => {
+    setUpdatedRetailer(retailer);
+    setEditRetailerModalOpen(true);
+  };
+
   const handleClose = () => {
-    //console.log("Closing modal");
     setAddRetailerModalOpen(false);
     setNewRetailer({
       id: generateUniqueRetailerID(),
@@ -111,8 +176,28 @@ const RetailersList = () => {
     });
 
     setError("");
-    if (success != "") fetchRetailers();
+    //if (success != "") fetchRetailers();
     setSuccess("");
+  };
+
+  const handleEditClose = () => {
+    setEditRetailerModalOpen(false);
+    setUpdatedRetailer({
+      id: generateUniqueRetailerID(),
+      name: "",
+      email: "",
+      password: "",
+      contact_person: "",
+      contact_number: "",
+      location: "",
+      active: true,
+      terminal_access: true,
+    });
+
+    setEditError("");
+    //if (editSuccess != "") fetchRetailers();
+    setEditSuccess("");
+    setConfirmDeleteRetailer(false);
   };
 
   const generateSecurePassword = () => {
@@ -132,7 +217,8 @@ const RetailersList = () => {
     "Location",
     "Contact Person",
     "Contact Number",
-    "Activate/Deactivate",
+    "Active",
+    "Action",
   ];
 
   return (
@@ -191,15 +277,17 @@ const RetailersList = () => {
                     <td className="border border-gray-300 px-4 py-2 text-center text-gray-800 dark:border-gray-600 dark:text-white">
                       <label className="flex items-center space-x-3">
                         <span>{retailer.active ? "Active" : "Inactive"}</span>
-                        <input
-                          type="checkbox"
-                          checked={retailer.active}
-                          onChange={() => toggleRetailerStatus(index)}
-                          className="toggle-checkbox"
-                        />
                         <span className="toggle-switch"></span>
                       </label>
                     </td>
+                    <TableCell>
+                      <p
+                        style={{ cursor: "pointer", fontWeight: "bold" }}
+                        onClick={() => handleEditOpen(retailer)}
+                      >
+                        Edit
+                      </p>
+                    </TableCell>
                   </tr>
                 ))}
               </tbody>
@@ -221,6 +309,24 @@ const RetailersList = () => {
         generateUniqueRetailerID={generateUniqueRetailerID}
         generateSecurePassword={generateSecurePassword}
       />
+      {updatedRetailer && (
+        <EditRetailerModal
+          open={editRetailerModalOpen}
+          handleClose={handleEditClose}
+          handleEditRetailer={handleEditRetailer}
+          handleDeleteRetailer={(id: string) => handleDeleteRetailer(id)}
+          confirmDeleteRetailer={confirmDeleteRetailer}
+          setConfirmDeleteRetailer={setConfirmDeleteRetailer}
+          updatedRetailer={updatedRetailer}
+          setUpdatedRetailer={setUpdatedRetailer}
+          editError={editError}
+          editSuccess={editSuccess}
+          editLoading={editLoading}
+          setEditLoading={setEditLoading}
+          generateUniqueRetailerID={generateUniqueRetailerID}
+          generateSecurePassword={generateSecurePassword}
+        />
+      )}
     </DefaultLayout>
   );
 };
