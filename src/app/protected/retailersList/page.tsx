@@ -4,7 +4,7 @@ import Breadcrumb from "@/components/Breadcrumbs/Breadcrumb";
 import DefaultLayout from "@/components/Layouts/DefaultLaout";
 import { Box, Modal, Typography } from "@mui/material";
 import React, { useEffect, useState } from "react";
-import TableCell from "./TableCell";
+import TableCell from "../../../components/Tables/TableCell";
 import AddRetailerModal from "./AddRetailerModal";
 import { Retailer } from "@/app/types/common";
 import {
@@ -274,12 +274,9 @@ const RetailersList = () => {
                     <TableCell>{retailer.location}</TableCell>
                     <TableCell>{retailer.contact_person}</TableCell>
                     <TableCell>{retailer.contact_number}</TableCell>
-                    <td className="border border-gray-300 px-4 py-2 text-center text-gray-800 dark:border-gray-600 dark:text-white">
-                      <label className="flex items-center space-x-3">
-                        <span>{retailer.active ? "Active" : "Inactive"}</span>
-                        <span className="toggle-switch"></span>
-                      </label>
-                    </td>
+                    <TableCell>
+                      {retailer.active ? "Active" : "Inactive"}
+                    </TableCell>
                     <TableCell>
                       <p
                         style={{ cursor: "pointer", fontWeight: "bold" }}

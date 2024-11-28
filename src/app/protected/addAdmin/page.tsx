@@ -19,11 +19,12 @@ const ManageAdmins = () => {
     id: "",
     name: "",
     email: "",
+    contact_number: "",
     password: "",
     active: true,
     role: "admin",
-    terminalAccess: false,
-    assignedRetailers: [],
+    terminal_access: false,
+    assigned_retailers: [],
   });
 
   const [error, setError] = useState("");
@@ -39,7 +40,7 @@ const ManageAdmins = () => {
     newAdmin.password,
     newAdmin.active,
     newAdmin.role,
-    newAdmin.terminalAccess,
+    newAdmin.terminal_access,
   ]);
 
   const generateUniqueID = () => `AD${String(Date.now()).slice(-4)}`;
@@ -57,11 +58,12 @@ const ManageAdmins = () => {
       id: generateUniqueID(),
       name: newAdmin.name,
       email: newAdmin.email,
+      contact_number: newAdmin.contact_number,
       password: newAdmin.password,
       active: true,
       role: newAdmin.role,
-      terminalAccess: false,
-      assignedRetailers: [],
+      terminal_access: false,
+      assigned_retailers: [],
     };
 
     try {
@@ -168,11 +170,11 @@ const ManageAdmins = () => {
                 Terminal Access
                 <div className="ml-4">
                   <Switch
-                    checked={newAdmin.terminalAccess}
+                    checked={newAdmin.terminal_access}
                     onChange={(e) => {
                       setNewAdmin({
                         ...newAdmin,
-                        terminalAccess: e.target.checked,
+                        terminal_access: e.target.checked,
                       });
                     }}
                   />

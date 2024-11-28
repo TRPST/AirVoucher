@@ -4,6 +4,7 @@ export type Admin = {
   id: string;
   name: string;
   email: string;
+  contact_number: string;
   password: string;
   active: boolean;
   role: Role;
