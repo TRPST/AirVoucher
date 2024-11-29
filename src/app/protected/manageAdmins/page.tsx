@@ -1,116 +1,241 @@
 "use client";
 
-import { getAdminsAction } from "@/app/actions";
+import {
+  deleteAdminAction,
+  editAdminAction,
+  getAdminsAction,
+  signUpAdminAction,
+} from "./actions";
 import { Admin } from "@/app/types/common";
 import DefaultLayout from "@/components/Layouts/DefaultLaout";
 import React, { useEffect, useState } from "react";
 import TableCell from "../../../components/Tables/TableCell";
+import { Button } from "@mui/material";
+import AddAdminModal from "./AddAdminModal";
+import EditAdminModal from "./EditAdminModal";
 
 const ManageAdmins = () => {
   const [admins, setAdmins] = useState<Admin[]>([]);
-  const [retailers, setRetailers] = useState<string[]>([
-    "Retailer1",
-    "Retailer2",
-    "Retailer3",
-  ]);
-  const [newAdmin, setNewAdmin] = useState({ name: "", email: "" });
+  // const [retailers, setAdmins] = useState<string[]>([
+  //   "Admin1",
+  //   "Admin2",
+  //   "Admin3",
+  // ]);
+  const [newAdmin, setNewAdmin] = useState<Admin>({
+    id: "",
+    name: "",
+    email: "",
+    contact_number: "",
+    password: "",
+    active: true,
+    role: "admin",
+    terminal_access: false,
+    assigned_retailers: [],
+  });
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [editError, setEditError] = useState("");
+  const [editSuccess, setEditSuccess] = useState("");
+  const [confirmDeleteAdmin, setConfirmDeleteAdmin] = useState(false);
+
   const [loading, setLoading] = useState(false);
+  const [editLoading, setEditLoading] = useState(false);
+
+  const [addAdminModalOpen, setAddAdminModalOpen] = useState(false);
   const [editAdminModalOpen, setEditAdminModalOpen] = useState(false);
   const [editAdmin, setEditAdmin] = useState<Admin | null>(null);
+  const [updatedAdmin, setUpdatedAdmin] = useState<Admin | null>(null);
+
+  const fetchAdmins = async (doLoad: boolean) => {
+    if (doLoad) setLoading(true);
+    const { users, error } = await getAdminsAction();
+    console.log("Users: ", users);
+    if (error) {
+      console.error(error);
+    } else {
+      if (users) {
+        setAdmins(users);
+      }
+    }
+    setLoading(false);
+  };
 
   useEffect(() => {
-    const fetchAdmins = async () => {
-      setLoading(true);
-      const { users, error } = await getAdminsAction();
-      console.log("Users: ", users);
-      if (error) {
-        console.error(error);
-      } else {
-        if (users) {
-          setAdmins(users);
-        }
-      }
-      setLoading(false);
-    };
-
-    fetchAdmins();
+    fetchAdmins(true);
   }, []);
 
-  const toggleActiveStatus = (id: string) => {
-    setAdmins(
-      admins.map((admin) =>
-        admin.id === id ? { ...admin, active: !admin.active } : admin,
-      ),
-    );
+  useEffect(() => {
+    if (success !== "") fetchAdmins(false);
+    if (editSuccess !== "") fetchAdmins(false);
+  }, [success, editSuccess]);
+
+  useEffect(() => {
+    setSuccess("");
+    setError("");
+
+    setEditSuccess("");
+    setEditError("");
+  }, [newAdmin, updatedAdmin]);
+
+  const generateUniqueID = () => `AD${String(Date.now()).slice(-4)}`;
+
+  const handleCreateAdmin = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!newAdmin.name || !newAdmin.email) {
+      setError("Both name and email are required.");
+      setSuccess("");
+      return;
+    }
+
+    const admin: Admin = {
+      id: generateUniqueID(),
+      name: newAdmin.name,
+      email: newAdmin.email,
+      contact_number: newAdmin.contact_number,
+      password: newAdmin.password,
+      active: newAdmin.active,
+      role: newAdmin.role,
+      terminal_access: newAdmin.terminal_access,
+      assigned_retailers: newAdmin.assigned_retailers,
+    };
+
+    try {
+      setLoading(true);
+      const result = await signUpAdminAction(admin);
+      console.log("Result: ", result);
+      if (result.error) {
+        setError(result.error);
+      } else {
+        setSuccess(result.success || "");
+      }
+    } catch (error) {
+      console.error("Error: ", error);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const toggleTerminalAccess = (id: string) => {
-    setAdmins(
-      admins.map((admin) =>
-        admin.id === id
-          ? { ...admin, terminalAccess: !admin.terminal_access }
-          : admin,
-      ),
-    );
-  };
-
-  const handleAssignRetailer = (adminId: string, retailer: string) => {
-    setAdmins(
-      admins.map((admin) =>
-        admin.id === adminId && !admin.assigned_retailers?.includes(retailer)
-          ? {
-              ...admin,
-              assignedRetailers: [
-                ...(admin.assigned_retailers || []),
-                retailer,
-              ],
-            }
-          : admin,
-      ),
-    );
-  };
-
-  const handleDeassignRetailer = (adminId: string, retailer: string) => {
-    setAdmins(
-      admins.map((admin) =>
-        admin.id === adminId
-          ? {
-              ...admin,
-              assignedRetailers: admin.assigned_retailers?.filter(
-                (r) => r !== retailer,
-              ),
-            }
-          : admin,
-      ),
-    );
-  };
-
-  const handleRemoveAdmin = (id: string) => {
-    setAdmins(admins.filter((admin) => admin.id !== id));
+  const generateSecurePassword = () => {
+    const charset =
+      "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+|}{[]:;?><,./-=";
+    let password = "";
+    for (let i = 0; i < 12; i++) {
+      const randomIndex = Math.floor(Math.random() * charset.length);
+      password += charset[randomIndex];
+    }
+    return password;
   };
 
   const handleEditOpen = (admin: Admin) => {
-    setEditAdmin(admin);
+    setUpdatedAdmin(admin);
     setEditAdminModalOpen(true);
   };
 
+  const handleClose = () => {
+    setAddAdminModalOpen(false);
+    setNewAdmin({
+      id: "",
+      name: "",
+      email: "",
+      contact_number: "",
+      password: "",
+      active: true,
+      role: "admin",
+      terminal_access: false,
+      assigned_retailers: [],
+    });
+
+    setError("");
+    setSuccess("");
+  };
+
+  const handleEditAdmin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!updatedAdmin) return;
+    if (
+      updatedAdmin.name.trim() === "" ||
+      updatedAdmin.contact_number?.trim() === "" ||
+      updatedAdmin.email.trim() === ""
+    ) {
+      setEditError("All fields are required.");
+      return;
+    }
+    try {
+      setEditLoading(true);
+      const result = await editAdminAction(updatedAdmin);
+      console.log("Result: ", result);
+      if (result.error) {
+        setEditError(result.error);
+      } else {
+        setEditSuccess(result.success || "");
+      }
+    } catch (error) {
+      console.error("Error: ", error);
+    } finally {
+      setEditLoading(false);
+    }
+  };
+
+  //function to handle delete retailer
+  const handleDeleteAdmin = async (id: string) => {
+    try {
+      setEditLoading(true);
+      const result = await deleteAdminAction(id);
+      console.log("Result: ", result);
+      if (result.error) {
+        setEditError(result.error);
+      } else {
+        setEditSuccess(result.success || "");
+      }
+    } catch (error) {
+      console.error("Error: ", error);
+    } finally {
+      setEditLoading(false);
+    }
+  };
+
+  const handleEditClose = () => {
+    setEditAdminModalOpen(false);
+    setUpdatedAdmin({
+      id: "",
+      name: "",
+      email: "",
+      contact_number: "",
+      password: "",
+      active: true,
+      role: "admin",
+      terminal_access: false,
+      assigned_retailers: [],
+    });
+
+    setEditError("");
+    setEditSuccess("");
+    setConfirmDeleteAdmin(false);
+  };
+
   const tableHeaders = [
-    "Admin Name",
+    "Name",
     "Email",
-    "Role",
     "Contact Number",
+    "Terminal Access",
     "Active",
-    "Action",
+    "Retailers",
   ];
+
+  const generateUniqueAdminID = () => `AD${String(Date.now()).slice(-4)}`;
 
   return (
     <DefaultLayout>
       <div className="container mx-auto py-8">
-        <h2 className="mb-6 text-center text-3xl font-semibold text-gray-800 dark:text-white">
-          Manage Admins
-        </h2>
+        <div className="mb-6 flex items-center justify-between">
+          <h2 className="text-3xl font-semibold text-gray-800 dark:text-white">
+            Manage Admins
+          </h2>
+          <Button variant="outlined" onClick={() => setAddAdminModalOpen(true)}>
+            Add Admin
+          </Button>
+        </div>
 
         <div>
           {loading ? (
@@ -122,140 +247,124 @@ const ManageAdmins = () => {
               No sub-admins available. Please create one.
             </p>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="min-w-full border-collapse rounded-lg bg-white shadow-md dark:bg-gray-800">
-                <thead>
-                  <tr className="bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300">
-                    {tableHeaders.map((header) => (
-                      <th
-                        key={header}
-                        className="border border-gray-300 px-4 py-2 text-left text-sm font-semibold dark:border-gray-600"
-                      >
-                        {header}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {admins.map((admin, index) => (
-                    <tr
-                      key={index}
-                      className={`${
-                        index % 2 === 0
-                          ? "bg-gray-50 dark:bg-gray-700"
-                          : "bg-white dark:bg-gray-800"
-                      } transition-colors duration-200 hover:bg-gray-100 dark:hover:bg-gray-700`}
-                    >
-                      <TableCell>{admin.name}</TableCell>
-                      <TableCell>{admin.email}</TableCell>
-                      <TableCell>{admin.role}</TableCell>
-                      <TableCell>{admin.active}</TableCell>
-                      <TableCell>
-                        {admin.active ? "Active" : "Inactive"}
-                      </TableCell>
-                      <TableCell>
-                        <p
-                          style={{ cursor: "pointer", fontWeight: "bold" }}
+            <>
+              <p className="font-bold text-gray-800 dark:text-white">
+                Super Admins
+              </p>
+              <div className="mt-5 overflow-x-auto">
+                <table className="min-w-full border-collapse rounded-lg bg-white shadow-md dark:bg-gray-800">
+                  <thead>
+                    <tr className="bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300">
+                      {tableHeaders.map((header) => (
+                        <th
+                          key={header}
+                          className="border border-gray-300 px-4 py-2 text-left text-sm font-semibold dark:border-gray-600"
+                        >
+                          {header}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {admins
+                      .filter((admin) => admin.role === "superAdmin")
+                      .map((admin, index) => (
+                        <tr
+                          key={index}
+                          className="cursor-pointer bg-white transition-colors duration-200 hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700"
                           onClick={() => handleEditOpen(admin)}
                         >
-                          Edit
-                        </p>
-                      </TableCell>
+                          <TableCell>{admin.name}</TableCell>
+                          <TableCell>{admin.email}</TableCell>
+                          <TableCell>{admin.contact_number}</TableCell>
+                          <TableCell>
+                            {admin.terminal_access ? "Yes" : "No"}
+                          </TableCell>
+                          <TableCell>{admin.active ? "Yes" : "No"}</TableCell>
+                          <TableCell>
+                            {admin.assigned_retailers?.length}
+                          </TableCell>
+                        </tr>
+                      ))}
+                  </tbody>
+                </table>
+              </div>
+              <div className="mt-10 overflow-x-auto">
+                <p className="cursor-pointer font-bold text-gray-800 dark:text-white">
+                  Sub Admins
+                </p>
+                <table className="mt-5 min-w-full border-collapse rounded-lg bg-white shadow-md dark:bg-gray-800">
+                  <thead>
+                    <tr className="bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300">
+                      {tableHeaders.map((header) => (
+                        <th
+                          key={header}
+                          className="border border-gray-300 px-4 py-2 text-left text-sm font-semibold dark:border-gray-600"
+                        >
+                          {header}
+                        </th>
+                      ))}
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-            // admins.map((admin) => (
-            //   <div
-            //     key={admin.id}
-            //     className="mb-4 w-full items-center rounded-lg bg-white p-6 shadow-lg dark:bg-gray-800"
-            //   >
-            //     <div className="mb-4 flex items-center justify-between">
-            //       <div>
-            //         <h4 className="text-xl font-semibold text-gray-800 dark:text-white">
-            //           {admin.name}
-            //         </h4>
-            //         <p className="text-gray-600 dark:text-gray-400">
-            //           {admin.email}
-            //         </p>
-            //       </div>
-            //       <div className="space-x-2">
-            //         <button
-            //           onClick={() => toggleActiveStatus(admin.id)}
-            //           className={`rounded-lg px-4 py-2 ${
-            //             admin.active ? "bg-red-500" : "bg-green-500"
-            //           } text-white`}
-            //         >
-            //           {admin.active ? "Deactivate" : "Activate"}
-            //         </button>
-            //         {/* <button
-            //           onClick={() => toggleTerminalAccess(admin.id)}
-            //           className={`rounded-lg px-4 py-2 ${
-            //             admin.terminalAccess ? "bg-yellow-500" : "bg-blue-500"
-            //           } text-white`}
-            //         >
-            //           {admin.terminalAccess
-            //             ? "Deactivate Terminal"
-            //             : "Activate Terminal"}
-            //         </button> */}
-            //         <button
-            //           onClick={() => handleRemoveAdmin(admin.id)}
-            //           className="rounded-lg bg-gray-500 px-4 py-2 text-white transition duration-300 hover:bg-gray-600"
-            //         >
-            //           Remove
-            //         </button>
-            //       </div>
-            //     </div>
-
-            //     <h5 className="mb-2 text-lg font-semibold text-gray-800 dark:text-white">
-            //       Assigned Retailers
-            //     </h5>
-            //     <div className="flex flex-wrap space-x-2">
-            //       {admin.assigned_retailers?.map((retailer) => (
-            //         <div
-            //           key={retailer}
-            //           className="rounded-lg bg-gray-200 px-4 py-1 text-gray-900 dark:bg-gray-700 dark:text-white"
-            //         >
-            //           {retailer}
-            //           <button
-            //             onClick={() =>
-            //               handleDeassignRetailer(admin.id, retailer)
-            //             }
-            //             className="ml-2 text-red-500"
-            //           >
-            //             x
-            //           </button>
-            //         </div>
-            //       ))}
-            //     </div>
-
-            //     <h5 className="mb-2 mt-4 text-lg font-semibold text-gray-800 dark:text-white">
-            //       Assign Retailer
-            //     </h5>
-            //     <select
-            //       onChange={(e) =>
-            //         handleAssignRetailer(admin.id, e.target.value)
-            //       }
-            //       className="w-full rounded-lg border border-gray-300 bg-gray-50 px-4 py-2 text-gray-900 focus:border-blue-500 focus:ring focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-blue-600 dark:focus:ring-blue-600"
-            //       value=""
-            //     >
-            //       <option value="" disabled>
-            //         Select retailer
-            //       </option>
-            //       {retailers
-            //         .filter((r) => !admin.assigned_retailers?.includes(r))
-            //         .map((retailer) => (
-            //           <option key={retailer} value={retailer}>
-            //             {retailer}
-            //           </option>
-            //         ))}
-            //     </select>
-            //   </div>
-            // ))
+                  </thead>
+                  <tbody>
+                    {admins
+                      .filter((admin) => admin.role === "admin")
+                      .map((admin, index) => (
+                        <tr
+                          key={index}
+                          className="cursor-pointer bg-white transition-colors duration-200 hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700"
+                          onClick={() => handleEditOpen(admin)}
+                        >
+                          <TableCell>{admin.name}</TableCell>
+                          <TableCell>{admin.email}</TableCell>
+                          <TableCell>{admin.contact_number}</TableCell>
+                          <TableCell>
+                            {admin.terminal_access ? "Yes" : "No"}
+                          </TableCell>
+                          <TableCell>{admin.active ? "Yes" : "No"}</TableCell>
+                          <TableCell>
+                            {admin.assigned_retailers?.length}
+                          </TableCell>
+                        </tr>
+                      ))}
+                  </tbody>
+                </table>
+              </div>
+            </>
           )}
         </div>
       </div>
+      <AddAdminModal
+        open={addAdminModalOpen}
+        handleClose={handleClose}
+        handleCreateAdmin={handleCreateAdmin}
+        newAdmin={newAdmin}
+        setNewAdmin={setNewAdmin}
+        error={error}
+        success={success}
+        loading={loading}
+        setLoading={setLoading}
+        generateUniqueAdminID={generateUniqueAdminID}
+        generateSecurePassword={generateSecurePassword}
+      />
+      {updatedAdmin && (
+        <EditAdminModal
+          open={editAdminModalOpen}
+          handleClose={handleEditClose}
+          handleEditAdmin={handleEditAdmin}
+          handleDeleteAdmin={(id: string) => handleDeleteAdmin(id)}
+          confirmDeleteAdmin={confirmDeleteAdmin}
+          setConfirmDeleteAdmin={setConfirmDeleteAdmin}
+          updatedAdmin={updatedAdmin}
+          setUpdatedAdmin={setUpdatedAdmin}
+          editError={editError}
+          editSuccess={editSuccess}
+          editLoading={editLoading}
+          setEditLoading={setEditLoading}
+          generateUniqueAdminID={generateUniqueAdminID}
+          generateSecurePassword={generateSecurePassword}
+        />
+      )}
     </DefaultLayout>
   );
 };

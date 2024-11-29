@@ -2,7 +2,7 @@
 
 import Breadcrumb from "@/components/Breadcrumbs/Breadcrumb";
 import DefaultLayout from "@/components/Layouts/DefaultLaout";
-import { Box, Modal, Typography } from "@mui/material";
+import { Box, Button, Modal, Typography } from "@mui/material";
 import React, { useEffect, useState } from "react";
 import TableCell from "../../../components/Tables/TableCell";
 import AddRetailerModal from "./AddRetailerModal";
@@ -224,16 +224,13 @@ const RetailersList = () => {
   return (
     <DefaultLayout>
       <div className="container mx-auto p-6">
-        <div className="flex flex-row items-center justify-between">
-          <h2 className="mb-6 text-3xl font-bold text-gray-800 dark:text-white">
+        <div className="mb-6 flex flex-row items-center justify-between">
+          <h2 className="text-3xl font-bold text-gray-800 dark:text-white">
             Retailers List
           </h2>
-          <p
-            className="cursor-pointer font-bold text-gray-800 dark:text-white"
-            onClick={handleOpen}
-          >
+          <Button variant="outlined" onClick={handleOpen}>
             Add Retailer
-          </p>
+          </Button>
         </div>
         <p className="mb-4 text-gray-600 dark:text-gray-400">
           Below is the list of retailers and their current status. You can
