@@ -9,17 +9,24 @@ import {
   Select,
   SelectChangeEvent,
   Switch,
+  Table,
+  TableBody,
+  TableHead,
+  TableRow,
   Typography,
   useTheme,
 } from "@mui/material";
 import { Admin, Retailer } from "@/app/types/common";
 import EastIcon from "@mui/icons-material/East";
 import { getRetailersAction } from "../retailersList/actions";
+import TableCell from "../../../components/Tables/TableCell";
+import DeleteIcon from "@mui/icons-material/Delete";
 
 interface EditAdminModalProps {
   open: boolean;
   handleClose: () => void;
   handleEditAdmin: (e: React.FormEvent) => void;
+  handleEditAdminRetailers: (value: Admin) => void;
   handleDeleteAdmin: (id: string) => void;
   confirmDeleteAdmin: boolean;
   updatedAdmin: Admin;
@@ -37,6 +44,7 @@ const EditAdminModal: React.FC<EditAdminModalProps> = ({
   open,
   handleClose,
   handleEditAdmin,
+  handleEditAdminRetailers,
   handleDeleteAdmin,
   confirmDeleteAdmin,
   updatedAdmin,
@@ -86,23 +94,24 @@ const EditAdminModal: React.FC<EditAdminModalProps> = ({
   const [fetchingRetailers, setFetchingRetailers] = React.useState(false);
 
   const fetchRetailers = async (doLoad: Boolean) => {
+    console.log("Fetching retailers");
     if (doLoad) setFetchingRetailers(true);
 
-    const { retailers, error } = await getRetailersAction();
+    const result = await getRetailersAction();
+    const retailers = result?.retailers || [];
     //console.log("Retailers: ", retailers);
-    if (error) {
-      console.error(error);
-    } else {
-      if (retailers) {
-        setRetailers(retailers);
-      }
+    if (retailers) {
+      setRetailers(retailers);
     }
     setFetchingRetailers(false);
   };
 
   React.useEffect(() => {
     fetchRetailers(true);
-  }, []);
+  }, [updatedAdmin]);
+
+  const [assignedRetailersUpdated, setAssignedRetailersUpdated] =
+    React.useState(false);
 
   const handleRetailerSelect = (event: SelectChangeEvent<string>) => {
     const selectedRetailer = event.target.value as string;
@@ -112,8 +121,26 @@ const EditAdminModal: React.FC<EditAdminModalProps> = ({
         ...prev,
         assigned_retailers: [...prev.assigned_retailers, retailer],
       }));
+      setAssignedRetailersUpdated(true);
     }
   };
+
+  const handleRemoveRetailer = (retailerId: string) => {
+    setUpdatedAdmin((prevAdmin: Admin) => ({
+      ...prevAdmin,
+      assigned_retailers: prevAdmin.assigned_retailers?.filter(
+        (retailer) => retailer.id !== retailerId,
+      ),
+    }));
+    setAssignedRetailersUpdated(true);
+  };
+
+  const handleCloseRetailersList = () => {
+    setRetailersList(false);
+    setAssignedRetailersUpdated(false);
+  };
+
+  const tableHeaders = ["Name", "Location", "Remove"];
 
   return (
     <Modal
@@ -168,41 +195,80 @@ const EditAdminModal: React.FC<EditAdminModalProps> = ({
                         border: "1px solid grey", // Default border color
                       },
                       "&:hover .MuiOutlinedInput-notchedOutline": {
-                        border: "2px solid white", // Hover border color
+                        border: "2px solid grey", // Hover border color
                       },
                       "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-                        border: "2px solid white", // Focused border color
+                        border: "2px solid grey", // Focused border color
                       },
                       "& .MuiSelect-select": {
-                        color: "white", // Change this to your desired color for the selected option
+                        color: "grey", // Change this to your desired color for the selected option
                         padding: "0", // Remove extra padding
                         paddingLeft: "0px", // Optional: Adjust left padding
                       },
                       "& .MuiSelect-icon": {
-                        color: "white", // Change the color of the arrow to white
+                        color: "grey", // Change the color of the arrow to white
                       },
                     }}
                   >
                     <MenuItem value="" disabled sx={{ display: "none" }}>
                       Select a retailer
                     </MenuItem>
-                    {retailers.map((retailer) => (
-                      <MenuItem key={retailer.id} value={retailer.id}>
-                        {retailer.name} - {retailer.email}
-                      </MenuItem>
-                    ))}
+                    {retailers
+                      .filter(
+                        (retailer) =>
+                          !updatedAdmin.assigned_retailers?.some(
+                            (assigned) => assigned.id === retailer.id,
+                          ),
+                      )
+                      .map((retailer) => (
+                        <MenuItem key={retailer.id} value={retailer.id}>
+                          {retailer.name} - {retailer.location}
+                        </MenuItem>
+                      ))}
                   </Select>
                 </FormControl>
               </div>
               {updatedAdmin.assigned_retailers &&
               updatedAdmin.assigned_retailers.length > 0 ? (
-                updatedAdmin.assigned_retailers?.map((retailer: Retailer) => (
-                  <div key={retailer.id}>
-                    <Typography variant="body2">
-                      {retailer.name} - {retailer.email}
-                    </Typography>
-                  </div>
-                ))
+                <table className="min-w-full border-collapse rounded-lg bg-white shadow-md dark:bg-gray-800">
+                  <thead>
+                    <tr className="bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300">
+                      {tableHeaders.map((header) => (
+                        <th
+                          key={header}
+                          className="border border-gray-300 px-4 py-2 text-left text-sm font-semibold dark:border-gray-600"
+                        >
+                          {header}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {updatedAdmin.assigned_retailers.map(
+                      (retailer: Retailer) => (
+                        <tr
+                          key={retailer.id}
+                          className=" bg-white transition-colors duration-200 hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700"
+                        >
+                          <td className="border border-gray-300 px-4 py-2 dark:border-gray-600">
+                            {retailer.name}
+                          </td>
+                          <td className="border border-gray-300 px-4 py-2 dark:border-gray-600">
+                            {retailer.location}
+                          </td>
+                          <td className="flex items-center justify-center border border-gray-300 px-4 py-2 dark:border-gray-600">
+                            <IconButton
+                              style={{ cursor: "pointer" }}
+                              onClick={() => handleRemoveRetailer(retailer.id)}
+                            >
+                              <DeleteIcon sx={{ color: "grey" }} />
+                            </IconButton>
+                          </td>
+                        </tr>
+                      ),
+                    )}
+                  </tbody>
+                </table>
               ) : (
                 <p className="mb-4 text-center text-gray-400">
                   No retailers assigned to this admin
@@ -310,20 +376,31 @@ const EditAdminModal: React.FC<EditAdminModalProps> = ({
                 {editSuccess}
               </p>
               <button
-                onClick={handleClose}
+                onClick={retailersList ? handleCloseRetailersList : handleClose}
                 className="w-full rounded-lg bg-blue-700 py-3 font-semibold text-white shadow transition duration-300 hover:bg-blue-800 dark:bg-blue-600 dark:hover:bg-blue-700"
               >
                 Done
               </button>
             </>
           ) : retailersList ? (
-            <button
-              style={{ marginTop: 15 }}
-              onClick={() => setRetailersList(false)}
-              className="w-full rounded-lg bg-gray-700 py-3 font-semibold text-white shadow transition duration-300 hover:bg-gray-800 dark:bg-gray-600 dark:hover:bg-gray-700"
-            >
-              Back
-            </button>
+            <>
+              {assignedRetailersUpdated && (
+                <button
+                  style={{ marginTop: 15 }}
+                  onClick={() => handleEditAdminRetailers(updatedAdmin)}
+                  className="w-full rounded-lg bg-blue-700 py-3 font-semibold text-white shadow transition duration-300 hover:bg-blue-800 dark:bg-blue-600 dark:hover:bg-blue-700"
+                >
+                  Update
+                </button>
+              )}
+              <button
+                style={{ marginTop: 15 }}
+                onClick={() => setRetailersList(false)}
+                className="w-full rounded-lg bg-gray-700 py-3 font-semibold text-white shadow transition duration-300 hover:bg-gray-800 dark:bg-gray-600 dark:hover:bg-gray-700"
+              >
+                {assignedRetailersUpdated ? "Cancel" : "Back"}
+              </button>
+            </>
           ) : (
             <>
               {confirmDeleteAdmin ? (

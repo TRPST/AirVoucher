@@ -58,13 +58,29 @@ export const signUpRetailerAction = async (retailer: Retailer) => {
 export const getRetailersAction = async () => {
   const supabase = await createClient();
 
+  const { data: assignedRetailers, error: assignedError } = await supabase
+    .from("users")
+    .select("assigned_retailers");
+
+  if (assignedError) {
+    console.error("Error fetching assigned retailers:", assignedError);
+    return;
+  }
+
+  const assignedRetailerIds = assignedRetailers
+    .flatMap((user) => user.assigned_retailers)
+    .map((retailer) => retailer?.id);
+
   const { data: retailers, error } = await supabase
     .from("retailers")
     .select("*")
+    .not("id", "in", `(${assignedRetailerIds.join(",")})`)
     .order("created_at", { ascending: false });
 
   if (error) {
-    return { error: error.message };
+    console.error("Error fetching retailers:", error);
+  } else {
+    console.log("Available retailers:", retailers);
   }
 
   return { retailers };

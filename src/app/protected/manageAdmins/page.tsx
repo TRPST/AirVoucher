@@ -177,6 +177,24 @@ const ManageAdmins = () => {
     }
   };
 
+  const handleEditAdminRetailers = async (updatedAdminRetailers: Admin) => {
+    if (!updatedAdminRetailers) return;
+    try {
+      setEditLoading(true);
+      const result = await editAdminAction(updatedAdminRetailers);
+      console.log("Result: ", result);
+      if (result.error) {
+        setEditError(result.error);
+      } else {
+        setEditSuccess(result.success || "");
+      }
+    } catch (error) {
+      console.error("Error: ", error);
+    } finally {
+      setEditLoading(false);
+    }
+  };
+
   //function to handle delete retailer
   const handleDeleteAdmin = async (id: string) => {
     try {
@@ -352,6 +370,7 @@ const ManageAdmins = () => {
           open={editAdminModalOpen}
           handleClose={handleEditClose}
           handleEditAdmin={handleEditAdmin}
+          handleEditAdminRetailers={handleEditAdminRetailers}
           handleDeleteAdmin={(id: string) => handleDeleteAdmin(id)}
           confirmDeleteAdmin={confirmDeleteAdmin}
           setConfirmDeleteAdmin={setConfirmDeleteAdmin}
