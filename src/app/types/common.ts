@@ -9,7 +9,7 @@ export type Admin = {
   active: boolean;
   role: Role;
   terminal_access: boolean;
-  assigned_retailers?: Retailer[];
+  assigned_retailers?: string[];
 };
 
 export type Retailer = {
@@ -22,9 +22,9 @@ export type Retailer = {
   location: string;
   active: boolean;
   terminal_access: boolean;
-  assigned_terminals?: Terminal[];
-  assigned_admin: Admin;
-  created_at: Date;
+  assigned_terminals?: string[];
+  assigned_admin: string;
+  created_at?: Date;
 };
 
 export type Terminal = {

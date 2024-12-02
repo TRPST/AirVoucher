@@ -277,6 +277,7 @@ const ManageAdmins = () => {
                         <th
                           key={header}
                           className="border border-gray-300 px-4 py-2 text-left text-sm font-semibold dark:border-gray-600"
+                          style={{ width: "15%" }}
                         >
                           {header}
                         </th>
@@ -318,6 +319,7 @@ const ManageAdmins = () => {
                         <th
                           key={header}
                           className="border border-gray-300 px-4 py-2 text-left text-sm font-semibold dark:border-gray-600"
+                          style={{ width: "15%" }}
                         >
                           {header}
                         </th>

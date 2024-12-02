@@ -69,23 +69,43 @@ export const signUpAdminAction = async (admin: Admin) => {
     return { error: upsertError.message };
   }
 
-  return { success: "User created successfully" };
+  return { success: "Admin created successfully" };
 };
 
 export const getAdminsAction = async () => {
   const supabase = await createClient();
 
-  const { data: users, error } = await supabase
+  // Fetch all admins and superAdmins
+  const { data: users, error: usersError } = await supabase
     .from("users")
     .select("*")
     .in("role", ["admin", "superAdmin"]);
 
-  if (error) {
-    return { error: error.message };
+  if (usersError) {
+    return { error: usersError.message };
   }
 
-  return { users };
+  // Fetch all retailers
+  const { data: retailers, error: retailersError } = await supabase
+    .from("retailers")
+    .select("*");
+
+  if (retailersError) {
+    return { error: retailersError.message };
+  }
+
+  // Map assigned_retailers IDs to retailer objects
+  const usersWithRetailers = users.map((user) => ({
+    ...user,
+    assigned_retailers: retailers.filter(
+      (retailer) => retailer.assigned_admin === `"${user.id}"`,
+    ),
+  }));
+
+  return { users: usersWithRetailers };
 };
+
+export const getAdminsRetailersAction = async () => {};
 
 //function to edit retailer based on updatedRetailer state
 export const editAdminAction = async (updatedAdmin: Admin) => {

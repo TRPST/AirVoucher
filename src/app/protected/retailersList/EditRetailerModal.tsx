@@ -88,7 +88,7 @@ const EditRetailerModal: React.FC<EditRetailerModalProps> = ({
           top: "50%",
           left: "50%",
           transform: "translate(-50%, -50%)",
-          width: 500,
+          width: 550,
           maxHeight: "90vh", // Limit height to 90% of the viewport height
           overflowY: "auto", // Make contents scrollable
           bgcolor: "background.paper",

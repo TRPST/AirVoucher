@@ -6,7 +6,7 @@ import { Box, Button, Modal, Typography } from "@mui/material";
 import React, { useEffect, useState } from "react";
 import TableCell from "../../../components/Tables/TableCell";
 import AddRetailerModal from "./AddRetailerModal";
-import { Retailer } from "@/app/types/common";
+import { Admin, Retailer } from "@/app/types/common";
 import {
   deleteRetailerAction,
   editRetailerAction,
@@ -14,22 +14,13 @@ import {
   signUpRetailerAction,
 } from "./actions";
 import EditRetailerModal from "./EditRetailerModal";
+import { getAdminsAction } from "../manageAdmins/actions";
 
 const RetailersList = () => {
   const [retailers, setRetailers] = useState<Retailer[]>([]);
   const [addRetailerModalOpen, setAddRetailerModalOpen] = useState(false);
   const generateUniqueRetailerID = () => `RE${String(Date.now()).slice(-4)}`; // Function to generate unique Retailer ID
-  const [newRetailer, setNewRetailer] = useState<Retailer>({
-    id: generateUniqueRetailerID(),
-    name: "",
-    email: "",
-    password: "",
-    contact_person: "",
-    contact_number: "",
-    location: "",
-    active: true,
-    terminal_access: true,
-  });
+  const [newRetailer, setNewRetailer] = useState<Retailer>();
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
@@ -47,7 +38,9 @@ const RetailersList = () => {
   const fetchRetailers = async (doLoad: Boolean) => {
     if (doLoad) setFetchingRetailers(true);
 
-    const { retailers, error } = await getRetailersAction();
+    const result = await getRetailersAction();
+    const retailers = result?.retailers || [];
+    const error = (result as { retailers: any[]; error?: string })?.error;
     //console.log("Retailers: ", retailers);
     if (error) {
       console.error(error);
@@ -69,8 +62,29 @@ const RetailersList = () => {
     //fetchRetailers();
   }, [success, editSuccess]);
 
+  const [admins, setAdmins] = useState<Admin[]>([]);
+
+  const fetchAdmins = async (doLoad: boolean) => {
+    if (doLoad) setLoading(true);
+    const { users, error } = await getAdminsAction();
+    console.log("Users: ", users);
+    if (error) {
+      console.error(error);
+    } else {
+      if (users) {
+        setAdmins(users);
+      }
+    }
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    fetchAdmins(false);
+  }, [retailers]);
+
   const handleAddRetailer = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!newRetailer) return;
     if (
       newRetailer.name.trim() === "" ||
       newRetailer.contact_person.trim() === "" ||
@@ -153,6 +167,18 @@ const RetailersList = () => {
   }, [updatedRetailer]);
 
   const handleOpen = () => {
+    setNewRetailer({
+      id: generateUniqueRetailerID(),
+      name: "",
+      email: "",
+      password: "",
+      contact_person: "",
+      contact_number: "",
+      location: "",
+      active: true,
+      terminal_access: true,
+      assigned_admin: "",
+    });
     setAddRetailerModalOpen(true);
   };
 
@@ -173,6 +199,7 @@ const RetailersList = () => {
       location: "",
       active: true,
       terminal_access: true,
+      assigned_admin: "",
     });
 
     setError("");
@@ -192,6 +219,7 @@ const RetailersList = () => {
       location: "",
       active: true,
       terminal_access: true,
+      assigned_admin: "",
     });
 
     setEditError("");
@@ -217,8 +245,9 @@ const RetailersList = () => {
     "Location",
     "Contact Person",
     "Contact Number",
+    "Terminal Access",
+    "Assigned Admin",
     "Active",
-    "Action",
   ];
 
   return (
@@ -260,11 +289,8 @@ const RetailersList = () => {
                 {retailers.map((retailer, index) => (
                   <tr
                     key={index}
-                    className={`${
-                      index % 2 === 0
-                        ? "bg-gray-50 dark:bg-gray-700"
-                        : "bg-white dark:bg-gray-800"
-                    } transition-colors duration-200 hover:bg-gray-100 dark:hover:bg-gray-700`}
+                    className={`cursor-pointer transition-colors duration-200 hover:bg-gray-100 dark:hover:bg-gray-700`}
+                    onClick={() => handleEditOpen(retailer)}
                   >
                     <TableCell>{retailer.id}</TableCell>
                     <TableCell>{retailer.name}</TableCell>
@@ -272,15 +298,18 @@ const RetailersList = () => {
                     <TableCell>{retailer.contact_person}</TableCell>
                     <TableCell>{retailer.contact_number}</TableCell>
                     <TableCell>
-                      {retailer.active ? "Active" : "Inactive"}
+                      {retailer.terminal_access ? "TRUE" : "FALSE"}
                     </TableCell>
                     <TableCell>
-                      <p
-                        style={{ cursor: "pointer", fontWeight: "bold" }}
-                        onClick={() => handleEditOpen(retailer)}
-                      >
-                        Edit
-                      </p>
+                      {retailer.assigned_admin
+                        ? admins.find(
+                            (admin) =>
+                              `"${admin.id}"` === retailer.assigned_admin,
+                          )?.name || "N/A"
+                        : "N/A"}
+                    </TableCell>
+                    <TableCell>
+                      {retailer.active ? "Active" : "Inactive"}
                     </TableCell>
                   </tr>
                 ))}
@@ -290,19 +319,21 @@ const RetailersList = () => {
         )}
       </div>
 
-      <AddRetailerModal
-        open={addRetailerModalOpen}
-        handleClose={handleClose}
-        handleAddRetailer={handleAddRetailer}
-        newRetailer={newRetailer}
-        setNewRetailer={setNewRetailer}
-        error={error}
-        success={success}
-        loading={loading}
-        setLoading={setLoading}
-        generateUniqueRetailerID={generateUniqueRetailerID}
-        generateSecurePassword={generateSecurePassword}
-      />
+      {newRetailer && (
+        <AddRetailerModal
+          open={addRetailerModalOpen}
+          handleClose={handleClose}
+          handleAddRetailer={handleAddRetailer}
+          newRetailer={newRetailer}
+          setNewRetailer={setNewRetailer}
+          error={error}
+          success={success}
+          loading={loading}
+          setLoading={setLoading}
+          generateUniqueRetailerID={generateUniqueRetailerID}
+          generateSecurePassword={generateSecurePassword}
+        />
+      )}
       {updatedRetailer && (
         <EditRetailerModal
           open={editRetailerModalOpen}

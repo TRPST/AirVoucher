@@ -26,18 +26,39 @@ export const signUpRetailerAction = async (retailer: Retailer) => {
     return { error: "User ID not found" };
   }
 
+  // Fetch the existing assigned_retailers list
+  const { data: user, error: userError } = await supabase
+    .from("users")
+    .select("assigned_retailers")
+    .eq("id", userId)
+    .maybeSingle(); // Use maybeSingle() to handle multiple or no rows
+
+  if (userError) {
+    console.error("Error fetching user:", userError);
+    return { error: userError.message };
+  }
+
+  // Append the new retailer ID to the existing list
+  const updatedAssignedRetailers = [
+    ...(user?.assigned_retailers || []),
+    { id: retailer.id },
+  ];
+
+  // Update the user with the new assigned_retailers list
   const { error: retailerUserError } = await supabase.from("users").upsert({
     id: userId,
     name: retailer.contact_person,
     email: retailer.email,
     role: "retailer",
     active: retailer.active,
+    assigned_retailers: updatedAssignedRetailers,
   });
 
   if (retailerUserError) {
     return { error: retailerUserError.message };
   }
 
+  // Upsert the retailer information
   const { error: retailerError } = await supabase.from("retailers").upsert({
     id: retailer.id,
     name: retailer.name,
@@ -46,6 +67,8 @@ export const signUpRetailerAction = async (retailer: Retailer) => {
     contact_person: retailer.contact_person,
     location: retailer.location,
     active: retailer.active,
+    terminal_access: retailer.terminal_access,
+    assigned_admin: retailer.assigned_admin,
   });
 
   if (retailerError) {
@@ -58,30 +81,42 @@ export const signUpRetailerAction = async (retailer: Retailer) => {
 export const getRetailersAction = async () => {
   const supabase = await createClient();
 
-  const { data: assignedRetailers, error: assignedError } = await supabase
-    .from("users")
-    .select("assigned_retailers");
+  const { data: retailers, error } = await supabase
+    .from("retailers")
+    .select("*")
+    .order("created_at", { ascending: false }); // Order by created_at in descending order
 
-  if (assignedError) {
-    console.error("Error fetching assigned retailers:", assignedError);
+  if (error) {
+    console.error("Error fetching retailers:", error);
     return;
   }
 
-  const assignedRetailerIds = assignedRetailers
-    .flatMap((user) => user.assigned_retailers)
-    .map((retailer) => retailer?.id);
+  return { retailers };
+};
+
+export const getRetailersByAdminIdAction = async (adminId: string) => {
+  console.log("Admin ID passed to function: ", adminId);
+
+  const supabase = await createClient();
 
   const { data: retailers, error } = await supabase
     .from("retailers")
     .select("*")
-    .not("id", "in", `(${assignedRetailerIds.join(",")})`)
-    .order("created_at", { ascending: false });
+    .eq("assigned_admin", `"${adminId}"`);
+
+  console.log("Retailers fetched: ", retailers);
 
   if (error) {
     console.error("Error fetching retailers:", error);
-  } else {
-    console.log("Available retailers:", retailers);
+    return { error: error.message };
   }
+
+  if (!retailers || retailers.length === 0) {
+    console.log("No retailers found for admin ID: ", adminId);
+    return { retailers: [] };
+  }
+
+  //console.log("Retailers fetched: ", retailers);
 
   return { retailers };
 };

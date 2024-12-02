@@ -67,7 +67,7 @@ const AddAdminModal: React.FC<AddAdminModalProps> = ({
         className="bg-white p-8 shadow-lg dark:bg-gray-800"
       >
         <div className="flex justify-center">
-          <div className="w-full max-w-md rounded-lg bg-white shadow-lg dark:bg-gray-800">
+          <div className="w-full max-w-md rounded-lg bg-white dark:bg-gray-800">
             <h2 className="mb-6 text-center text-3xl font-semibold text-gray-800 dark:text-white">
               Add New Admin
             </h2>
@@ -174,11 +174,29 @@ const AddAdminModal: React.FC<AddAdminModalProps> = ({
                   <div className="h-8 w-8 animate-spin rounded-full border-4 border-solid border-primary border-t-transparent"></div>
                 </div>
               ) : error ? (
-                <p className="mb-4 text-center text-red-500">{error}</p>
+                <>
+                  <p className="mb-4 text-center font-bold text-red-500">
+                    {error}
+                  </p>
+                  <button
+                    onClick={handleClose}
+                    className="w-full rounded-lg bg-gray-600 py-3 font-semibold text-white shadow transition duration-300 hover:bg-gray-700 dark:bg-gray-500 dark:hover:bg-gray-600"
+                  >
+                    Cancel
+                  </button>
+                </>
               ) : success ? (
-                <p className="mb-4 text-center text-green-500">
-                  Admin added successfully!
-                </p>
+                <>
+                  <p className="mb-4 text-center font-bold text-green-500">
+                    {success}
+                  </p>
+                  <button
+                    onClick={handleClose}
+                    className="w-full rounded-lg bg-blue-700 py-3 font-semibold text-white shadow transition duration-300 hover:bg-blue-800 dark:bg-blue-600 dark:hover:bg-blue-700"
+                  >
+                    Done
+                  </button>
+                </>
               ) : (
                 <button
                   onClick={handleCreateAdmin}

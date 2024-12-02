@@ -18,7 +18,10 @@ import {
 } from "@mui/material";
 import { Admin, Retailer } from "@/app/types/common";
 import EastIcon from "@mui/icons-material/East";
-import { getRetailersAction } from "../retailersList/actions";
+import {
+  getRetailersAction,
+  getRetailersByAdminIdAction,
+} from "../retailersList/actions";
 import TableCell from "../../../components/Tables/TableCell";
 import DeleteIcon from "@mui/icons-material/Delete";
 
@@ -93,22 +96,48 @@ const EditAdminModal: React.FC<EditAdminModalProps> = ({
   const [retailers, setRetailers] = React.useState<Retailer[]>([]);
   const [fetchingRetailers, setFetchingRetailers] = React.useState(false);
 
-  const fetchRetailers = async (doLoad: Boolean) => {
-    console.log("Fetching retailers");
-    if (doLoad) setFetchingRetailers(true);
+  // const fetchRetailers = async (doLoad: Boolean) => {
+  //   console.log("Fetching retailers");
+  //   if (doLoad) setFetchingRetailers(true);
 
-    const result = await getRetailersAction();
-    const retailers = result?.retailers || [];
-    //console.log("Retailers: ", retailers);
-    if (retailers) {
-      setRetailers(retailers);
-    }
-    setFetchingRetailers(false);
-  };
+  //   const result = await getRetailersAction();
+  //   const retailers = result?.retailers || [];
+  //   //console.log("Retailers: ", retailers);
+  //   if (retailers) {
+  //     setRetailers(retailers);
+  //   }
+  //   setFetchingRetailers(false);
+  // };
+
+  // React.useEffect(() => {
+  //   fetchRetailers(true);
+  // }, [updatedAdmin]);
 
   React.useEffect(() => {
-    fetchRetailers(true);
-  }, [updatedAdmin]);
+    const fetchRetailers = async () => {
+      console.log("Fetching retailers for admin: ", updatedAdmin.id);
+      const result = await getRetailersByAdminIdAction(updatedAdmin.id);
+
+      console.log("Retailers for admin: ", result);
+
+      if (!result) {
+        console.error("Error fetching retailers: result is undefined");
+        return;
+      }
+
+      const retailers = result?.retailers || [];
+      console.log("Retailers for admin: ", retailers);
+
+      // if (error) {
+      //   console.error("Error fetching retailers:", error);
+      //   return;
+      // }
+
+      setRetailers(retailers || []);
+    };
+
+    fetchRetailers();
+  }, [updatedAdmin.id]);
 
   const [assignedRetailersUpdated, setAssignedRetailersUpdated] =
     React.useState(false);
@@ -129,7 +158,7 @@ const EditAdminModal: React.FC<EditAdminModalProps> = ({
     setUpdatedAdmin((prevAdmin: Admin) => ({
       ...prevAdmin,
       assigned_retailers: prevAdmin.assigned_retailers?.filter(
-        (retailer) => retailer.id !== retailerId,
+        (id) => id !== retailerId,
       ),
     }));
     setAssignedRetailersUpdated(true);
@@ -140,12 +169,18 @@ const EditAdminModal: React.FC<EditAdminModalProps> = ({
     setAssignedRetailersUpdated(false);
   };
 
+  const handleCloseEditModal = () => {
+    setRetailersList(false);
+
+    handleClose();
+  };
+
   const tableHeaders = ["Name", "Location", "Remove"];
 
   return (
     <Modal
       open={open}
-      onClose={handleClose}
+      onClose={handleCloseEditModal}
       aria-labelledby="modal-modal-title"
       aria-describedby="modal-modal-description"
     >
@@ -155,12 +190,11 @@ const EditAdminModal: React.FC<EditAdminModalProps> = ({
           top: "50%",
           left: "50%",
           transform: "translate(-50%, -50%)",
-          width: 500,
+          width: 550,
           maxHeight: "90vh", // Limit height to 90% of the viewport height
           overflowY: "auto", // Make contents scrollable
           bgcolor: "background.paper",
           border: "2px solid #000",
-          boxShadow: 24,
           p: 4,
         }}
         className="bg-white p-8 shadow-lg dark:bg-gray-800"
@@ -214,13 +248,8 @@ const EditAdminModal: React.FC<EditAdminModalProps> = ({
                       Select a retailer
                     </MenuItem>
                     {retailers
-                      .filter(
-                        (retailer) =>
-                          !updatedAdmin.assigned_retailers?.some(
-                            (assigned) => assigned.id === retailer.id,
-                          ),
-                      )
-                      .map((retailer) => (
+                      .filter((retailer) => !retailer.assigned_admin)
+                      .map((retailer: Retailer) => (
                         <MenuItem key={retailer.id} value={retailer.id}>
                           {retailer.name} - {retailer.location}
                         </MenuItem>
@@ -244,29 +273,27 @@ const EditAdminModal: React.FC<EditAdminModalProps> = ({
                     </tr>
                   </thead>
                   <tbody>
-                    {updatedAdmin.assigned_retailers.map(
-                      (retailer: Retailer) => (
-                        <tr
-                          key={retailer.id}
-                          className=" bg-white transition-colors duration-200 hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700"
-                        >
-                          <td className="border border-gray-300 px-4 py-2 dark:border-gray-600">
-                            {retailer.name}
-                          </td>
-                          <td className="border border-gray-300 px-4 py-2 dark:border-gray-600">
-                            {retailer.location}
-                          </td>
-                          <td className="flex items-center justify-center border border-gray-300 px-4 py-2 dark:border-gray-600">
-                            <IconButton
-                              style={{ cursor: "pointer" }}
-                              onClick={() => handleRemoveRetailer(retailer.id)}
-                            >
-                              <DeleteIcon sx={{ color: "grey" }} />
-                            </IconButton>
-                          </td>
-                        </tr>
-                      ),
-                    )}
+                    {retailers.map((retailer: Retailer) => (
+                      <tr
+                        key={retailer.id}
+                        className=" bg-white transition-colors duration-200 hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700"
+                      >
+                        <td className="border border-gray-300 px-4 py-2 dark:border-gray-600">
+                          {retailer.name}
+                        </td>
+                        <td className="border border-gray-300 px-4 py-2 dark:border-gray-600">
+                          {retailer.location}
+                        </td>
+                        <td className="flex items-center justify-center border border-gray-300 px-4 py-2 dark:border-gray-600">
+                          <IconButton
+                            style={{ cursor: "pointer" }}
+                            onClick={() => handleRemoveRetailer(retailer.id)}
+                          >
+                            <DeleteIcon sx={{ color: "grey" }} />
+                          </IconButton>
+                        </td>
+                      </tr>
+                    ))}
                   </tbody>
                 </table>
               ) : (
