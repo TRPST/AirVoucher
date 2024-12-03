@@ -9,10 +9,17 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@emotion/react": "^11.13.5",
+    "@emotion/styled": "^11.13.5",
+    "@mui/icons-material": "^6.1.9",
+    "@mui/material": "^6.1.8",
     "@nextui-org/spinner": "^2.0.34",
+    "@nextui-org/theme": "^2.2.11",
     "@supabase/ssr": "^0.5.1",
     "@supabase/supabase-js": "^2.46.1",
     "apexcharts": "^3.45.2",
+    "axios": "^1.7.7",
+    "crypto-js": "^4.2.0",
     "flatpickr": "^4.6.13",
     "free-nextadmin-nextjs": "file:",
     "jsvectormap": "^1.5.3",
