@@ -305,7 +305,7 @@ const RetailersList = () => {
                     <TableCell>{retailer.location}</TableCell>
                     <TableCell>{retailer.contact_person}</TableCell>
                     <TableCell>{retailer.contact_number}</TableCell>
-                    <td className="whitespace-nowrap border border-gray-300 px-4 py-2 text-white dark:border-gray-600">
+                    <td className="whitespace-nowrap border border-gray-300 px-4 py-2 text-black dark:border-gray-600 dark:text-white">
                       {retailer.assigned_admin ? (
                         admins.find(
                           (admin) =>
