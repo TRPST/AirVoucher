@@ -105,8 +105,40 @@ export const getAdminsAction = async () => {
   return { users: usersWithRetailers };
 };
 
-export const getAdminsRetailersAction = async () => {};
+export const assignAdminToRetailer = async (
+  retailerId: string,
+  adminId: string,
+) => {
+  const supabase = await createClient();
 
+  const { error } = await supabase
+    .from("retailers")
+    .update({ assigned_admin: `"${adminId}"` })
+    .eq("id", retailerId);
+
+  if (error) {
+    console.error("Error assigning admin to retailer:", error);
+    return { error: error.message };
+  }
+
+  return { success: true };
+};
+
+export const removeAdminFromRetailer = async (retailerId: string) => {
+  const supabase = await createClient();
+
+  const { error } = await supabase
+    .from("retailers")
+    .update({ assigned_admin: null })
+    .eq("id", retailerId);
+
+  if (error) {
+    console.error("Error removing admin from retailer:", error);
+    return { error: error.message };
+  }
+
+  return { success: true };
+};
 //function to edit retailer based on updatedRetailer state
 export const editAdminAction = async (updatedAdmin: Admin) => {
   const supabase = await createClient();
@@ -133,10 +165,41 @@ export const editAdminAction = async (updatedAdmin: Admin) => {
 export const deleteAdminAction = async (adminId: string) => {
   const supabase = await createClient();
 
-  const { error } = await supabase.from("users").delete().eq("id", adminId);
+  // Fetch the retailers assigned to the admin
+  const { data: retailers, error: fetchError } = await supabase
+    .from("retailers")
+    .select("id")
+    .eq("assigned_admin", `"${adminId}"`);
 
-  if (error) {
-    return { error: error.message };
+  if (fetchError) {
+    console.error("Error fetching retailers:", fetchError);
+    return { error: fetchError.message };
+  }
+
+  // Update the assigned_admin column of the affected retailers to null
+  if (retailers && retailers.length > 0) {
+    const retailerIds = retailers.map((retailer) => retailer.id);
+
+    const { error: updateError } = await supabase
+      .from("retailers")
+      .update({ assigned_admin: null })
+      .in("id", retailerIds);
+
+    if (updateError) {
+      console.error("Error updating retailers:", updateError);
+      return { error: updateError.message };
+    }
+  }
+
+  // Delete the admin
+  const { error: deleteError } = await supabase
+    .from("users")
+    .delete()
+    .eq("id", adminId);
+
+  if (deleteError) {
+    console.error("Error deleting admin:", deleteError);
+    return { error: deleteError.message };
   }
 
   return { success: "Admin deleted successfully" };

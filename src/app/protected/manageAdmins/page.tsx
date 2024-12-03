@@ -250,9 +250,15 @@ const ManageAdmins = () => {
           <h2 className="text-3xl font-semibold text-gray-800 dark:text-white">
             Manage Admins
           </h2>
-          <Button variant="outlined" onClick={() => setAddAdminModalOpen(true)}>
+          {/* <Button variant="outlined" onClick={() => setAddAdminModalOpen(true)}>
             Add Admin
-          </Button>
+          </Button> */}
+          <button
+            onClick={() => setAddAdminModalOpen(true)}
+            className="rounded border border-blue-700 px-3 py-2 font-semibold text-blue-500 shadow transition duration-300 hover:bg-blue-800 hover:text-white dark:border-blue-600 dark:hover:bg-blue-700"
+          >
+            Add Admin
+          </button>
         </div>
 
         <div>

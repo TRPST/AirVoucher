@@ -24,6 +24,7 @@ import {
 } from "../retailersList/actions";
 import TableCell from "../../../components/Tables/TableCell";
 import DeleteIcon from "@mui/icons-material/Delete";
+import { assignAdminToRetailer, removeAdminFromRetailer } from "./actions";
 
 interface EditAdminModalProps {
   open: boolean;
@@ -96,71 +97,105 @@ const EditAdminModal: React.FC<EditAdminModalProps> = ({
   const [retailers, setRetailers] = React.useState<Retailer[]>([]);
   const [fetchingRetailers, setFetchingRetailers] = React.useState(false);
 
-  // const fetchRetailers = async (doLoad: Boolean) => {
-  //   console.log("Fetching retailers");
-  //   if (doLoad) setFetchingRetailers(true);
+  const fetchRetailers = async (doLoad: Boolean) => {
+    console.log("Fetching retailers");
+    if (doLoad) setFetchingRetailers(true);
 
-  //   const result = await getRetailersAction();
-  //   const retailers = result?.retailers || [];
-  //   //console.log("Retailers: ", retailers);
-  //   if (retailers) {
-  //     setRetailers(retailers);
-  //   }
-  //   setFetchingRetailers(false);
-  // };
-
-  // React.useEffect(() => {
-  //   fetchRetailers(true);
-  // }, [updatedAdmin]);
+    const result = await getRetailersAction();
+    const retailers = result?.retailers || [];
+    //console.log("Retailers: ", retailers);
+    if (retailers) {
+      setRetailers(retailers);
+    }
+    setFetchingRetailers(false);
+  };
 
   React.useEffect(() => {
-    const fetchRetailers = async () => {
-      console.log("Fetching retailers for admin: ", updatedAdmin.id);
-      const result = await getRetailersByAdminIdAction(updatedAdmin.id);
+    fetchRetailers(true);
+  }, [updatedAdmin]);
 
-      console.log("Retailers for admin: ", result);
+  // React.useEffect(() => {
+  //   const fetchRetailers = async () => {
+  //     console.log("Fetching retailers for admin: ", updatedAdmin.id);
+  //     const result = await getRetailersByAdminIdAction(updatedAdmin.id);
 
-      if (!result) {
-        console.error("Error fetching retailers: result is undefined");
-        return;
-      }
+  //     console.log("Retailers for admin: ", result);
 
-      const retailers = result?.retailers || [];
-      console.log("Retailers for admin: ", retailers);
+  //     if (!result) {
+  //       console.error("Error fetching retailers: result is undefined");
+  //       return;
+  //     }
 
-      // if (error) {
-      //   console.error("Error fetching retailers:", error);
-      //   return;
-      // }
+  //     const retailers = result?.retailers || [];
+  //     console.log("Retailers for admin: ", retailers);
 
-      setRetailers(retailers || []);
-    };
+  //     // if (error) {
+  //     //   console.error("Error fetching retailers:", error);
+  //     //   return;
+  //     // }
 
-    fetchRetailers();
-  }, [updatedAdmin.id]);
+  //     setRetailers(retailers || []);
+  //   };
+
+  //   fetchRetailers();
+  // }, [updatedAdmin.id]);
 
   const [assignedRetailersUpdated, setAssignedRetailersUpdated] =
     React.useState(false);
 
-  const handleRetailerSelect = (event: SelectChangeEvent<string>) => {
-    const selectedRetailer = event.target.value as string;
-    const retailer = retailers.find((r) => r.id === selectedRetailer);
+  const handleRetailerSelect = async (event: SelectChangeEvent<string>) => {
+    const selectedRetailerId = event.target.value as string;
+    const retailer = retailers.find((r) => r.id === selectedRetailerId);
+
     if (retailer) {
+      const { error } = await assignAdminToRetailer(
+        selectedRetailerId,
+        updatedAdmin.id,
+      );
+
+      if (error) {
+        console.error("Error assigning admin to retailer:", error);
+        return;
+      }
+
       setUpdatedAdmin((prev: any) => ({
         ...prev,
         assigned_retailers: [...prev.assigned_retailers, retailer],
       }));
+
+      // Update the retailers state list
+      const updatedRetailers = retailers.map((r) =>
+        r.id === selectedRetailerId
+          ? { ...r, assigned_admin: `"${updatedAdmin.id}"` }
+          : r,
+      );
+      setRetailers(updatedRetailers);
+
       setAssignedRetailersUpdated(true);
     }
   };
 
-  const handleRemoveRetailer = (retailerId: string) => {
+  const handleRemoveRetailer = async (retailerId: string) => {
+    const { error } = await removeAdminFromRetailer(retailerId);
+
+    if (error) {
+      console.error("Error removing admin from retailer:", error);
+      return;
+    }
+
     setUpdatedAdmin((prevAdmin: Admin) => ({
       ...prevAdmin,
       assigned_retailers: prevAdmin.assigned_retailers?.filter(
-        (id) => id !== retailerId,
+        (retailer) => retailer !== retailerId,
       ),
     }));
+
+    // Update the retailers state list
+    const updatedRetailers = retailers.map((r) =>
+      r.id === retailerId ? { ...r, assigned_admin: "" } : r,
+    );
+    setRetailers(updatedRetailers);
+
     setAssignedRetailersUpdated(true);
   };
 
@@ -245,10 +280,13 @@ const EditAdminModal: React.FC<EditAdminModalProps> = ({
                     }}
                   >
                     <MenuItem value="" disabled sx={{ display: "none" }}>
-                      Select a retailer
+                      Add a retailer
                     </MenuItem>
                     {retailers
-                      .filter((retailer) => !retailer.assigned_admin)
+                      .filter(
+                        (retailer) =>
+                          retailer.assigned_admin != `"${updatedAdmin.id}"`,
+                      )
                       .map((retailer: Retailer) => (
                         <MenuItem key={retailer.id} value={retailer.id}>
                           {retailer.name} - {retailer.location}
@@ -273,27 +311,32 @@ const EditAdminModal: React.FC<EditAdminModalProps> = ({
                     </tr>
                   </thead>
                   <tbody>
-                    {retailers.map((retailer: Retailer) => (
-                      <tr
-                        key={retailer.id}
-                        className=" bg-white transition-colors duration-200 hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700"
-                      >
-                        <td className="border border-gray-300 px-4 py-2 dark:border-gray-600">
-                          {retailer.name}
-                        </td>
-                        <td className="border border-gray-300 px-4 py-2 dark:border-gray-600">
-                          {retailer.location}
-                        </td>
-                        <td className="flex items-center justify-center border border-gray-300 px-4 py-2 dark:border-gray-600">
-                          <IconButton
-                            style={{ cursor: "pointer" }}
-                            onClick={() => handleRemoveRetailer(retailer.id)}
-                          >
-                            <DeleteIcon sx={{ color: "grey" }} />
-                          </IconButton>
-                        </td>
-                      </tr>
-                    ))}
+                    {retailers
+                      .filter(
+                        (retailer) =>
+                          retailer.assigned_admin === `"${updatedAdmin.id}"`,
+                      )
+                      .map((retailer: Retailer) => (
+                        <tr
+                          key={retailer.id}
+                          className=" bg-white transition-colors duration-200 hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700"
+                        >
+                          <td className="border border-gray-300 px-4 py-2 dark:border-gray-600">
+                            {retailer.name}
+                          </td>
+                          <td className="border border-gray-300 px-4 py-2 dark:border-gray-600">
+                            {retailer.location}
+                          </td>
+                          <td className="flex items-center justify-center border border-gray-300 px-4 py-2 dark:border-gray-600">
+                            <IconButton
+                              style={{ cursor: "pointer" }}
+                              onClick={() => handleRemoveRetailer(retailer.id)}
+                            >
+                              <DeleteIcon sx={{ color: "grey" }} />
+                            </IconButton>
+                          </td>
+                        </tr>
+                      ))}
                   </tbody>
                 </table>
               ) : (

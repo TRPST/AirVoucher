@@ -236,7 +236,9 @@ const RetailersList = () => {
       const randomIndex = Math.floor(Math.random() * charset.length);
       password += charset[randomIndex];
     }
-    setNewRetailer((prev) => ({ ...prev, password }));
+    setNewRetailer((prev) =>
+      prev ? { ...prev, password } : { ...newRetailer!, password },
+    );
   };
 
   const tableHeaders = [
@@ -257,9 +259,15 @@ const RetailersList = () => {
           <h2 className="text-3xl font-bold text-gray-800 dark:text-white">
             Retailers List
           </h2>
-          <Button variant="outlined" onClick={handleOpen}>
+          {/* <Button variant="outlined" onClick={handleOpen}>
             Add Retailer
-          </Button>
+          </Button> */}
+          <button
+            onClick={handleOpen}
+            className="rounded border border-blue-700 px-3 py-2 font-semibold text-blue-500 shadow transition duration-300 hover:bg-blue-800 hover:text-white dark:border-blue-600 dark:hover:bg-blue-700"
+          >
+            Add Retailer
+          </button>
         </div>
         <p className="mb-4 text-gray-600 dark:text-gray-400">
           Below is the list of retailers and their current status. You can
@@ -278,7 +286,7 @@ const RetailersList = () => {
                   {tableHeaders.map((header) => (
                     <th
                       key={header}
-                      className="border border-gray-300 px-4 py-2 text-left text-sm font-semibold dark:border-gray-600"
+                      className="whitespace-nowrap border border-gray-300 px-4 py-2 text-left text-sm font-semibold dark:border-gray-600"
                     >
                       {header}
                     </th>
