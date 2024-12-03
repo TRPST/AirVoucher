@@ -285,7 +285,8 @@ const EditAdminModal: React.FC<EditAdminModalProps> = ({
                     {retailers
                       .filter(
                         (retailer) =>
-                          retailer.assigned_admin != `"${updatedAdmin.id}"`,
+                          retailer.assigned_admin !== `"${updatedAdmin.id}"` &&
+                          !retailer.assigned_admin,
                       )
                       .map((retailer: Retailer) => (
                         <MenuItem key={retailer.id} value={retailer.id}>
@@ -365,7 +366,18 @@ const EditAdminModal: React.FC<EditAdminModalProps> = ({
                 }
                 className="w-full rounded-lg border border-gray-300 bg-gray-50 px-4 py-2 text-gray-900 shadow-sm dark:bg-gray-700 dark:text-white"
               />
-
+              <input
+                type="text"
+                placeholder="Contact Number"
+                value={updatedAdmin.contact_number}
+                onChange={(e) =>
+                  setUpdatedAdmin({
+                    ...updatedAdmin,
+                    contact_number: e.target.value,
+                  })
+                }
+                className="w-full rounded-lg border border-gray-300 bg-gray-50 px-4 py-2 text-gray-900 shadow-sm dark:bg-gray-700 dark:text-white"
+              />
               <div style={{ marginTop: 10 }}>
                 <div className="flex w-full items-center justify-between">
                   Active

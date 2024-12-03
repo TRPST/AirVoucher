@@ -97,6 +97,15 @@ const AddAdminModal: React.FC<AddAdminModalProps> = ({
                 }
                 className="w-full rounded-lg border border-gray-300 bg-gray-50 px-4 py-2 text-gray-900 shadow-sm dark:bg-gray-700 dark:text-white"
               />
+              <input
+                type="text"
+                placeholder="Contact Number"
+                value={newAdmin.contact_number}
+                onChange={(e) =>
+                  setNewAdmin({ ...newAdmin, contact_number: e.target.value })
+                }
+                className="w-full rounded-lg border border-gray-300 bg-gray-50 px-4 py-2 text-gray-900 shadow-sm dark:bg-gray-700 dark:text-white"
+              />
               <div className="flex items-center space-x-2">
                 <input
                   type="text"

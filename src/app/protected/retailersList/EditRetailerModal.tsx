@@ -1,6 +1,14 @@
 import React from "react";
 import Modal from "@mui/material/Modal";
-import { Box, Switch, Typography } from "@mui/material";
+import {
+  Box,
+  FormControl,
+  MenuItem,
+  Select,
+  Switch,
+  Typography,
+} from "@mui/material";
+import { Retailer } from "@/app/types/common";
 
 interface EditRetailerModalProps {
   open: boolean;
@@ -8,17 +16,7 @@ interface EditRetailerModalProps {
   handleEditRetailer: (e: React.FormEvent) => void;
   handleDeleteRetailer: (id: string) => void;
   confirmDeleteRetailer: boolean;
-  updatedRetailer: {
-    id: string;
-    name: string;
-    location: string;
-    contact_number: string;
-    active: boolean;
-    terminal_access: boolean;
-    contact_person: string;
-    email: string;
-    password: string;
-  };
+  updatedRetailer: Retailer;
   setUpdatedRetailer: (value: any) => void;
   setConfirmDeleteRetailer: (value: boolean) => void;
   editError: string;
@@ -106,6 +104,59 @@ const EditRetailerModal: React.FC<EditRetailerModalProps> = ({
         </p>
 
         <form onSubmit={handleEditRetailer} className="space-y-6">
+          {/* <div style={{ marginTop: 10 }}>
+            <label
+              htmlFor="assignedAdmin"
+              className="mb-3 block font-semibold text-gray-700 dark:text-gray-300"
+            >
+              Assigned Admin
+            </label>
+            <FormControl fullWidth>
+              <Select
+                labelId="retailer-select-label"
+                value={updatedRetailer.assigned_admin} // Bind the value to a state variable
+                onChange={(e) =>
+                  setNewRetailer((prev: any) => ({
+                    ...prev,
+                    assigned_admin: e.target.value,
+                  }))
+                }
+                displayEmpty // Ensures the placeholder is visible when no value is selected
+                className="w-full rounded-lg border border-gray-300 bg-gray-50 px-4 py-2 text-gray-900 shadow-sm dark:bg-gray-700 dark:text-white"
+                style={{ color: "white" }}
+                sx={{
+                  height: "40px",
+                  alignItems: "center",
+                  "& .MuiOutlinedInput-notchedOutline": {
+                    border: "1px solid grey", // Default border color
+                  },
+                  "&:hover .MuiOutlinedInput-notchedOutline": {
+                    border: "2px solid grey", // Hover border color
+                  },
+                  "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                    border: "2px solid grey", // Focused border color
+                  },
+                  "& .MuiSelect-select": {
+                    color: "grey", // Change this to your desired color for the selected option
+                    padding: "0", // Remove extra padding
+                    paddingLeft: "0px", // Optional: Adjust left padding
+                  },
+                  "& .MuiSelect-icon": {
+                    color: "grey", // Change the color of the arrow to white
+                  },
+                }}
+              >
+                <MenuItem value="" disabled sx={{ display: "none" }}>
+                  Select an admin
+                </MenuItem>
+                {admins.map((admin) => (
+                  <MenuItem key={admin.id} value={admin.id}>
+                    {admin.name}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </div> */}
           <div>
             <label
               htmlFor="retailerName"

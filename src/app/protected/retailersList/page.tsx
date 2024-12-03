@@ -247,8 +247,8 @@ const RetailersList = () => {
     "Location",
     "Contact Person",
     "Contact Number",
-    "Terminal Access",
     "Assigned Admin",
+    "Terminal Access",
     "Active",
   ];
 
@@ -305,20 +305,20 @@ const RetailersList = () => {
                     <TableCell>{retailer.location}</TableCell>
                     <TableCell>{retailer.contact_person}</TableCell>
                     <TableCell>{retailer.contact_number}</TableCell>
+                    <td className="whitespace-nowrap border border-gray-300 px-4 py-2 text-white dark:border-gray-600">
+                      {retailer.assigned_admin ? (
+                        admins.find(
+                          (admin) =>
+                            `"${admin.id}"` === retailer.assigned_admin,
+                        )?.name || "N/A"
+                      ) : (
+                        <span className="text-red-500">N/A</span>
+                      )}
+                    </td>
                     <TableCell>
-                      {retailer.terminal_access ? "TRUE" : "FALSE"}
+                      {retailer.terminal_access ? "Yes" : "No"}
                     </TableCell>
-                    <TableCell>
-                      {retailer.assigned_admin
-                        ? admins.find(
-                            (admin) =>
-                              `"${admin.id}"` === retailer.assigned_admin,
-                          )?.name || "N/A"
-                        : "N/A"}
-                    </TableCell>
-                    <TableCell>
-                      {retailer.active ? "Active" : "Inactive"}
-                    </TableCell>
+                    <TableCell>{retailer.active ? "Yes" : "No"}</TableCell>
                   </tr>
                 ))}
               </tbody>

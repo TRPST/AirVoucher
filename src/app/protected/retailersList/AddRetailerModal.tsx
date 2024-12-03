@@ -81,17 +81,17 @@ const AddRetailerModal: React.FC<AddRetailerModalProps> = ({
     fetchAdmins(true);
   }, []);
 
-  const handleRetailerSelect = (event: SelectChangeEvent<string>) => {
-    const selectedRetailer = event.target.value as string;
-    const retailer = retailers.find((r) => r.id === selectedRetailer);
-    if (retailer) {
-      setUpdatedAdmin((prev: any) => ({
-        ...prev,
-        assigned_retailers: [...prev.assigned_retailers, retailer],
-      }));
-      setAssignedRetailersUpdated(true);
-    }
-  };
+  // const handleRetailerSelect = (event: SelectChangeEvent<string>) => {
+  //   const selectedRetailer = event.target.value as string;
+  //   const retailer = retailers.find((r) => r.id === selectedRetailer);
+  //   if (retailer) {
+  //     setUpdatedAdmin((prev: any) => ({
+  //       ...prev,
+  //       assigned_retailers: [...prev.assigned_retailers, retailer],
+  //     }));
+  //     setAssignedRetailersUpdated(true);
+  //   }
+  // };
 
   return (
     <Modal
