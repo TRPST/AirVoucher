@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import DefaultLayout from "@/components/Layouts/DefaultLaout";
 import axios from "axios";
 import crypto from "crypto";
+import { saveVoucherToDatabase } from "../../ott_actions";
 
 const OTTVoucherManagement = () => {
   const BASE_URL = "/api"; // Use the rewrite proxy
@@ -99,7 +100,6 @@ const OTTVoucherManagement = () => {
     }
   };
 
-  // API Call: Issue Voucher
   const issueVoucher = async () => {
     setLoading("voucher");
     const { branch, cashier, mobileForSMS, till, value } = voucherDetails;
@@ -140,9 +140,25 @@ const OTTVoucherManagement = () => {
       );
 
       if (res.data.success === "true") {
+        const voucherData = JSON.parse(res.data.voucher);
+
+        // Save voucher to Supabase
+        const saveResponse = await saveVoucherToDatabase({
+          voucher_id: voucherData.voucherID,
+          sale_id: voucherData.saleID,
+          pin: voucherData.pin,
+          amount: parseFloat(voucherData.amount), // Convert to number
+        });
+
+        if (saveResponse.success) {
+          console.log("Voucher saved to database:", saveResponse.data);
+        } else {
+          console.error("Failed to save voucher:", saveResponse.message);
+        }
+
         setVoucherResponse({
           success: true,
-          voucher: JSON.parse(res.data.voucher),
+          voucher: voucherData,
         });
       } else {
         const errorMessage = getErrorMessage(res.data.errorCode);
