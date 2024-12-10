@@ -19,6 +19,7 @@ const ManageAdmins = () => {
     id: "",
     name: "",
     email: "",
+    contact_number: "",
     password: "",
     active: true,
     role: "admin",
@@ -57,6 +58,7 @@ const ManageAdmins = () => {
       id: generateUniqueID(),
       name: newAdmin.name,
       email: newAdmin.email,
+      contact_number: newAdmin.contact_number,
       password: newAdmin.password,
       active: true,
       role: newAdmin.role,
@@ -121,6 +123,15 @@ const ManageAdmins = () => {
               value={newAdmin.email}
               onChange={(e) =>
                 setNewAdmin({ ...newAdmin, email: e.target.value })
+              }
+              className="w-full rounded-lg border border-gray-300 bg-gray-50 px-4 py-2 text-gray-900 shadow-sm dark:bg-gray-700 dark:text-white"
+            />
+            <input
+              type="text"
+              placeholder="Contact Number"
+              value={newAdmin.contact_number}
+              onChange={(e) =>
+                setNewAdmin({ ...newAdmin, contact_number: e.target.value })
               }
               className="w-full rounded-lg border border-gray-300 bg-gray-50 px-4 py-2 text-gray-900 shadow-sm dark:bg-gray-700 dark:text-white"
             />

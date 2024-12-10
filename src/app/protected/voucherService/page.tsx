@@ -171,7 +171,9 @@ const OTTVoucherManagement = () => {
     } catch (error) {
       setVoucherResponse({
         success: false,
-        message: error.response?.data?.message || "An error occurred",
+        message:
+          (axios.isAxiosError(error) && error.response?.data?.message) ||
+          "An error occurred",
       });
     } finally {
       setLoading(null);
@@ -212,7 +214,9 @@ const OTTVoucherManagement = () => {
       console.error("Error checking voucher:", error);
       setCheckResponse({
         success: false,
-        message: error.response?.data?.message || "An error occurred",
+        message:
+          (axios.isAxiosError(error) && error.response?.data?.message) ||
+          "An error occurred",
       });
     } finally {
       setLoading(null);
@@ -246,7 +250,9 @@ const OTTVoucherManagement = () => {
       console.error("Error confirming voucher:", error);
       setConfirmResponse({
         success: false,
-        message: error.response?.data?.message || "An error occurred",
+        message:
+          (axios.isAxiosError(error) && error.response?.data?.message) ||
+          "An error occurred",
       });
     } finally {
       setLoading(null);
@@ -280,7 +286,9 @@ const OTTVoucherManagement = () => {
       console.error("Error rejecting voucher:", error);
       setRejectResponse({
         success: false,
-        message: error.response?.data?.message || "An error occurred",
+        message:
+          (axios.isAxiosError(error) && error.response?.data?.message) ||
+          "An error occurred",
       });
     } finally {
       setLoading(null);

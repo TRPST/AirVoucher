@@ -64,7 +64,6 @@ const menuGroups = [
         label: "Admins",
         route: "#",
         children: [
-          { label: "Add New Admin", route: "addAdmin" },
           { label: "Manage Admins", route: "manageAdmins" },
           // { label: "Retailers Assignment", route: "#" },
           // { label: "Activate/Deactivate Sub-Admins", route: "#" },
@@ -91,8 +90,7 @@ const menuGroups = [
         label: "Retailers",
         route: "#",
         children: [
-          { label: "Add New Retailer", route: "addRetailers" },
-          { label: "Retailers List", route: "retailersList" },
+          { label: "Manage Retailers", route: "retailersList" },
           // { label: "Retailers Status", route: "retailersStatus" },
           { label: "Authorizations", route: "retailersAuthorizations" },
         ],
