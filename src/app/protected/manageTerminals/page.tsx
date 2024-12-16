@@ -10,6 +10,7 @@ import AddTerminalModal from "./AddTerminalModal";
 import EditTerminalModal from "./EditTerminalModal";
 import RetailerModal from "./RetailerModal";
 import CashierModal from "./CashierModal";
+import { useRouter, usePathname } from "next/navigation";
 
 const TerminalManagement = () => {
   const [terminals, setTerminals] = useState<Terminal[]>([]);
@@ -44,6 +45,13 @@ const TerminalManagement = () => {
 
   const [confirmDeleteTerminal, setConfirmDeleteTerminal] = useState(false);
   const [editLoading, setEditLoading] = useState(false);
+
+  const router = useRouter();
+  const currentPath = usePathname();
+
+  const handleDashboardClick = (terminalId: string) => {
+    router.push(`${currentPath}/${terminalId}`);
+  };
 
   const fetchTerminals = async (doLoad: Boolean) => {
     if (doLoad) setFetchingTerminals(true);
@@ -336,7 +344,7 @@ const TerminalManagement = () => {
                   <td className="border border-gray-300 px-4 py-2 text-gray-800 dark:border-gray-600 dark:text-white">
                     <p
                       className="cursor-pointer underline"
-                      onClick={() => handleEditOpen(terminal)}
+                      onClick={() => handleDashboardClick(terminal.id)}
                     >
                       Dashboard
                     </p>
