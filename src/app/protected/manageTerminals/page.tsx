@@ -292,17 +292,14 @@ const TerminalManagement = () => {
                 <th className="border border-gray-300 px-4 py-2 text-left text-sm font-semibold dark:border-gray-600">
                   Action
                 </th>
+                <th className="border border-gray-300 px-4 py-2 text-left text-sm font-semibold dark:border-gray-600"></th>
               </tr>
             </thead>
             <tbody>
               {terminals.map((terminal, index) => (
                 <tr
                   key={terminal.id}
-                  className={`${
-                    index % 2 === 0
-                      ? "bg-gray-50 dark:bg-gray-700"
-                      : "bg-white dark:bg-gray-800"
-                  } transition-colors duration-200 hover:bg-gray-100 dark:hover:bg-gray-600`}
+                  className={`"bg-white transition-colors duration-200 hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700`}
                 >
                   <td className="border border-gray-300 px-4 py-2 text-gray-800 dark:border-gray-600 dark:text-white">
                     {terminal.id}
@@ -334,6 +331,14 @@ const TerminalManagement = () => {
                       onClick={() => handleEditOpen(terminal)}
                     >
                       Edit
+                    </p>
+                  </td>
+                  <td className="border border-gray-300 px-4 py-2 text-gray-800 dark:border-gray-600 dark:text-white">
+                    <p
+                      className="cursor-pointer underline"
+                      onClick={() => handleEditOpen(terminal)}
+                    >
+                      Dashboard
                     </p>
                   </td>
                 </tr>

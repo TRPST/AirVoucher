@@ -1,8 +1,9 @@
 // EditTerminalModal.tsx
-import React from "react";
+import React, { useEffect, useState } from "react";
 import Modal from "@mui/material/Modal";
-import { Box, Switch } from "@mui/material";
-import { Terminal } from "@/app/types/common";
+import { Box, FormControl, MenuItem, Select, Switch } from "@mui/material";
+import { Retailer, Terminal } from "@/app/types/common";
+import { getRetailersAction } from "../retailersList/actions";
 
 interface EditTerminalModalProps {
   open: boolean;
@@ -43,6 +44,25 @@ const EditTerminalModal: React.FC<EditTerminalModalProps> = ({
     const { name, checked } = e.target;
     setUpdatedTerminal((prev: Terminal) => ({ ...prev, [name]: checked }));
   };
+  const [retailers, setRetailers] = useState<Retailer[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
+
+  useEffect(() => {
+    const fetchRetailers = async () => {
+      setLoading(true);
+
+      const result = await getRetailersAction();
+      const retailers = result?.retailers || [];
+
+      if (retailers) {
+        setRetailers(retailers);
+      }
+
+      setLoading(false);
+    };
+
+    fetchRetailers();
+  }, []); // Empty dependency array since we only need to fetch once when component mounts
 
   const handleDeleteClick = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
@@ -101,7 +121,7 @@ const EditTerminalModal: React.FC<EditTerminalModalProps> = ({
               type="text"
               value={updatedTerminal.id}
               disabled
-              className="w-full rounded-lg border bg-gray-100 px-4 py-2 text-gray-600"
+              className="w-full rounded-lg border bg-gray-100 px-4 py-2 text-black  dark:bg-gray-700 dark:text-white"
             />
           </div>
 
@@ -109,12 +129,61 @@ const EditTerminalModal: React.FC<EditTerminalModalProps> = ({
             <label className="mb-3 block font-semibold text-gray-700 dark:text-gray-300">
               Assigned Retailer
             </label>
-            <input
-              type="text"
-              value={updatedTerminal.retailer_name}
-              disabled
-              className="w-full rounded-lg border bg-gray-100 px-4 py-2 text-gray-600"
-            />
+            <Select
+              labelId="retailer-select-label"
+              value={updatedTerminal.assigned_retailer || ""}
+              onChange={(event) => {
+                const selectedRetailerId = event.target.value;
+                const selectedRetailer = retailers.find(
+                  (r) => r.id === selectedRetailerId,
+                );
+                if (selectedRetailer) {
+                  setUpdatedTerminal((prev: Terminal) => ({
+                    ...prev,
+                    assigned_retailer: selectedRetailerId,
+                    retailer_name: selectedRetailer.name,
+                  }));
+                }
+              }}
+              displayEmpty
+              className="w-full rounded-lg border border-gray-300 bg-gray-50 px-4 py-2 text-gray-900 shadow-sm dark:bg-gray-700 dark:text-white"
+              style={{ color: "white" }}
+              sx={{
+                height: "40px",
+                alignItems: "center",
+                "& .MuiOutlinedInput-notchedOutline": {
+                  border: "1px solid grey",
+                },
+                "&:hover .MuiOutlinedInput-notchedOutline": {
+                  border: "2px solid grey",
+                },
+                "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                  border: "2px solid grey",
+                },
+                "& .MuiSelect-select": {
+                  color: "grey",
+                  padding: "0",
+                  paddingLeft: "0px",
+                },
+                "& .MuiSelect-icon": {
+                  color: "grey",
+                },
+              }}
+            >
+              <MenuItem value="" disabled sx={{ display: "none" }}>
+                Select a retailer
+              </MenuItem>
+              {retailers
+                .filter(
+                  (retailer) =>
+                    !retailer.assigned_terminals?.includes(updatedTerminal.id),
+                )
+                .map((retailer: Retailer) => (
+                  <MenuItem key={retailer.id} value={retailer.id}>
+                    {retailer.name} - {retailer.location}
+                  </MenuItem>
+                ))}
+            </Select>
           </div>
 
           <div>
@@ -126,7 +195,7 @@ const EditTerminalModal: React.FC<EditTerminalModalProps> = ({
               name="cashier_name"
               value={updatedTerminal.cashier_name}
               onChange={handleChange}
-              className="w-full rounded-lg border px-4 py-2 dark:bg-gray-700"
+              className="w-full rounded-lg border bg-gray-100 px-4 py-2 text-black dark:bg-gray-700 dark:text-white"
             />
           </div>
 
