@@ -2,36 +2,48 @@
 
 import React, { useState, useEffect } from "react";
 import DefaultLayout from "@/components/Layouts/DefaultLaout";
-import { getTerminalsAction } from "./actions";
+import { getTerminalsAction, signUpTerminalAction } from "./actions";
 import { getAdminsAction } from "../manageAdmins/actions";
 import { User, Retailer, Terminal } from "@/app/types/common";
 import { getRetailersAction } from "../retailersList/actions";
 import AddTerminalModal from "./AddTerminalModal";
 import EditTerminalModal from "./EditTerminalModal";
+import RetailerModal from "./RetailerModal";
+import CashierModal from "./CashierModal";
 
 const TerminalManagement = () => {
   const [terminals, setTerminals] = useState<Terminal[]>([]);
   const [retailers, setRetailers] = useState<Retailer[]>([]);
-  const [newTerminal, setNewTerminal] = useState<Terminal>({
+  const [newTerminal, setNewTerminal] = useState({
     id: "",
     assigned_retailer: "",
-    assigned_cashier: "",
-    cashiers_name: "",
-    retailers_name: "",
+    cashier_name: "",
+    cashier_email: "",
+    contact_number: "",
+    password: "",
+    retailer_name: "",
     active: true,
     created_at: new Date(),
   });
   const [updatedTerminal, setUpdatedTerminal] = useState<Terminal>();
   const [addTerminalModalOpen, setAddTerminalModalOpen] = useState(false);
   const [editTerminalModalOpen, setEditTerminalModalOpen] = useState(false);
+  const [retailerModalOpen, setRetailerModalOpen] = useState(false);
+  const [cashierModalOpen, setCashierModalOpen] = useState(false);
   const [error, setError] = useState("");
   const [editError, setEditError] = useState("");
   const [newCashier, setNewCashier] = useState<User>();
+
+  const [selectedRetailer, setSelectedRetailer] = useState<string | null>(null);
+  const [selectedCashier, setSelectedCashier] = useState<string | null>(null);
 
   const [fetchingTerminals, setFetchingTerminals] = useState(false);
   const [success, setSuccess] = useState("");
   const [editSuccess, setEditSuccess] = useState("");
   const [loading, setLoading] = useState(false);
+
+  const [confirmDeleteTerminal, setConfirmDeleteTerminal] = useState(false);
+  const [editLoading, setEditLoading] = useState(false);
 
   const fetchTerminals = async (doLoad: Boolean) => {
     if (doLoad) setFetchingTerminals(true);
@@ -47,6 +59,11 @@ const TerminalManagement = () => {
         setTerminals(terminals);
       }
     }
+    setNewTerminal({
+      ...newTerminal,
+      id: `TER${terminals.length + 1}`,
+    });
+
     setFetchingTerminals(false);
   };
 
@@ -94,22 +111,111 @@ const TerminalManagement = () => {
     setTerminals(updatedTerminals);
   };
 
-  //handleAddTerminal
   const handleAddTerminal = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log(newTerminal);
-    setAddTerminalModalOpen(false);
-    setNewTerminal({
-      id: "",
-      assigned_retailer: "",
-      assigned_cashier: "",
-      cashiers_name: "",
-      retailers_name: "",
-      active: true,
-      created_at: new Date(),
-    });
-    setSuccess("Terminal added successfully");
+    if (!newTerminal) return;
+    if (newTerminal.cashier_name.trim() === "") {
+      setError("Cashier's name is required.");
+      return;
+    }
+
+    if (newTerminal.cashier_email.trim() === "") {
+      setError("Cashier's email is required.");
+      return;
+    }
+
+    if (newTerminal.contact_number.trim() === "") {
+      setError("Contact number is required.");
+      return;
+    }
+
+    if (newTerminal.password.trim() === "") {
+      setError("Password is required.");
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const result = await signUpTerminalAction(newTerminal);
+      console.log("Result: ", result);
+      if (result.error) {
+        setError(result.error);
+      } else {
+        setSuccess("Terminal created successfully!");
+      }
+    } catch (error) {
+      console.error("Error: ", error);
+    } finally {
+      setLoading(false);
+    }
   };
+
+  const handleEditTerminal = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!updatedTerminal) return;
+    if (
+      updatedTerminal.name.trim() === "" ||
+      updatedTerminal.contact_person.trim() === "" ||
+      updatedTerminal.contact_number.trim() === "" ||
+      updatedTerminal.location.trim() === ""
+    ) {
+      setEditError("All fields are required.");
+      return;
+    }
+    try {
+      setEditLoading(true);
+      const result = await editTerminalAction(updatedTerminal);
+      console.log("Result: ", result);
+      if (result.error) {
+        setEditError(result.error);
+      } else {
+        setEditSuccess("Terminal updated successfully!");
+      }
+    } catch (error) {
+      console.error("Error: ", error);
+    } finally {
+      setEditLoading(false);
+    }
+  };
+
+  //function to handle delete retailer
+  const handleDeleteTerminal = async (id: string) => {
+    try {
+      setEditLoading(true);
+      const result = await deleteTerminalAction(id);
+      console.log("Result: ", result);
+      if (result.error) {
+        setEditError(result.error);
+      } else {
+        setEditSuccess("Terminal deleted successfully!");
+      }
+    } catch (error) {
+      console.error("Error: ", error);
+    } finally {
+      setEditLoading(false);
+    }
+  };
+
+  const handleEditOpen = (terminal: Terminal) => {
+    setUpdatedTerminal(terminal);
+    setEditTerminalModalOpen(true);
+  };
+
+  const handleEditClose = () => {
+    setEditTerminalModalOpen(false);
+    setUpdatedTerminal(undefined);
+    setConfirmDeleteTerminal(false);
+  };
+
+  useEffect(() => {
+    setError("");
+    setSuccess("");
+  }, [newTerminal]);
+
+  useEffect(() => {
+    setEditError("");
+    setEditSuccess("");
+  }, [updatedTerminal]);
 
   const handleClose = () => {
     setAddTerminalModalOpen(false);
@@ -132,6 +238,26 @@ const TerminalManagement = () => {
     );
   };
 
+  const handleRetailerModal = (retailerId: string) => {
+    setSelectedRetailer(retailerId);
+    setRetailerModalOpen(true);
+  };
+
+  const handleRetailerClose = () => {
+    setSelectedRetailer(null);
+    setRetailerModalOpen(false);
+  };
+
+  const handleCashierModal = (cashierId: string) => {
+    setSelectedCashier(cashierId);
+    setCashierModalOpen(true);
+  };
+
+  const handleCashierClose = () => {
+    setSelectedCashier(null);
+    setCashierModalOpen(false);
+  };
+
   return (
     <DefaultLayout>
       <div className="container mx-auto p-6">
@@ -140,9 +266,6 @@ const TerminalManagement = () => {
             <h2 className="text-3xl font-bold text-gray-800 dark:text-white">
               Terminals List
             </h2>
-            {/* <Button variant="outlined" onClick={handleOpen}>
-            Add Retailer
-          </Button> */}
             <button
               onClick={handleOpen}
               className="rounded border border-blue-700 px-3 py-2 font-semibold text-blue-500 shadow transition duration-300 hover:bg-blue-800 hover:text-white dark:border-blue-600 dark:hover:bg-blue-700"
@@ -158,16 +281,16 @@ const TerminalManagement = () => {
                   Terminal ID
                 </th>
                 <th className="border border-gray-300 px-4 py-2 text-left text-sm font-semibold dark:border-gray-600">
-                  Retailer ID
+                  Retailer
                 </th>
                 <th className="border border-gray-300 px-4 py-2 text-left text-sm font-semibold dark:border-gray-600">
-                  Cashier's Name
+                  Cashier
                 </th>
                 <th className="border border-gray-300 px-4 py-2 text-left text-sm font-semibold dark:border-gray-600">
                   Active
                 </th>
                 <th className="border border-gray-300 px-4 py-2 text-left text-sm font-semibold dark:border-gray-600">
-                  Activate/Deactivate
+                  Action
                 </th>
               </tr>
             </thead>
@@ -184,26 +307,34 @@ const TerminalManagement = () => {
                   <td className="border border-gray-300 px-4 py-2 text-gray-800 dark:border-gray-600 dark:text-white">
                     {terminal.id}
                   </td>
-                  <td className="border border-gray-300 px-4 py-2 text-gray-800 dark:border-gray-600 dark:text-white">
-                    {terminal.assigned_retailer}
+                  <td className="cursor-pointer border border-gray-300 px-4 py-2 text-gray-800 underline dark:border-gray-600 dark:text-white">
+                    <p
+                      onClick={() =>
+                        handleRetailerModal(terminal.assigned_retailer)
+                      }
+                    >
+                      {terminal.assigned_retailer}
+                    </p>
                   </td>
-                  <td className="border border-gray-300 px-4 py-2 text-gray-800 dark:border-gray-600 dark:text-white">
-                    {terminal.cashiers_name}
+                  <td className="cursor-pointer border border-gray-300 px-4 py-2 text-gray-800 underline dark:border-gray-600 dark:text-white">
+                    <p
+                      onClick={() =>
+                        handleCashierModal(terminal.assigned_cashier)
+                      }
+                    >
+                      {terminal.cashier_name}
+                    </p>
                   </td>
                   <td className="border border-gray-300 px-4 py-2 text-gray-800 dark:border-gray-600 dark:text-white">
                     {terminal.active ? "Yes" : "No"}
                   </td>
-                  <td className="border border-gray-300 px-4 py-2 text-center text-gray-800 dark:border-gray-600 dark:text-white">
-                    <label className="flex items-center justify-center space-x-3">
-                      <span>{terminal.active}</span>
-                      <input
-                        type="checkbox"
-                        checked={terminal.active}
-                        onChange={() => toggleTerminalStatus(index)}
-                        className="toggle-checkbox"
-                      />
-                      <span className="toggle-switch"></span>
-                    </label>
+                  <td className="border border-gray-300 px-4 py-2 text-gray-800 dark:border-gray-600 dark:text-white">
+                    <p
+                      className="cursor-pointer underline"
+                      onClick={() => handleEditOpen(terminal)}
+                    >
+                      Edit
+                    </p>
                   </td>
                 </tr>
               ))}
@@ -219,7 +350,6 @@ const TerminalManagement = () => {
           handleAddTerminal={handleAddTerminal}
           newTerminal={newTerminal}
           setNewTerminal={setNewTerminal}
-          newCashier={newCashier as User}
           setNewCashier={setNewCashier}
           retailers={retailers}
           error={error}
@@ -229,12 +359,26 @@ const TerminalManagement = () => {
           generateSecurePassword={generateSecurePassword}
         />
       )}
-      {/* {updatedTerminal && (
+      {selectedRetailer && (
+        <RetailerModal
+          open={retailerModalOpen}
+          handleRetailerClose={handleRetailerClose}
+          selectedRetailer={selectedRetailer}
+        />
+      )}
+      {selectedCashier && (
+        <CashierModal
+          open={cashierModalOpen}
+          handleCashierClose={handleCashierClose}
+          selectedCashier={selectedCashier}
+        />
+      )}
+      {updatedTerminal && (
         <EditTerminalModal
           open={editTerminalModalOpen}
           handleClose={handleEditClose}
           handleEditTerminal={handleEditTerminal}
-          handleDeleteTerminal={(id: string) => handleDeleteTerminal(id)}
+          handleDeleteTerminal={handleDeleteTerminal}
           confirmDeleteTerminal={confirmDeleteTerminal}
           setConfirmDeleteTerminal={setConfirmDeleteTerminal}
           updatedTerminal={updatedTerminal}
@@ -244,7 +388,7 @@ const TerminalManagement = () => {
           editLoading={editLoading}
           setEditLoading={setEditLoading}
         />
-      )} */}
+      )}
     </DefaultLayout>
   );
 };

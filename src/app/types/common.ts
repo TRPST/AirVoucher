@@ -31,8 +31,8 @@ export type Terminal = {
   id: string;
   assigned_retailer: string;
   assigned_cashier: string;
-  cashiers_name: string;
-  retailers_name: string;
+  cashier_name: string;
+  retailer_name: string;
   active: boolean;
   created_at: Date;
 };

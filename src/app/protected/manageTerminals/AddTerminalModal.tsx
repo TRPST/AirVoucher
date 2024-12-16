@@ -15,9 +15,9 @@ interface AddTerminalModalProps {
   open: boolean;
   handleClose: () => void;
   handleAddTerminal: (e: React.FormEvent) => void;
-  newTerminal: Terminal;
+  newTerminal: any;
   setNewTerminal: (value: any) => void;
-  newCashier: User;
+  //newTerminal: User;
   setNewCashier: (value: any) => void;
   retailers: Retailer[];
   error: string;
@@ -33,7 +33,6 @@ const AddTerminalModal: React.FC<AddTerminalModalProps> = ({
   handleAddTerminal,
   newTerminal,
   setNewTerminal,
-  newCashier,
   setNewCashier,
   retailers,
   error,
@@ -160,12 +159,12 @@ const AddTerminalModal: React.FC<AddTerminalModalProps> = ({
             </label>
             <input
               type="text"
-              id="contact_person"
-              name="contact_person"
-              value={newCashier?.name}
+              id="cashier_name"
+              name="cashier_name"
+              value={newTerminal?.cashier_name}
               onChange={handleChange}
               className="w-full rounded-lg border px-4 py-2 dark:bg-gray-700"
-              placeholder="Enter retailer's owner's name"
+              placeholder="Enter cashier's name"
             />
           </div>
 
@@ -178,12 +177,12 @@ const AddTerminalModal: React.FC<AddTerminalModalProps> = ({
             </label>
             <input
               type="text"
-              id="retailerEmail"
-              name="email"
-              value={newCashier?.email}
+              id="cashier_email"
+              name="cashier_email"
+              value={newTerminal?.cashier_email}
               onChange={handleChange}
               className="w-full rounded-lg border px-4 py-2 dark:bg-gray-700"
-              placeholder="Enter retailer's email"
+              placeholder="Enter cashier's email"
             />
           </div>
           <div>
@@ -197,10 +196,10 @@ const AddTerminalModal: React.FC<AddTerminalModalProps> = ({
               type="text"
               id="contact_number"
               name="contact_number"
-              value={newCashier?.contact_number}
+              value={newTerminal?.contact_number}
               onChange={handleChange}
               className="w-full rounded-lg border px-4 py-2 dark:bg-gray-700"
-              placeholder="Enter retailer's contact no"
+              placeholder="Enter cashier's contact no"
             />
           </div>
           <div>
@@ -217,7 +216,7 @@ const AddTerminalModal: React.FC<AddTerminalModalProps> = ({
                 id="password"
                 name="password"
                 placeholder="Password"
-                value={newCashier?.password}
+                value={newTerminal?.password}
                 onChange={handleChange}
                 className="w-full rounded-lg border border-gray-300 bg-gray-50 px-4 py-2 text-gray-900 shadow-sm dark:bg-gray-700 dark:text-white"
               />
