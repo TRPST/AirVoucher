@@ -11,6 +11,7 @@ import EditTerminalModal from "./EditTerminalModal";
 import RetailerModal from "./RetailerModal";
 import CashierModal from "./CashierModal";
 import { useRouter, usePathname } from "next/navigation";
+import { getUserAction } from "@/app/actions";
 
 const TerminalManagement = () => {
   const [terminals, setTerminals] = useState<Terminal[]>([]);
@@ -53,6 +54,19 @@ const TerminalManagement = () => {
     router.push(`${currentPath}/${terminalId}`);
   };
 
+  const [user, setUser] = useState<User>();
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      const user = await getUserAction();
+      console.log("User: ", user.id);
+      if (user) {
+        setUser(user);
+      }
+    };
+    fetchUser();
+  }, []);
+
   const fetchTerminals = async (doLoad: Boolean) => {
     if (doLoad) setFetchingTerminals(true);
 
@@ -64,7 +78,15 @@ const TerminalManagement = () => {
       console.error(error);
     } else {
       if (terminals) {
-        setTerminals(terminals);
+        if (user?.role === "cashier") {
+          const cashierTerminals = terminals.filter(
+            (terminal) => terminal.assigned_cashier === user.id,
+          );
+          console.log("cashierTerminals: ", cashierTerminals);
+
+          setTerminals(cashierTerminals);
+        }
+        //setTerminals(terminals);
       }
     }
     setNewTerminal({
@@ -77,7 +99,7 @@ const TerminalManagement = () => {
 
   useEffect(() => {
     fetchTerminals(true);
-  }, []);
+  }, [user]);
 
   useEffect(() => {
     if (success !== "") fetchTerminals(false);

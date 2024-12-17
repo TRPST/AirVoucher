@@ -4,8 +4,8 @@ import DropdownNotification from "./DropdownNotification";
 import DropdownUser from "./DropdownUser";
 import Image from "next/image";
 import SearchForm from "@/components/Header/SearchForm";
-import { checkUserSignedIn } from "@/app/actions";
-import { useEffect } from "react";
+import { checkUserSignedIn, getUserAction } from "@/app/actions";
+import { useEffect, useState } from "react";
 
 const Header = (props: {
   sidebarOpen: string | boolean | undefined;
@@ -18,6 +18,34 @@ const Header = (props: {
 
   //   checkAuth();
   // }, []);
+
+  const [userRole, setUserRole] = useState<string>("");
+
+  useEffect(() => {
+    const fetchUserRole = async () => {
+      const user = await getUserAction();
+      console.log("User: ", user);
+      if (user) {
+        setUserRole(user?.role || "");
+      }
+    };
+    fetchUserRole();
+  }, []);
+
+  const userHeading = () => {
+    switch (userRole) {
+      case "super_admin":
+        return "Super Admin Dashboard";
+      case "sub_admin":
+        return "Sub Admin Dashboard";
+      case "retailer":
+        return "Retailer Dashboard";
+      case "cashier":
+        return "Cashier Dashboard";
+      default:
+        return "Cashier Dashboard";
+    }
+  };
 
   return (
     <header className="sticky top-0 z-999 flex w-full border-b border-stroke bg-white dark:border-stroke-dark dark:bg-gray-dark">
@@ -81,7 +109,7 @@ const Header = (props: {
             <h1 className="mb-0.5 text-heading-5 font-bold text-dark dark:text-white">
               Dashboard
             </h1>
-            <p className="font-medium">Super Admin Dashboard</p>
+            <p className="font-medium">{userHeading()}</p>
           </div>
         </div>
 

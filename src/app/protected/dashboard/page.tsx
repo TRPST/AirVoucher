@@ -12,7 +12,13 @@ export default function Home() {
   return (
     <>
       <DefaultLayout>
-        <ECommerce />
+        <div className="mt-50 flex h-screen justify-center">
+          <p className="text-center text-2xl font-semibold">
+            Sales Analytics Dashboard <br />
+            Coming Soon
+          </p>
+        </div>
+        {/* <ECommerce /> */}
       </DefaultLayout>
     </>
   );
