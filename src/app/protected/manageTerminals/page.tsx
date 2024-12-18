@@ -200,7 +200,7 @@ const TerminalManagement = () => {
 
     try {
       setLoading(true);
-      const result = await signUpTerminalAction(newTerminal, terminals.length);
+      const result = await signUpTerminalAction(newTerminal);
       console.log("Result: ", result);
       if (result.error) {
         setError(result.error);
@@ -217,42 +217,42 @@ const TerminalManagement = () => {
   const handleEditTerminal = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!updatedTerminal) return;
-    if (
-      updatedTerminal.name.trim() === "" ||
-      updatedTerminal.contact_person.trim() === "" ||
-      updatedTerminal.contact_number.trim() === "" ||
-      updatedTerminal.location.trim() === ""
-    ) {
-      setEditError("All fields are required.");
-      return;
-    }
-    try {
-      setEditLoading(true);
-      const result = await editTerminalAction(updatedTerminal);
-      console.log("Result: ", result);
-      if (result.error) {
-        setEditError(result.error);
-      } else {
-        setEditSuccess("Terminal updated successfully!");
-      }
-    } catch (error) {
-      console.error("Error: ", error);
-    } finally {
-      setEditLoading(false);
-    }
+    // if (
+    //   updatedTerminal.name.trim() === "" ||
+    //   updatedTerminal.contact_person.trim() === "" ||
+    //   updatedTerminal.contact_number.trim() === "" ||
+    //   updatedTerminal.location.trim() === ""
+    // ) {
+    //   setEditError("All fields are required.");
+    //   return;
+    // }
+    // try {
+    //   setEditLoading(true);
+    //   const result = await editTerminalAction(updatedTerminal);
+    //   console.log("Result: ", result);
+    //   if (result.error) {
+    //     setEditError(result.error);
+    //   } else {
+    //     setEditSuccess("Terminal updated successfully!");
+    //   }
+    // } catch (error) {
+    //   console.error("Error: ", error);
+    // } finally {
+    //   setEditLoading(false);
+    // }
   };
 
   //function to handle delete retailer
   const handleDeleteTerminal = async (id: string) => {
     try {
       setEditLoading(true);
-      const result = await deleteTerminalAction(id);
-      console.log("Result: ", result);
-      if (result.error) {
-        setEditError(result.error);
-      } else {
-        setEditSuccess("Terminal deleted successfully!");
-      }
+      // const result = await deleteTerminalAction(id);
+      // console.log("Result: ", result);
+      // if (result.error) {
+      //   setEditError(result.error);
+      // } else {
+      //   setEditSuccess("Terminal deleted successfully!");
+      // }
     } catch (error) {
       console.error("Error: ", error);
     } finally {
