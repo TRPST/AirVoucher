@@ -324,7 +324,11 @@ const RetailersList = () => {
               </thead>
               <tbody>
                 {retailers
-                  .filter((retailer) => retailer.assigned_admin === user?.id)
+                  .filter(
+                    (retailer) =>
+                      userRole === "superAdmin" ||
+                      retailer.assigned_admin === user?.id,
+                  )
                   .map((retailer, index) => (
                     <tr
                       key={index}
