@@ -250,6 +250,7 @@ const RetailersList = () => {
     "Assigned Admin",
     "Terminal Access",
     "Active",
+    "",
   ];
 
   return (
@@ -297,8 +298,7 @@ const RetailersList = () => {
                 {retailers.map((retailer, index) => (
                   <tr
                     key={index}
-                    className={`cursor-pointer transition-colors duration-200 hover:bg-gray-100 dark:hover:bg-gray-700`}
-                    onClick={() => handleEditOpen(retailer)}
+                    className={`transition-colors duration-200 hover:bg-gray-100 dark:hover:bg-gray-700`}
                   >
                     <TableCell>{retailer.id}</TableCell>
                     <TableCell>{retailer.name}</TableCell>
@@ -308,8 +308,7 @@ const RetailersList = () => {
                     <td className="whitespace-nowrap border border-gray-300 px-4 py-2 text-black dark:border-gray-600 dark:text-white">
                       {retailer.assigned_admin ? (
                         admins.find(
-                          (admin) =>
-                            `"${admin.id}"` === retailer.assigned_admin,
+                          (admin) => `${admin.id}` === retailer.assigned_admin,
                         )?.name || "N/A"
                       ) : (
                         <span className="text-red-500">N/A</span>
@@ -319,6 +318,14 @@ const RetailersList = () => {
                       {retailer.terminal_access ? "Yes" : "No"}
                     </TableCell>
                     <TableCell>{retailer.active ? "Yes" : "No"}</TableCell>
+                    <TableCell>
+                      <p
+                        className="cursor-pointer underline"
+                        onClick={() => handleEditOpen(retailer)}
+                      >
+                        Edit
+                      </p>
+                    </TableCell>
                   </tr>
                 ))}
               </tbody>

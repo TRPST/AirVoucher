@@ -239,6 +239,7 @@ const ManageAdmins = () => {
     "Terminal Access",
     "Active",
     "Retailers",
+    "",
   ];
 
   const generateUniqueAdminID = () => `AD${String(Date.now()).slice(-4)}`;
@@ -296,8 +297,7 @@ const ManageAdmins = () => {
                       .map((admin, index) => (
                         <tr
                           key={index}
-                          className="cursor-pointer bg-white transition-colors duration-200 hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700"
-                          onClick={() => handleEditOpen(admin)}
+                          className=" bg-white transition-colors duration-200 hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700"
                         >
                           <TableCell>{admin.name}</TableCell>
                           <TableCell>{admin.email}</TableCell>
@@ -308,6 +308,14 @@ const ManageAdmins = () => {
                           <TableCell>{admin.active ? "Yes" : "No"}</TableCell>
                           <TableCell>
                             {admin.assigned_retailers?.length}
+                          </TableCell>
+                          <TableCell>
+                            <p
+                              className="cursor-pointer underline"
+                              onClick={() => handleEditOpen(admin)}
+                            >
+                              Edit
+                            </p>
                           </TableCell>
                         </tr>
                       ))}
@@ -338,8 +346,7 @@ const ManageAdmins = () => {
                       .map((admin, index) => (
                         <tr
                           key={index}
-                          className="cursor-pointer bg-white transition-colors duration-200 hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700"
-                          onClick={() => handleEditOpen(admin)}
+                          className=" bg-white transition-colors duration-200 hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700"
                         >
                           <TableCell>{admin.name}</TableCell>
                           <TableCell>{admin.email}</TableCell>
@@ -350,6 +357,14 @@ const ManageAdmins = () => {
                           <TableCell>{admin.active ? "Yes" : "No"}</TableCell>
                           <TableCell>
                             {admin.assigned_retailers?.length}
+                          </TableCell>
+                          <TableCell>
+                            <p
+                              className="cursor-pointer underline"
+                              onClick={() => handleEditOpen(admin)}
+                            >
+                              Edit
+                            </p>
                           </TableCell>
                         </tr>
                       ))}

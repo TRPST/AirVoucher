@@ -98,7 +98,7 @@ export const getAdminsAction = async () => {
   const usersWithRetailers = users.map((user) => ({
     ...user,
     assigned_retailers: retailers.filter(
-      (retailer) => retailer.assigned_admin === `"${user.id}"`,
+      (retailer) => retailer.assigned_admin === `${user.id}`,
     ),
   }));
 
@@ -113,7 +113,7 @@ export const assignAdminToRetailer = async (
 
   const { error } = await supabase
     .from("retailers")
-    .update({ assigned_admin: `"${adminId}"` })
+    .update({ assigned_admin: `${adminId}` })
     .eq("id", retailerId);
 
   if (error) {
@@ -169,7 +169,7 @@ export const deleteAdminAction = async (adminId: string) => {
   const { data: retailers, error: fetchError } = await supabase
     .from("retailers")
     .select("id")
-    .eq("assigned_admin", `"${adminId}"`);
+    .eq("assigned_admin", `${adminId}`);
 
   if (fetchError) {
     console.error("Error fetching retailers:", fetchError);

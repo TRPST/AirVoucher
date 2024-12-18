@@ -4,13 +4,22 @@ import { createClient } from "../../../../utils/supabase/server";
 import { headers } from "next/headers";
 import { Terminal } from "../../types/common";
 
-export const signUpTerminalAction = async (newTerminal: any) => {
+export const signUpTerminalAction = async (
+  newTerminal: any,
+  terminalsLength: number,
+) => {
   const supabase = await createClient();
 
+  const newTerminalId = `TER${terminalsLength + 1}`;
+
   //create the new cashier user
-  const { data, error } = await supabase.auth.signUp({
+  const { data, error } = await supabase.auth.admin.createUser({
     email: newTerminal.cashier_email,
     password: newTerminal.password,
+    email_confirm: true,
+    user_metadata: {
+      role: "cashier",
+    },
   });
 
   if (error) {
@@ -22,7 +31,7 @@ export const signUpTerminalAction = async (newTerminal: any) => {
     return { error: "User ID not found" };
   }
 
-  // Fetch the existing assigned_retailers list
+  // Fetch the existing assigned_terminals list
   const { data: user, error: userError } = await supabase
     .from("users")
     .select("assigned_terminals")
@@ -37,7 +46,7 @@ export const signUpTerminalAction = async (newTerminal: any) => {
   // Append the new terminal ID to the existing list
   const updatedAssignedTerminals = [
     ...(user?.assigned_terminals || []),
-    { id: newTerminal.id },
+    { id: newTerminalId },
   ];
 
   // Update the user with the new assigned_terminals list
@@ -45,6 +54,7 @@ export const signUpTerminalAction = async (newTerminal: any) => {
     id: userId,
     name: newTerminal.cashier_name,
     email: newTerminal.cashier_email,
+    contact_number: newTerminal.contact_number,
     role: "cashier",
     active: newTerminal.active,
     assigned_terminals: updatedAssignedTerminals,
@@ -56,7 +66,7 @@ export const signUpTerminalAction = async (newTerminal: any) => {
 
   // Upsert the terminal information
   const { error: terminalError } = await supabase.from("terminals").upsert({
-    id: newTerminal.id,
+    id: newTerminalId,
     assigned_cashier: userId,
     cashier_name: newTerminal.cashier_name,
     retailer_name: newTerminal.retailer_name,
@@ -111,6 +121,33 @@ export const getTerminalsByAdminIdAction = async (adminId: string) => {
   }
 
   //console.log("Terminals fetched: ", retailers);
+
+  return { retailers };
+};
+
+export const getRetailersByUserIdAction = async (userId: string) => {
+  console.log("User ID passed to function: ", userId);
+
+  const supabase = await createClient();
+
+  const { data: retailers, error } = await supabase
+    .from("retailers")
+    .select("*")
+    .eq("assigned_owner", `${userId}`);
+
+  //console.log("Retailers fetched: ", retailers);
+
+  if (error) {
+    console.error("Error fetching retailers:", error);
+    return { error: error.message };
+  }
+
+  if (!retailers || retailers.length === 0) {
+    console.log("No retailers found for user ID: ", userId);
+    return { retailers: [] };
+  }
+
+  //console.log("Retailers fetched: ", retailers);
 
   return { retailers };
 };

@@ -166,7 +166,7 @@ const EditAdminModal: React.FC<EditAdminModalProps> = ({
       // Update the retailers state list
       const updatedRetailers = retailers.map((r) =>
         r.id === selectedRetailerId
-          ? { ...r, assigned_admin: `"${updatedAdmin.id}"` }
+          ? { ...r, assigned_admin: `${updatedAdmin.id}` }
           : r,
       );
       setRetailers(updatedRetailers);
@@ -285,7 +285,7 @@ const EditAdminModal: React.FC<EditAdminModalProps> = ({
                     {retailers
                       .filter(
                         (retailer) =>
-                          retailer.assigned_admin !== `"${updatedAdmin.id}"` &&
+                          retailer.assigned_admin !== `${updatedAdmin.id}` &&
                           !retailer.assigned_admin,
                       )
                       .map((retailer: Retailer) => (
@@ -315,7 +315,7 @@ const EditAdminModal: React.FC<EditAdminModalProps> = ({
                     {retailers
                       .filter(
                         (retailer) =>
-                          retailer.assigned_admin === `"${updatedAdmin.id}"`,
+                          retailer.assigned_admin === `${updatedAdmin.id}`,
                       )
                       .map((retailer: Retailer) => (
                         <tr
