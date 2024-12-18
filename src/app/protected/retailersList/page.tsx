@@ -15,6 +15,7 @@ import {
 } from "./actions";
 import EditRetailerModal from "./EditRetailerModal";
 import { getAdminsAction } from "../manageAdmins/actions";
+import { getUserAction } from "@/app/actions";
 
 const RetailersList = () => {
   const [retailers, setRetailers] = useState<Retailer[]>([]);
@@ -34,6 +35,19 @@ const RetailersList = () => {
   const [editLoading, setEditLoading] = useState(false);
 
   const [confirmDeleteRetailer, setConfirmDeleteRetailer] = useState(false);
+
+  const [userRole, setUserRole] = useState<string>("");
+
+  useEffect(() => {
+    const fetchUserRole = async () => {
+      const user = await getUserAction();
+      //console.log("User: ", user);
+      if (user) {
+        setUserRole(user?.role || "");
+      }
+    };
+    fetchUserRole();
+  }, []);
 
   const fetchRetailers = async (doLoad: Boolean) => {
     if (doLoad) setFetchingRetailers(true);
@@ -241,17 +255,29 @@ const RetailersList = () => {
     );
   };
 
-  const tableHeaders = [
-    "Retailer ID",
-    "Retailer Name",
-    "Location",
-    "Contact Person",
-    "Contact Number",
-    "Assigned Admin",
-    "Terminal Access",
-    "Active",
-    "",
-  ];
+  const tableHeaders =
+    userRole === "superAdmin"
+      ? [
+          "Retailer ID",
+          "Retailer Name",
+          "Location",
+          "Contact Person",
+          "Contact Number",
+          "Assigned Admin",
+          "Terminal Access",
+          "Active",
+          "",
+        ]
+      : [
+          "Retailer ID",
+          "Retailer Name",
+          "Location",
+          "Contact Person",
+          "Contact Number",
+          "Assigned Admin",
+          "Terminal Access",
+          "Active",
+        ];
 
   return (
     <DefaultLayout>
@@ -260,15 +286,15 @@ const RetailersList = () => {
           <h2 className="text-3xl font-bold text-gray-800 dark:text-white">
             Retailers List
           </h2>
-          {/* <Button variant="outlined" onClick={handleOpen}>
-            Add Retailer
-          </Button> */}
-          <button
-            onClick={handleOpen}
-            className="rounded border border-blue-700 px-3 py-2 font-semibold text-blue-500 shadow transition duration-300 hover:bg-blue-800 hover:text-white dark:border-blue-600 dark:hover:bg-blue-700"
-          >
-            Add Retailer
-          </button>
+
+          {userRole === "superAdmin" && (
+            <button
+              onClick={handleOpen}
+              className="rounded border border-blue-700 px-3 py-2 font-semibold text-blue-500 shadow transition duration-300 hover:bg-blue-800 hover:text-white dark:border-blue-600 dark:hover:bg-blue-700"
+            >
+              Add Retailer
+            </button>
+          )}
         </div>
         <p className="mb-4 text-gray-600 dark:text-gray-400">
           Below is the list of retailers and their current status. You can
@@ -318,14 +344,16 @@ const RetailersList = () => {
                       {retailer.terminal_access ? "Yes" : "No"}
                     </TableCell>
                     <TableCell>{retailer.active ? "Yes" : "No"}</TableCell>
-                    <TableCell>
-                      <p
-                        className="cursor-pointer underline"
-                        onClick={() => handleEditOpen(retailer)}
-                      >
-                        Edit
-                      </p>
-                    </TableCell>
+                    {userRole === "superAdmin" && (
+                      <TableCell>
+                        <p
+                          className="cursor-pointer underline"
+                          onClick={() => handleEditOpen(retailer)}
+                        >
+                          Edit
+                        </p>
+                      </TableCell>
+                    )}
                   </tr>
                 ))}
               </tbody>

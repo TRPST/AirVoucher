@@ -36,8 +36,8 @@ const Header = (props: {
     switch (userRole) {
       case "superAdmin":
         return "Super Admin Dashboard";
-      case "subAdmin":
-        return "Sub Admin Dashboard";
+      case "admin":
+        return "Admin Dashboard";
       case "retailer":
         return "Retailer Dashboard";
       case "cashier":

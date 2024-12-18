@@ -61,7 +61,7 @@ const TerminalDashboard = () => {
           <img
             src="/images/ott_logo.png"
             alt="OTT Service"
-            className="mx-auto h-24 w-24"
+            className="mx-auto h-20 w-auto"
           />
           <p className="mt-2 text-lg font-semibold text-blue-600">
             OTT Services
@@ -76,7 +76,7 @@ const TerminalDashboard = () => {
           <img
             src="/images/glocell.png"
             alt="Glocell Service"
-            className="mx-auto h-24 w-24"
+            className="mx-auto h-20 w-auto"
           />
           <p className="mt-2 text-lg font-semibold text-blue-600">
             Glocell Services
@@ -91,7 +91,7 @@ const TerminalDashboard = () => {
           <img
             src="/images/airtime.jpg"
             alt="Airtime Service"
-            className="mx-auto h-24 w-24"
+            className="mx-auto h-20 w-auto"
           />
           <p className="mt-2 text-lg font-semibold text-blue-600">
             Airtime Services

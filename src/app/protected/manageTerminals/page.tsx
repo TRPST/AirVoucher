@@ -75,7 +75,7 @@ const TerminalManagement = () => {
     const fetchUsersRetailers = async () => {
       if (!user) return;
       const response = await getRetailersByUserIdAction(user?.id);
-      console.log("User retailers: ", response.retailers);
+      //console.log("User retailers: ", response.retailers);
       if (response.retailers) {
         setUserRetailers(response.retailers);
       }
@@ -343,12 +343,14 @@ const TerminalManagement = () => {
             <h2 className="text-3xl font-bold text-gray-800 dark:text-white">
               Terminals List
             </h2>
-            <button
-              onClick={handleOpen}
-              className="rounded border border-blue-700 px-3 py-2 font-semibold text-blue-500 shadow transition duration-300 hover:bg-blue-800 hover:text-white dark:border-blue-600 dark:hover:bg-blue-700"
-            >
-              Add Terminal
-            </button>
+            {user?.role === "superAdmin" && (
+              <button
+                onClick={handleOpen}
+                className="rounded border border-blue-700 px-3 py-2 font-semibold text-blue-500 shadow transition duration-300 hover:bg-blue-800 hover:text-white dark:border-blue-600 dark:hover:bg-blue-700"
+              >
+                Add Terminal
+              </button>
+            )}
           </div>
 
           {fetchingTerminals ? (
@@ -378,7 +380,9 @@ const TerminalManagement = () => {
                   <th className="border border-gray-300 px-4 py-2 text-left text-sm font-semibold dark:border-gray-600">
                     Action
                   </th>
-                  <th className="border border-gray-300 px-4 py-2 text-left text-sm font-semibold dark:border-gray-600"></th>
+                  {user?.role === "superAdmin" && (
+                    <th className="border border-gray-300 px-4 py-2 text-left text-sm font-semibold dark:border-gray-600"></th>
+                  )}
                 </tr>
               </thead>
               <tbody>
@@ -411,14 +415,16 @@ const TerminalManagement = () => {
                     <td className="border border-gray-300 px-4 py-2 text-gray-800 dark:border-gray-600 dark:text-white">
                       {terminal.active ? "Yes" : "No"}
                     </td>
-                    <td className="border border-gray-300 px-4 py-2 text-gray-800 dark:border-gray-600 dark:text-white">
-                      <p
-                        className="cursor-pointer underline"
-                        onClick={() => handleEditOpen(terminal)}
-                      >
-                        Edit
-                      </p>
-                    </td>
+                    {user?.role === "superAdmin" && (
+                      <td className="border border-gray-300 px-4 py-2 text-gray-800 dark:border-gray-600 dark:text-white">
+                        <p
+                          className="cursor-pointer underline"
+                          onClick={() => handleEditOpen(terminal)}
+                        >
+                          Edit
+                        </p>
+                      </td>
+                    )}
                     <td className="border border-gray-300 px-4 py-2 text-gray-800 dark:border-gray-600 dark:text-white">
                       <p
                         className="cursor-pointer underline"

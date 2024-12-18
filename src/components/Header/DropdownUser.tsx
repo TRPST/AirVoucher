@@ -26,14 +26,14 @@ const DropdownUser = () => {
     switch (user?.role) {
       case "superAdmin":
         return "Super Admin";
-      case "subAdmin":
-        return "Sub Admin";
+      case "admin":
+        return "Admin";
       case "retailer":
         return "Retailer";
       case "cashier":
         return "Cashier";
       default:
-        return "Cashier";
+        return "";
     }
   };
 

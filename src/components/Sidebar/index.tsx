@@ -30,7 +30,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
   useEffect(() => {
     const fetchUserRole = async () => {
       const user = await getUserAction();
-      console.log("User: ", user);
+      //console.log("User: ", user);
       if (user) {
         setUserRole(user?.role || "");
       }
@@ -43,7 +43,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
     switch (role) {
       case "superAdmin":
         return superAdminMenu;
-      case "subAdmin":
+      case "admin":
         return subAdminMenu;
       case "retailer":
         return retailerMenu;
