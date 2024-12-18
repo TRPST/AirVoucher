@@ -100,11 +100,31 @@ export const checkUserSignedIn = async () => {
 
 export const getUserAction = async () => {
   const supabase = await createClient();
+
+  // First get authenticated user
   const {
     data: { user },
+    error: authError,
   } = await supabase.auth.getUser();
 
-  return user;
+  if (authError || !user) {
+    console.error("Auth error:", authError);
+    return null;
+  }
+
+  // Then fetch user data from users table
+  const { data: userData, error: dbError } = await supabase
+    .from("users")
+    .select("*")
+    .eq("id", user.id) // Remove quotes around ID
+    .single(); // Use single() for one row
+
+  if (dbError) {
+    console.error("Database error:", dbError);
+    return null;
+  }
+
+  return userData;
 };
 
 export const signInAction = async (formData: FormData) => {

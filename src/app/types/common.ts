@@ -1,6 +1,6 @@
-type Role = "superAdmin" | "admin" | "retailer" | "terminal";
+type Role = "superAdmin" | "admin" | "retailer" | "cashier";
 
-export type Admin = {
+export type User = {
   id: string;
   name: string;
   email: string;
@@ -29,9 +29,10 @@ export type Retailer = {
 
 export type Terminal = {
   id: string;
-  retailer_id?: string;
-  name: string;
-  location: string;
+  assigned_retailer: string;
+  assigned_cashier: string;
+  cashier_name: string;
+  retailer_name: string;
   active: boolean;
   created_at: Date;
 };

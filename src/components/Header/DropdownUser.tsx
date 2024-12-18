@@ -22,6 +22,21 @@ const DropdownUser = () => {
     getUser();
   }, []);
 
+  const getUserRole = () => {
+    switch (user?.role) {
+      case "superAdmin":
+        return "Super Admin";
+      case "admin":
+        return "Admin";
+      case "retailer":
+        return "Retailer";
+      case "cashier":
+        return "Cashier";
+      default:
+        return "";
+    }
+  };
+
   return (
     <ClickOutside onClick={() => setDropdownOpen(false)} className="relative">
       <Link
@@ -88,7 +103,7 @@ const DropdownUser = () => {
 
             <span className="block">
               <span className="block font-medium text-dark dark:text-white">
-                Super Admin
+                {getUserRole()}
               </span>
               <span className="block font-medium text-dark-5 dark:text-dark-6">
                 {user?.email}
