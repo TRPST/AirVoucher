@@ -1,13 +1,13 @@
 import React from "react";
 import Modal from "@mui/material/Modal";
 import { Box, Switch, Typography } from "@mui/material";
-import { Admin } from "@/app/types/common";
+import { User } from "@/app/types/common";
 
 interface AddAdminModalProps {
   open: boolean;
   handleClose: () => void;
   handleCreateAdmin: (e: React.FormEvent) => void;
-  newAdmin: Admin;
+  newAdmin: User;
   setNewAdmin: (value: any) => void;
   error: string;
   success: string;

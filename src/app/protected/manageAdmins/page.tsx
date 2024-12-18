@@ -102,7 +102,7 @@ const ManageAdmins = () => {
       return;
     }
 
-    const admin: Admin = {
+    const admin: User = {
       id: generateUniqueID(),
       name: newAdmin.name,
       email: newAdmin.email,
