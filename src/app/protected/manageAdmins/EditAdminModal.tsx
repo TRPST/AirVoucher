@@ -16,7 +16,7 @@ import {
   Typography,
   useTheme,
 } from "@mui/material";
-import { Admin, Retailer } from "@/app/types/common";
+import { User, Retailer } from "@/app/types/common";
 import EastIcon from "@mui/icons-material/East";
 import {
   getRetailersAction,
@@ -30,10 +30,10 @@ interface EditAdminModalProps {
   open: boolean;
   handleClose: () => void;
   handleEditAdmin: (e: React.FormEvent) => void;
-  handleEditAdminRetailers: (value: Admin) => void;
+  handleEditAdminRetailers: (value: User) => void;
   handleDeleteAdmin: (id: string) => void;
   confirmDeleteAdmin: boolean;
-  updatedAdmin: Admin;
+  updatedAdmin: User;
   setUpdatedAdmin: (value: any) => void;
   setConfirmDeleteAdmin: (value: boolean) => void;
   editError: string;
@@ -183,7 +183,7 @@ const EditAdminModal: React.FC<EditAdminModalProps> = ({
       return;
     }
 
-    setUpdatedAdmin((prevAdmin: Admin) => ({
+    setUpdatedAdmin((prevAdmin: User) => ({
       ...prevAdmin,
       assigned_retailers: prevAdmin.assigned_retailers?.filter(
         (retailer) => retailer !== retailerId,

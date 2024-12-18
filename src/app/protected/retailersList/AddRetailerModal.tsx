@@ -8,7 +8,7 @@ import {
   Select,
   SelectChangeEvent,
 } from "@mui/material";
-import { Admin } from "@/app/types/common";
+import { User } from "@/app/types/common";
 import { getAdminsAction } from "../manageAdmins/actions";
 
 interface AddRetailerModalProps {
@@ -61,12 +61,12 @@ const AddRetailerModal: React.FC<AddRetailerModalProps> = ({
     setNewRetailer((prev: any) => ({ ...prev, [name]: checked }));
   };
 
-  const [admins, setAdmins] = React.useState<Admin[]>([]);
+  const [admins, setAdmins] = React.useState<User[]>([]);
 
   const fetchAdmins = async (doLoad: boolean) => {
     if (doLoad) setLoading(true);
     const { users, error } = await getAdminsAction();
-    console.log("Users: ", users);
+    //console.log("Users: ", users);
     if (error) {
       console.error(error);
     } else {
