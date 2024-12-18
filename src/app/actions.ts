@@ -4,7 +4,7 @@ import { encodedRedirect } from "../../utils/utils";
 import { createClient } from "../../utils/supabase/server";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
-import { Admin } from "./types/common";
+import { User } from "./types/common";
 
 export const signUpAction = async (formData: FormData) => {
   const email = formData.get("email")?.toString();
@@ -33,7 +33,7 @@ export const signUpAction = async (formData: FormData) => {
   }
 };
 
-export const signUpAdminAction = async (admin: Admin) => {
+export const signUpAdminAction = async (admin: User) => {
   const supabase = await createClient();
   const origin = (await headers()).get("origin");
 
