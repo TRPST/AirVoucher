@@ -3,7 +3,7 @@ import Link from "next/link";
 import Image from "next/image";
 import ClickOutside from "@/components/ClickOutside";
 import { signOutAction, getUserAction } from "@/app/actions";
-import { User } from "@supabase/supabase-js";
+import { User } from "@/app/types/common";
 
 const DropdownUser = () => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -103,10 +103,13 @@ const DropdownUser = () => {
 
             <span className="block">
               <span className="block font-medium text-dark dark:text-white">
-                {getUserRole()}
+                {user?.name}
               </span>
               <span className="block font-medium text-dark-5 dark:text-dark-6">
                 {user?.email}
+              </span>
+              <span className="block font-medium text-dark-5 dark:text-dark-6">
+                {getUserRole()}
               </span>
             </span>
           </div>

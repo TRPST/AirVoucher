@@ -12,9 +12,13 @@ export const signUpRetailerAction = async (retailer: Retailer) => {
     return { error: "Retailer email and contact are required" };
   }
 
-  const { data, error } = await supabase.auth.signUp({
+  const { data, error } = await supabase.auth.admin.createUser({
     email: retailer.email,
     password: retailer.password,
+    email_confirm: true,
+    user_metadata: {
+      role: "retailer",
+    },
   });
 
   if (error) {

@@ -4,7 +4,7 @@ import { encodedRedirect } from "../../../../utils/utils";
 import { createClient } from "../../../../utils/supabase/server";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
-import { Admin } from "../../types/common";
+import { User } from "../../types/common";
 
 export const signUpAction = async (formData: FormData) => {
   const email = formData.get("email")?.toString();
@@ -33,7 +33,7 @@ export const signUpAction = async (formData: FormData) => {
   }
 };
 
-export const signUpAdminAction = async (admin: Admin) => {
+export const signUpAdminAction = async (admin: User) => {
   const supabase = await createClient();
   const origin = (await headers()).get("origin");
 
@@ -41,9 +41,13 @@ export const signUpAdminAction = async (admin: Admin) => {
     return { error: "Email and password are required" };
   }
 
-  const { data, error } = await supabase.auth.signUp({
+  const { data, error } = await supabase.auth.admin.createUser({
     email: admin.email,
     password: admin.password,
+    email_confirm: true,
+    user_metadata: {
+      role: admin.role,
+    },
   });
 
   if (error) {
@@ -140,7 +144,7 @@ export const removeAdminFromRetailer = async (retailerId: string) => {
   return { success: true };
 };
 //function to edit retailer based on updatedRetailer state
-export const editAdminAction = async (updatedAdmin: Admin) => {
+export const editAdminAction = async (updatedAdmin: User) => {
   const supabase = await createClient();
 
   const { error } = await supabase.from("users").upsert({

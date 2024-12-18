@@ -4,13 +4,8 @@ import { createClient } from "../../../../utils/supabase/server";
 import { headers } from "next/headers";
 import { Terminal } from "../../types/common";
 
-export const signUpTerminalAction = async (
-  newTerminal: any,
-  terminalsLength: number,
-) => {
+export const signUpTerminalAction = async (newTerminal: any) => {
   const supabase = await createClient();
-
-  const newTerminalId = `TER${terminalsLength + 1}`;
 
   //create the new cashier user
   const { data, error } = await supabase.auth.admin.createUser({
@@ -43,6 +38,18 @@ export const signUpTerminalAction = async (
     return { error: userError.message };
   }
 
+  // Fetch the existing terminals list
+  const { data: terminals, error: terminalsError } = await supabase
+    .from("terminals")
+    .select("*");
+
+  if (terminalsError) {
+    console.error("Error fetching terminals:", terminalsError);
+    return { error: terminalsError.message };
+  }
+
+  const newTerminalId = `TER${terminals.length + 1}`;
+
   // Append the new terminal ID to the existing list
   const updatedAssignedTerminals = [
     ...(user?.assigned_terminals || []),
@@ -64,12 +71,21 @@ export const signUpTerminalAction = async (
     return { error: terminalUserError.message };
   }
 
+  const { data: retailer, error: retailerError } = await supabase
+    .from("retailers")
+    .select("*")
+    .eq("id", newTerminal.assigned_retailer);
+
+  if (retailerError) {
+    return { error: retailerError.message };
+  }
+
   // Upsert the terminal information
   const { error: terminalError } = await supabase.from("terminals").upsert({
     id: newTerminalId,
     assigned_cashier: userId,
     cashier_name: newTerminal.cashier_name,
-    retailer_name: newTerminal.retailer_name,
+    retailer_name: retailer?.[0]?.name,
     active: newTerminal.active,
     contact_number: newTerminal.contact_number,
     assigned_retailer: newTerminal.assigned_retailer,

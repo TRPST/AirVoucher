@@ -6,7 +6,7 @@ import { Box, Button, Modal, Typography } from "@mui/material";
 import React, { useEffect, useState } from "react";
 import TableCell from "../../../components/Tables/TableCell";
 import AddRetailerModal from "./AddRetailerModal";
-import { Admin, Retailer } from "@/app/types/common";
+import { User, Retailer } from "@/app/types/common";
 import {
   deleteRetailerAction,
   editRetailerAction,
@@ -37,12 +37,14 @@ const RetailersList = () => {
   const [confirmDeleteRetailer, setConfirmDeleteRetailer] = useState(false);
 
   const [userRole, setUserRole] = useState<string>("");
+  const [user, setUser] = useState<User>();
 
   useEffect(() => {
     const fetchUserRole = async () => {
       const user = await getUserAction();
       //console.log("User: ", user);
       if (user) {
+        setUser(user);
         setUserRole(user?.role || "");
       }
     };
@@ -76,7 +78,7 @@ const RetailersList = () => {
     //fetchRetailers();
   }, [success, editSuccess]);
 
-  const [admins, setAdmins] = useState<Admin[]>([]);
+  const [admins, setAdmins] = useState<User[]>([]);
 
   const fetchAdmins = async (doLoad: boolean) => {
     if (doLoad) setLoading(true);
@@ -321,41 +323,44 @@ const RetailersList = () => {
                 </tr>
               </thead>
               <tbody>
-                {retailers.map((retailer, index) => (
-                  <tr
-                    key={index}
-                    className={`transition-colors duration-200 hover:bg-gray-100 dark:hover:bg-gray-700`}
-                  >
-                    <TableCell>{retailer.id}</TableCell>
-                    <TableCell>{retailer.name}</TableCell>
-                    <TableCell>{retailer.location}</TableCell>
-                    <TableCell>{retailer.contact_person}</TableCell>
-                    <TableCell>{retailer.contact_number}</TableCell>
-                    <td className="whitespace-nowrap border border-gray-300 px-4 py-2 text-black dark:border-gray-600 dark:text-white">
-                      {retailer.assigned_admin ? (
-                        admins.find(
-                          (admin) => `${admin.id}` === retailer.assigned_admin,
-                        )?.name || "N/A"
-                      ) : (
-                        <span className="text-red-500">N/A</span>
-                      )}
-                    </td>
-                    <TableCell>
-                      {retailer.terminal_access ? "Yes" : "No"}
-                    </TableCell>
-                    <TableCell>{retailer.active ? "Yes" : "No"}</TableCell>
-                    {userRole === "superAdmin" && (
+                {retailers
+                  .filter((retailer) => retailer.assigned_admin === user?.id)
+                  .map((retailer, index) => (
+                    <tr
+                      key={index}
+                      className={`transition-colors duration-200 hover:bg-gray-100 dark:hover:bg-gray-700`}
+                    >
+                      <TableCell>{retailer.id}</TableCell>
+                      <TableCell>{retailer.name}</TableCell>
+                      <TableCell>{retailer.location}</TableCell>
+                      <TableCell>{retailer.contact_person}</TableCell>
+                      <TableCell>{retailer.contact_number}</TableCell>
+                      <td className="whitespace-nowrap border border-gray-300 px-4 py-2 text-black dark:border-gray-600 dark:text-white">
+                        {retailer.assigned_admin ? (
+                          admins.find(
+                            (admin) =>
+                              `${admin.id}` === retailer.assigned_admin,
+                          )?.name || "N/A"
+                        ) : (
+                          <span className="text-red-500">N/A</span>
+                        )}
+                      </td>
                       <TableCell>
-                        <p
-                          className="cursor-pointer underline"
-                          onClick={() => handleEditOpen(retailer)}
-                        >
-                          Edit
-                        </p>
+                        {retailer.terminal_access ? "Yes" : "No"}
                       </TableCell>
-                    )}
-                  </tr>
-                ))}
+                      <TableCell>{retailer.active ? "Yes" : "No"}</TableCell>
+                      {userRole === "superAdmin" && (
+                        <TableCell>
+                          <p
+                            className="cursor-pointer underline"
+                            onClick={() => handleEditOpen(retailer)}
+                          >
+                            Edit
+                          </p>
+                        </TableCell>
+                      )}
+                    </tr>
+                  ))}
               </tbody>
             </table>
           </div>
