@@ -9,7 +9,7 @@ export type User = {
   active: boolean;
   role: Role;
   terminal_access: boolean;
-  assigned_retailers?: string[];
+  assigned_retailers?: any[];
 };
 
 export type Retailer = {

@@ -105,25 +105,25 @@ const TerminalManagement = () => {
           console.log("cashierTerminals: ", cashierTerminals);
           setTerminals(cashierTerminals);
         } else if (user.role === "retailer") {
-          const retailerIds = userRetailers.map((retailer) => retailer.id);
+          const retailerIds =
+            user.assigned_retailers?.map((retailer) => retailer.id) || [];
+          console.log("Retailer IDs:", retailerIds);
 
-          // console.log("Retailer IDs:", retailerIds);
-
-          // console.log("Terminals' assigned_retailer IDs:");
-          // terminals.forEach((terminal) => {
-          //   console.log(
-          //     `Terminal ID: ${terminal.id}, Assigned Retailer: ${terminal.assigned_retailer}, RID: ${retailerIds[0]}`,
-          //   );
-          // });
-          // console.log("userRetailers: ", userRetailers);
-          // console.log("Retailer IDs: ", retailerIds);
           // Filter terminals where assigned_retailer matches any retailer ID
           const retailerTerminals = terminals.filter((terminal) =>
             retailerIds.includes(terminal.assigned_retailer),
           );
           console.log("retailerTerminals: ", retailerTerminals);
           setTerminals(retailerTerminals);
-        } else if (user?.role === "superAdmin" || user?.role === "admin") {
+        } else if (user?.role === "admin") {
+          const adminTerminals = terminals.filter((terminal) =>
+            user?.assigned_retailers
+              ?.map((retailer) => retailer.id)
+              .includes(terminal.assigned_retailer),
+          );
+          console.log("adminTerminals: ", adminTerminals);
+          setTerminals(adminTerminals);
+        } else if (user?.role === "superAdmin") {
           setTerminals(terminals);
         } else {
           setTerminals([]); // Set empty array if no valid role
@@ -200,7 +200,7 @@ const TerminalManagement = () => {
 
     try {
       setLoading(true);
-      const result = await signUpTerminalAction(newTerminal, terminals.length);
+      const result = await signUpTerminalAction(newTerminal);
       console.log("Result: ", result);
       if (result.error) {
         setError(result.error);
@@ -217,42 +217,42 @@ const TerminalManagement = () => {
   const handleEditTerminal = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!updatedTerminal) return;
-    if (
-      updatedTerminal.name.trim() === "" ||
-      updatedTerminal.contact_person.trim() === "" ||
-      updatedTerminal.contact_number.trim() === "" ||
-      updatedTerminal.location.trim() === ""
-    ) {
-      setEditError("All fields are required.");
-      return;
-    }
-    try {
-      setEditLoading(true);
-      const result = await editTerminalAction(updatedTerminal);
-      console.log("Result: ", result);
-      if (result.error) {
-        setEditError(result.error);
-      } else {
-        setEditSuccess("Terminal updated successfully!");
-      }
-    } catch (error) {
-      console.error("Error: ", error);
-    } finally {
-      setEditLoading(false);
-    }
+    // if (
+    //   updatedTerminal.name.trim() === "" ||
+    //   updatedTerminal.contact_person.trim() === "" ||
+    //   updatedTerminal.contact_number.trim() === "" ||
+    //   updatedTerminal.location.trim() === ""
+    // ) {
+    //   setEditError("All fields are required.");
+    //   return;
+    // }
+    // try {
+    //   setEditLoading(true);
+    //   const result = await editTerminalAction(updatedTerminal);
+    //   console.log("Result: ", result);
+    //   if (result.error) {
+    //     setEditError(result.error);
+    //   } else {
+    //     setEditSuccess("Terminal updated successfully!");
+    //   }
+    // } catch (error) {
+    //   console.error("Error: ", error);
+    // } finally {
+    //   setEditLoading(false);
+    // }
   };
 
   //function to handle delete retailer
   const handleDeleteTerminal = async (id: string) => {
     try {
       setEditLoading(true);
-      const result = await deleteTerminalAction(id);
-      console.log("Result: ", result);
-      if (result.error) {
-        setEditError(result.error);
-      } else {
-        setEditSuccess("Terminal deleted successfully!");
-      }
+      // const result = await deleteTerminalAction(id);
+      // console.log("Result: ", result);
+      // if (result.error) {
+      //   setEditError(result.error);
+      // } else {
+      //   setEditSuccess("Terminal deleted successfully!");
+      // }
     } catch (error) {
       console.error("Error: ", error);
     } finally {
@@ -369,7 +369,10 @@ const TerminalManagement = () => {
                     Terminal ID
                   </th>
                   <th className="border border-gray-300 px-4 py-2 text-left text-sm font-semibold dark:border-gray-600">
-                    Retailer
+                    Retailer ID
+                  </th>
+                  <th className="border border-gray-300 px-4 py-2 text-left text-sm font-semibold dark:border-gray-600">
+                    Retailer Name
                   </th>
                   <th className="border border-gray-300 px-4 py-2 text-left text-sm font-semibold dark:border-gray-600">
                     Cashier
@@ -402,6 +405,9 @@ const TerminalManagement = () => {
                       >
                         {terminal.assigned_retailer}
                       </p>
+                    </td>
+                    <td className="border border-gray-300 px-4 py-2 text-gray-800 dark:border-gray-600 dark:text-white">
+                      {terminal.retailer_name}
                     </td>
                     <td className="cursor-pointer border border-gray-300 px-4 py-2 text-gray-800 underline dark:border-gray-600 dark:text-white">
                       <p
