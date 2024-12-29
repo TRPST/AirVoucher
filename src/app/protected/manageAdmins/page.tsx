@@ -6,22 +6,23 @@ import {
   getAdminsAction,
   signUpAdminAction,
 } from "./actions";
-import { Admin } from "@/app/types/common";
+import { User } from "@/app/types/common";
 import DefaultLayout from "@/components/Layouts/DefaultLaout";
 import React, { useEffect, useState } from "react";
 import TableCell from "../../../components/Tables/TableCell";
 import { Button } from "@mui/material";
 import AddAdminModal from "./AddAdminModal";
 import EditAdminModal from "./EditAdminModal";
+import { getUserAction } from "@/app/actions";
 
 const ManageAdmins = () => {
-  const [admins, setAdmins] = useState<Admin[]>([]);
+  const [admins, setAdmins] = useState<User[]>([]);
   // const [retailers, setAdmins] = useState<string[]>([
   //   "Admin1",
   //   "Admin2",
   //   "Admin3",
   // ]);
-  const [newAdmin, setNewAdmin] = useState<Admin>({
+  const [newAdmin, setNewAdmin] = useState<User>({
     id: "",
     name: "",
     email: "",
@@ -43,8 +44,21 @@ const ManageAdmins = () => {
 
   const [addAdminModalOpen, setAddAdminModalOpen] = useState(false);
   const [editAdminModalOpen, setEditAdminModalOpen] = useState(false);
-  const [editAdmin, setEditAdmin] = useState<Admin | null>(null);
-  const [updatedAdmin, setUpdatedAdmin] = useState<Admin | null>(null);
+  const [editAdmin, setEditAdmin] = useState<User | null>(null);
+  const [updatedAdmin, setUpdatedAdmin] = useState<User | null>(null);
+
+  const [userRole, setUserRole] = useState<string>("");
+
+  useEffect(() => {
+    const fetchUserRole = async () => {
+      const user = await getUserAction();
+      //console.log("User: ", user);
+      if (user) {
+        setUserRole(user?.role || "");
+      }
+    };
+    fetchUserRole();
+  }, []);
 
   const fetchAdmins = async (doLoad: boolean) => {
     if (doLoad) setLoading(true);
@@ -88,7 +102,7 @@ const ManageAdmins = () => {
       return;
     }
 
-    const admin: Admin = {
+    const admin: User = {
       id: generateUniqueID(),
       name: newAdmin.name,
       email: newAdmin.email,
@@ -127,7 +141,7 @@ const ManageAdmins = () => {
     return password;
   };
 
-  const handleEditOpen = (admin: Admin) => {
+  const handleEditOpen = (admin: User) => {
     setUpdatedAdmin(admin);
     setEditAdminModalOpen(true);
   };
@@ -177,7 +191,7 @@ const ManageAdmins = () => {
     }
   };
 
-  const handleEditAdminRetailers = async (updatedAdminRetailers: Admin) => {
+  const handleEditAdminRetailers = async (updatedAdminRetailers: User) => {
     if (!updatedAdminRetailers) return;
     try {
       setEditLoading(true);
@@ -232,14 +246,25 @@ const ManageAdmins = () => {
     setConfirmDeleteAdmin(false);
   };
 
-  const tableHeaders = [
-    "Name",
-    "Email",
-    "Contact Number",
-    "Terminal Access",
-    "Active",
-    "Retailers",
-  ];
+  const tableHeaders =
+    userRole === "superAdmin"
+      ? [
+          "Name",
+          "Email",
+          "Contact Number",
+          "Terminal Access",
+          "Active",
+          "Retailers",
+          "",
+        ]
+      : [
+          "Name",
+          "Email",
+          "Contact Number",
+          "Terminal Access",
+          "Active",
+          "Retailers",
+        ];
 
   const generateUniqueAdminID = () => `AD${String(Date.now()).slice(-4)}`;
 
@@ -253,12 +278,14 @@ const ManageAdmins = () => {
           {/* <Button variant="outlined" onClick={() => setAddAdminModalOpen(true)}>
             Add Admin
           </Button> */}
-          <button
-            onClick={() => setAddAdminModalOpen(true)}
-            className="rounded border border-blue-700 px-3 py-2 font-semibold text-blue-500 shadow transition duration-300 hover:bg-blue-800 hover:text-white dark:border-blue-600 dark:hover:bg-blue-700"
-          >
-            Add Admin
-          </button>
+          {userRole === "superAdmin" && (
+            <button
+              onClick={() => setAddAdminModalOpen(true)}
+              className="rounded border border-blue-700 px-3 py-2 font-semibold text-blue-500 shadow transition duration-300 hover:bg-blue-800 hover:text-white dark:border-blue-600 dark:hover:bg-blue-700"
+            >
+              Add Admin
+            </button>
+          )}
         </div>
 
         <div>
@@ -296,8 +323,7 @@ const ManageAdmins = () => {
                       .map((admin, index) => (
                         <tr
                           key={index}
-                          className="cursor-pointer bg-white transition-colors duration-200 hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700"
-                          onClick={() => handleEditOpen(admin)}
+                          className=" bg-white transition-colors duration-200 hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700"
                         >
                           <TableCell>{admin.name}</TableCell>
                           <TableCell>{admin.email}</TableCell>
@@ -309,6 +335,16 @@ const ManageAdmins = () => {
                           <TableCell>
                             {admin.assigned_retailers?.length}
                           </TableCell>
+                          {userRole === "superAdmin" && (
+                            <TableCell>
+                              <p
+                                className="cursor-pointer underline"
+                                onClick={() => handleEditOpen(admin)}
+                              >
+                                Edit
+                              </p>
+                            </TableCell>
+                          )}
                         </tr>
                       ))}
                   </tbody>
@@ -338,8 +374,7 @@ const ManageAdmins = () => {
                       .map((admin, index) => (
                         <tr
                           key={index}
-                          className="cursor-pointer bg-white transition-colors duration-200 hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700"
-                          onClick={() => handleEditOpen(admin)}
+                          className=" bg-white transition-colors duration-200 hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700"
                         >
                           <TableCell>{admin.name}</TableCell>
                           <TableCell>{admin.email}</TableCell>
@@ -351,6 +386,16 @@ const ManageAdmins = () => {
                           <TableCell>
                             {admin.assigned_retailers?.length}
                           </TableCell>
+                          {userRole === "superAdmin" && (
+                            <TableCell>
+                              <p
+                                className="cursor-pointer underline"
+                                onClick={() => handleEditOpen(admin)}
+                              >
+                                Edit
+                              </p>
+                            </TableCell>
+                          )}
                         </tr>
                       ))}
                   </tbody>

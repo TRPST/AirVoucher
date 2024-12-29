@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import Modal from "@mui/material/Modal";
 import {
   Box,
@@ -10,6 +10,7 @@ import {
 } from "@mui/material";
 import { User, Retailer, Terminal } from "@/app/types/common";
 import { getAdminsAction } from "../manageAdmins/actions";
+import { getRetailersAction } from "../retailersList/actions";
 
 interface AddTerminalModalProps {
   open: boolean;
@@ -19,7 +20,6 @@ interface AddTerminalModalProps {
   setNewTerminal: (value: any) => void;
   //newTerminal: User;
   setNewCashier: (value: any) => void;
-  retailers: Retailer[];
   error: string;
   success: string;
   loading: boolean;
@@ -34,7 +34,6 @@ const AddTerminalModal: React.FC<AddTerminalModalProps> = ({
   newTerminal,
   setNewTerminal,
   setNewCashier,
-  retailers,
   error,
   success,
   loading,
@@ -53,6 +52,25 @@ const AddTerminalModal: React.FC<AddTerminalModalProps> = ({
     const { name, checked } = e.target;
     setNewTerminal((prev: any) => ({ ...prev, [name]: checked }));
   };
+
+  const [retailers, setRetailers] = useState<Retailer[]>([]);
+
+  const fetchRetailers = async (doLoad: boolean) => {
+    if (doLoad) setLoading(true);
+    const response = await getRetailersAction();
+
+    console.log("Retailers: ", response);
+
+    if (response?.retailers) {
+      setRetailers(response.retailers);
+    }
+
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    fetchRetailers(true);
+  }, []);
 
   // const handleTerminalSelect = (event: SelectChangeEvent<string>) => {
   //   const selectedTerminal = event.target.value as string;

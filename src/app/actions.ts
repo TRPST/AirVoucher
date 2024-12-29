@@ -4,7 +4,7 @@ import { encodedRedirect } from "../../utils/utils";
 import { createClient } from "../../utils/supabase/server";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
-import { Admin } from "./types/common";
+import { User } from "./types/common";
 
 export const signUpAction = async (formData: FormData) => {
   const email = formData.get("email")?.toString();
@@ -33,7 +33,7 @@ export const signUpAction = async (formData: FormData) => {
   }
 };
 
-export const signUpAdminAction = async (admin: Admin) => {
+export const signUpAdminAction = async (admin: User) => {
   const supabase = await createClient();
   const origin = (await headers()).get("origin");
 
@@ -100,11 +100,31 @@ export const checkUserSignedIn = async () => {
 
 export const getUserAction = async () => {
   const supabase = await createClient();
+
+  // First get authenticated user
   const {
     data: { user },
+    error: authError,
   } = await supabase.auth.getUser();
 
-  return user;
+  if (authError || !user) {
+    console.error("Auth error:", authError);
+    return null;
+  }
+
+  // Then fetch user data from users table
+  const { data: userData, error: dbError } = await supabase
+    .from("users")
+    .select("*")
+    .eq("id", user.id) // Remove quotes around ID
+    .single(); // Use single() for one row
+
+  if (dbError) {
+    console.error("Database error:", dbError);
+    return null;
+  }
+
+  return userData;
 };
 
 export const signInAction = async (formData: FormData) => {

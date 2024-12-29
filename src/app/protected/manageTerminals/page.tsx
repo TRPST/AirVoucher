@@ -2,7 +2,11 @@
 
 import React, { useState, useEffect } from "react";
 import DefaultLayout from "@/components/Layouts/DefaultLaout";
-import { getTerminalsAction, signUpTerminalAction } from "./actions";
+import {
+  getRetailersByUserIdAction,
+  getTerminalsAction,
+  signUpTerminalAction,
+} from "./actions";
 import { getAdminsAction } from "../manageAdmins/actions";
 import { User, Retailer, Terminal } from "@/app/types/common";
 import { getRetailersAction } from "../retailersList/actions";
@@ -11,10 +15,11 @@ import EditTerminalModal from "./EditTerminalModal";
 import RetailerModal from "./RetailerModal";
 import CashierModal from "./CashierModal";
 import { useRouter, usePathname } from "next/navigation";
+import { getUserAction } from "@/app/actions";
 
 const TerminalManagement = () => {
   const [terminals, setTerminals] = useState<Terminal[]>([]);
-  const [retailers, setRetailers] = useState<Retailer[]>([]);
+  const [userRetailers, setUserRetailers] = useState<Retailer[]>([]);
   const [newTerminal, setNewTerminal] = useState({
     id: "",
     assigned_retailer: "",
@@ -53,9 +58,38 @@ const TerminalManagement = () => {
     router.push(`${currentPath}/${terminalId}`);
   };
 
+  const [user, setUser] = useState<User>();
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      const user = await getUserAction();
+      console.log("User: ", user.id);
+      if (user) {
+        setUser(user);
+      }
+    };
+    fetchUser();
+  }, []);
+
+  useEffect(() => {
+    const fetchUsersRetailers = async () => {
+      if (!user) return;
+      const response = await getRetailersByUserIdAction(user?.id);
+      //console.log("User retailers: ", response.retailers);
+      if (response.retailers) {
+        setUserRetailers(response.retailers);
+      }
+      //console.log("userRetailers: ", userRetailers);
+      fetchTerminals(false);
+    };
+
+    fetchUsersRetailers();
+    //fetchRetailers(false);
+  }, [user]);
+
   const fetchTerminals = async (doLoad: Boolean) => {
     if (doLoad) setFetchingTerminals(true);
-
+    if (!user) return;
     const result = await getTerminalsAction();
     const terminals = result?.terminals || [];
     const error = (result as { terminals: any[]; error?: string })?.error;
@@ -64,20 +98,46 @@ const TerminalManagement = () => {
       console.error(error);
     } else {
       if (terminals) {
-        setTerminals(terminals);
+        if (user.role === "cashier") {
+          const cashierTerminals = terminals.filter(
+            (terminal) => terminal.assigned_cashier === user.id,
+          );
+          console.log("cashierTerminals: ", cashierTerminals);
+          setTerminals(cashierTerminals);
+        } else if (user.role === "retailer") {
+          const retailerIds =
+            user.assigned_retailers?.map((retailer) => retailer.id) || [];
+          console.log("Retailer IDs:", retailerIds);
+
+          // Filter terminals where assigned_retailer matches any retailer ID
+          const retailerTerminals = terminals.filter((terminal) =>
+            retailerIds.includes(terminal.assigned_retailer),
+          );
+          console.log("retailerTerminals: ", retailerTerminals);
+          setTerminals(retailerTerminals);
+        } else if (user?.role === "admin") {
+          const adminTerminals = terminals.filter((terminal) =>
+            user?.assigned_retailers
+              ?.map((retailer) => retailer.id)
+              .includes(terminal.assigned_retailer),
+          );
+          console.log("adminTerminals: ", adminTerminals);
+          setTerminals(adminTerminals);
+        } else if (user?.role === "superAdmin") {
+          setTerminals(terminals);
+        } else {
+          setTerminals([]); // Set empty array if no valid role
+        }
+        //setTerminals(terminals);
       }
     }
-    setNewTerminal({
-      ...newTerminal,
-      id: `TER${terminals.length + 1}`,
-    });
 
-    setFetchingTerminals(false);
+    if (user) setFetchingTerminals(false);
   };
 
   useEffect(() => {
     fetchTerminals(true);
-  }, []);
+  }, [userRetailers]);
 
   useEffect(() => {
     if (success !== "") fetchTerminals(false);
@@ -85,22 +145,18 @@ const TerminalManagement = () => {
     //fetchTerminals();
   }, [success, editSuccess]);
 
-  const fetchRetailers = async (doLoad: boolean) => {
-    if (doLoad) setLoading(true);
-    const response = await getRetailersAction();
+  // const fetchRetailers = async (doLoad: boolean) => {
+  //   if (doLoad) setLoading(true);
+  //   const response = await getRetailersAction();
 
-    console.log("Retailers: ", response);
+  //   console.log("Retailers: ", response);
 
-    if (response?.retailers) {
-      setRetailers(response.retailers);
-    }
+  //   if (response?.retailers) {
+  //     setRetailers(response.retailers);
+  //   }
 
-    setLoading(false);
-  };
-
-  useEffect(() => {
-    fetchRetailers(false);
-  }, [terminals]);
+  //   setLoading(false);
+  // };
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
@@ -161,42 +217,42 @@ const TerminalManagement = () => {
   const handleEditTerminal = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!updatedTerminal) return;
-    if (
-      updatedTerminal.name.trim() === "" ||
-      updatedTerminal.contact_person.trim() === "" ||
-      updatedTerminal.contact_number.trim() === "" ||
-      updatedTerminal.location.trim() === ""
-    ) {
-      setEditError("All fields are required.");
-      return;
-    }
-    try {
-      setEditLoading(true);
-      const result = await editTerminalAction(updatedTerminal);
-      console.log("Result: ", result);
-      if (result.error) {
-        setEditError(result.error);
-      } else {
-        setEditSuccess("Terminal updated successfully!");
-      }
-    } catch (error) {
-      console.error("Error: ", error);
-    } finally {
-      setEditLoading(false);
-    }
+    // if (
+    //   updatedTerminal.name.trim() === "" ||
+    //   updatedTerminal.contact_person.trim() === "" ||
+    //   updatedTerminal.contact_number.trim() === "" ||
+    //   updatedTerminal.location.trim() === ""
+    // ) {
+    //   setEditError("All fields are required.");
+    //   return;
+    // }
+    // try {
+    //   setEditLoading(true);
+    //   const result = await editTerminalAction(updatedTerminal);
+    //   console.log("Result: ", result);
+    //   if (result.error) {
+    //     setEditError(result.error);
+    //   } else {
+    //     setEditSuccess("Terminal updated successfully!");
+    //   }
+    // } catch (error) {
+    //   console.error("Error: ", error);
+    // } finally {
+    //   setEditLoading(false);
+    // }
   };
 
   //function to handle delete retailer
   const handleDeleteTerminal = async (id: string) => {
     try {
       setEditLoading(true);
-      const result = await deleteTerminalAction(id);
-      console.log("Result: ", result);
-      if (result.error) {
-        setEditError(result.error);
-      } else {
-        setEditSuccess("Terminal deleted successfully!");
-      }
+      // const result = await deleteTerminalAction(id);
+      // console.log("Result: ", result);
+      // if (result.error) {
+      //   setEditError(result.error);
+      // } else {
+      //   setEditSuccess("Terminal deleted successfully!");
+      // }
     } catch (error) {
       console.error("Error: ", error);
     } finally {
@@ -226,6 +282,19 @@ const TerminalManagement = () => {
   }, [updatedTerminal]);
 
   const handleClose = () => {
+    setNewTerminal({
+      id: "",
+      assigned_retailer: "",
+      cashier_name: "",
+      cashier_email: "",
+      contact_number: "",
+      password: "",
+      retailer_name: "",
+      active: true,
+      created_at: new Date(),
+    });
+    setEditError("");
+    setEditSuccess("");
     setAddTerminalModalOpen(false);
   };
 
@@ -274,85 +343,107 @@ const TerminalManagement = () => {
             <h2 className="text-3xl font-bold text-gray-800 dark:text-white">
               Terminals List
             </h2>
-            <button
-              onClick={handleOpen}
-              className="rounded border border-blue-700 px-3 py-2 font-semibold text-blue-500 shadow transition duration-300 hover:bg-blue-800 hover:text-white dark:border-blue-600 dark:hover:bg-blue-700"
-            >
-              Add Terminal
-            </button>
+            {user?.role === "superAdmin" && (
+              <button
+                onClick={handleOpen}
+                className="rounded border border-blue-700 px-3 py-2 font-semibold text-blue-500 shadow transition duration-300 hover:bg-blue-800 hover:text-white dark:border-blue-600 dark:hover:bg-blue-700"
+              >
+                Add Terminal
+              </button>
+            )}
           </div>
 
-          <table className="min-w-full border-collapse rounded-lg bg-white shadow-md dark:bg-gray-800">
-            <thead>
-              <tr className="bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300">
-                <th className="border border-gray-300 px-4 py-2 text-left text-sm font-semibold dark:border-gray-600">
-                  Terminal ID
-                </th>
-                <th className="border border-gray-300 px-4 py-2 text-left text-sm font-semibold dark:border-gray-600">
-                  Retailer
-                </th>
-                <th className="border border-gray-300 px-4 py-2 text-left text-sm font-semibold dark:border-gray-600">
-                  Cashier
-                </th>
-                <th className="border border-gray-300 px-4 py-2 text-left text-sm font-semibold dark:border-gray-600">
-                  Active
-                </th>
-                <th className="border border-gray-300 px-4 py-2 text-left text-sm font-semibold dark:border-gray-600">
-                  Action
-                </th>
-                <th className="border border-gray-300 px-4 py-2 text-left text-sm font-semibold dark:border-gray-600"></th>
-              </tr>
-            </thead>
-            <tbody>
-              {terminals.map((terminal, index) => (
-                <tr
-                  key={terminal.id}
-                  className={`"bg-white transition-colors duration-200 hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700`}
-                >
-                  <td className="border border-gray-300 px-4 py-2 text-gray-800 dark:border-gray-600 dark:text-white">
-                    {terminal.id}
-                  </td>
-                  <td className="cursor-pointer border border-gray-300 px-4 py-2 text-gray-800 underline dark:border-gray-600 dark:text-white">
-                    <p
-                      onClick={() =>
-                        handleRetailerModal(terminal.assigned_retailer)
-                      }
-                    >
-                      {terminal.assigned_retailer}
-                    </p>
-                  </td>
-                  <td className="cursor-pointer border border-gray-300 px-4 py-2 text-gray-800 underline dark:border-gray-600 dark:text-white">
-                    <p
-                      onClick={() =>
-                        handleCashierModal(terminal.assigned_cashier)
-                      }
-                    >
-                      {terminal.cashier_name}
-                    </p>
-                  </td>
-                  <td className="border border-gray-300 px-4 py-2 text-gray-800 dark:border-gray-600 dark:text-white">
-                    {terminal.active ? "Yes" : "No"}
-                  </td>
-                  <td className="border border-gray-300 px-4 py-2 text-gray-800 dark:border-gray-600 dark:text-white">
-                    <p
-                      className="cursor-pointer underline"
-                      onClick={() => handleEditOpen(terminal)}
-                    >
-                      Edit
-                    </p>
-                  </td>
-                  <td className="border border-gray-300 px-4 py-2 text-gray-800 dark:border-gray-600 dark:text-white">
-                    <p
-                      className="cursor-pointer underline"
-                      onClick={() => handleDashboardClick(terminal.id)}
-                    >
-                      Dashboard
-                    </p>
-                  </td>
+          {fetchingTerminals ? (
+            <div className="flex justify-center">
+              <div className="h-8 w-8 animate-spin rounded-full border-4 border-solid border-primary border-t-transparent"></div>
+            </div>
+          ) : terminals.length === 0 ? (
+            <p className="text-gray-600 dark:text-gray-400">
+              No terminals available. Please create one.
+            </p>
+          ) : (
+            <table className="min-w-full border-collapse rounded-lg bg-white shadow-md dark:bg-gray-800">
+              <thead>
+                <tr className="bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300">
+                  <th className="border border-gray-300 px-4 py-2 text-left text-sm font-semibold dark:border-gray-600">
+                    Terminal ID
+                  </th>
+                  <th className="border border-gray-300 px-4 py-2 text-left text-sm font-semibold dark:border-gray-600">
+                    Retailer ID
+                  </th>
+                  <th className="border border-gray-300 px-4 py-2 text-left text-sm font-semibold dark:border-gray-600">
+                    Retailer Name
+                  </th>
+                  <th className="border border-gray-300 px-4 py-2 text-left text-sm font-semibold dark:border-gray-600">
+                    Cashier
+                  </th>
+                  <th className="border border-gray-300 px-4 py-2 text-left text-sm font-semibold dark:border-gray-600">
+                    Active
+                  </th>
+                  <th className="border border-gray-300 px-4 py-2 text-left text-sm font-semibold dark:border-gray-600">
+                    Action
+                  </th>
+                  {user?.role === "superAdmin" && (
+                    <th className="border border-gray-300 px-4 py-2 text-left text-sm font-semibold dark:border-gray-600"></th>
+                  )}
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {terminals.map((terminal, index) => (
+                  <tr
+                    key={terminal.id}
+                    className={`"bg-white transition-colors duration-200 hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700`}
+                  >
+                    <td className="border border-gray-300 px-4 py-2 text-gray-800 dark:border-gray-600 dark:text-white">
+                      {terminal.id}
+                    </td>
+                    <td className="cursor-pointer border border-gray-300 px-4 py-2 text-gray-800 underline dark:border-gray-600 dark:text-white">
+                      <p
+                        onClick={() =>
+                          handleRetailerModal(terminal.assigned_retailer)
+                        }
+                      >
+                        {terminal.assigned_retailer}
+                      </p>
+                    </td>
+                    <td className="border border-gray-300 px-4 py-2 text-gray-800 dark:border-gray-600 dark:text-white">
+                      {terminal.retailer_name}
+                    </td>
+                    <td className="cursor-pointer border border-gray-300 px-4 py-2 text-gray-800 underline dark:border-gray-600 dark:text-white">
+                      <p
+                        onClick={() =>
+                          handleCashierModal(terminal.assigned_cashier)
+                        }
+                      >
+                        {terminal.cashier_name}
+                      </p>
+                    </td>
+                    <td className="border border-gray-300 px-4 py-2 text-gray-800 dark:border-gray-600 dark:text-white">
+                      {terminal.active ? "Yes" : "No"}
+                    </td>
+                    {user?.role === "superAdmin" && (
+                      <td className="border border-gray-300 px-4 py-2 text-gray-800 dark:border-gray-600 dark:text-white">
+                        <p
+                          className="cursor-pointer underline"
+                          onClick={() => handleEditOpen(terminal)}
+                        >
+                          Edit
+                        </p>
+                      </td>
+                    )}
+                    <td className="border border-gray-300 px-4 py-2 text-gray-800 dark:border-gray-600 dark:text-white">
+                      <p
+                        className="cursor-pointer underline"
+                        onClick={() => handleDashboardClick(terminal.id)}
+                      >
+                        Dashboard
+                      </p>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
         </div>
       </div>
 
@@ -364,7 +455,6 @@ const TerminalManagement = () => {
           newTerminal={newTerminal}
           setNewTerminal={setNewTerminal}
           setNewCashier={setNewCashier}
-          retailers={retailers}
           error={error}
           success={success}
           loading={loading}

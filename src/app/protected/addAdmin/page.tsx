@@ -1,6 +1,6 @@
 "use client";
 
-import { Admin } from "@/app/types/common";
+import { User } from "@/app/types/common";
 import DefaultLayout from "@/components/Layouts/DefaultLaout";
 import { Switch } from "@mui/material";
 import React, { useEffect, useState } from "react";
@@ -9,13 +9,13 @@ import { Spinner } from "@nextui-org/spinner";
 //import {Spinner } from "mui-spinner";
 
 const ManageAdmins = () => {
-  const [admins, setAdmins] = useState<Admin[]>([]);
+  const [admins, setAdmins] = useState<User[]>([]);
   const [retailers, setRetailers] = useState<string[]>([
     "Retailer1",
     "Retailer2",
     "Retailer3",
   ]);
-  const [newAdmin, setNewAdmin] = useState<Admin>({
+  const [newAdmin, setNewAdmin] = useState<User>({
     id: "",
     name: "",
     email: "",
@@ -54,7 +54,7 @@ const ManageAdmins = () => {
       return;
     }
 
-    const admin: Admin = {
+    const admin: User = {
       id: generateUniqueID(),
       name: newAdmin.name,
       email: newAdmin.email,

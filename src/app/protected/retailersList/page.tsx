@@ -6,7 +6,7 @@ import { Box, Button, Modal, Typography } from "@mui/material";
 import React, { useEffect, useState } from "react";
 import TableCell from "../../../components/Tables/TableCell";
 import AddRetailerModal from "./AddRetailerModal";
-import { Admin, Retailer } from "@/app/types/common";
+import { User, Retailer } from "@/app/types/common";
 import {
   deleteRetailerAction,
   editRetailerAction,
@@ -15,6 +15,7 @@ import {
 } from "./actions";
 import EditRetailerModal from "./EditRetailerModal";
 import { getAdminsAction } from "../manageAdmins/actions";
+import { getUserAction } from "@/app/actions";
 
 const RetailersList = () => {
   const [retailers, setRetailers] = useState<Retailer[]>([]);
@@ -34,6 +35,21 @@ const RetailersList = () => {
   const [editLoading, setEditLoading] = useState(false);
 
   const [confirmDeleteRetailer, setConfirmDeleteRetailer] = useState(false);
+
+  const [userRole, setUserRole] = useState<string>("");
+  const [user, setUser] = useState<User>();
+
+  useEffect(() => {
+    const fetchUserRole = async () => {
+      const user = await getUserAction();
+      //console.log("User: ", user);
+      if (user) {
+        setUser(user);
+        setUserRole(user?.role || "");
+      }
+    };
+    fetchUserRole();
+  }, []);
 
   const fetchRetailers = async (doLoad: Boolean) => {
     if (doLoad) setFetchingRetailers(true);
@@ -62,7 +78,7 @@ const RetailersList = () => {
     //fetchRetailers();
   }, [success, editSuccess]);
 
-  const [admins, setAdmins] = useState<Admin[]>([]);
+  const [admins, setAdmins] = useState<User[]>([]);
 
   const fetchAdmins = async (doLoad: boolean) => {
     if (doLoad) setLoading(true);
@@ -241,16 +257,29 @@ const RetailersList = () => {
     );
   };
 
-  const tableHeaders = [
-    "Retailer ID",
-    "Retailer Name",
-    "Location",
-    "Contact Person",
-    "Contact Number",
-    "Assigned Admin",
-    "Terminal Access",
-    "Active",
-  ];
+  const tableHeaders =
+    userRole === "superAdmin"
+      ? [
+          "Retailer ID",
+          "Retailer Name",
+          "Location",
+          "Contact Person",
+          "Contact Number",
+          "Assigned Admin",
+          "Terminal Access",
+          "Active",
+          "",
+        ]
+      : [
+          "Retailer ID",
+          "Retailer Name",
+          "Location",
+          "Contact Person",
+          "Contact Number",
+          "Assigned Admin",
+          "Terminal Access",
+          "Active",
+        ];
 
   return (
     <DefaultLayout>
@@ -259,15 +288,15 @@ const RetailersList = () => {
           <h2 className="text-3xl font-bold text-gray-800 dark:text-white">
             Retailers List
           </h2>
-          {/* <Button variant="outlined" onClick={handleOpen}>
-            Add Retailer
-          </Button> */}
-          <button
-            onClick={handleOpen}
-            className="rounded border border-blue-700 px-3 py-2 font-semibold text-blue-500 shadow transition duration-300 hover:bg-blue-800 hover:text-white dark:border-blue-600 dark:hover:bg-blue-700"
-          >
-            Add Retailer
-          </button>
+
+          {userRole === "superAdmin" && (
+            <button
+              onClick={handleOpen}
+              className="rounded border border-blue-700 px-3 py-2 font-semibold text-blue-500 shadow transition duration-300 hover:bg-blue-800 hover:text-white dark:border-blue-600 dark:hover:bg-blue-700"
+            >
+              Add Retailer
+            </button>
+          )}
         </div>
         <p className="mb-4 text-gray-600 dark:text-gray-400">
           Below is the list of retailers and their current status. You can
@@ -294,33 +323,48 @@ const RetailersList = () => {
                 </tr>
               </thead>
               <tbody>
-                {retailers.map((retailer, index) => (
-                  <tr
-                    key={index}
-                    className={`cursor-pointer transition-colors duration-200 hover:bg-gray-100 dark:hover:bg-gray-700`}
-                    onClick={() => handleEditOpen(retailer)}
-                  >
-                    <TableCell>{retailer.id}</TableCell>
-                    <TableCell>{retailer.name}</TableCell>
-                    <TableCell>{retailer.location}</TableCell>
-                    <TableCell>{retailer.contact_person}</TableCell>
-                    <TableCell>{retailer.contact_number}</TableCell>
-                    <td className="whitespace-nowrap border border-gray-300 px-4 py-2 text-black dark:border-gray-600 dark:text-white">
-                      {retailer.assigned_admin ? (
-                        admins.find(
-                          (admin) =>
-                            `"${admin.id}"` === retailer.assigned_admin,
-                        )?.name || "N/A"
-                      ) : (
-                        <span className="text-red-500">N/A</span>
+                {retailers
+                  .filter(
+                    (retailer) =>
+                      userRole === "superAdmin" ||
+                      retailer.assigned_admin === user?.id,
+                  )
+                  .map((retailer, index) => (
+                    <tr
+                      key={index}
+                      className={`transition-colors duration-200 hover:bg-gray-100 dark:hover:bg-gray-700`}
+                    >
+                      <TableCell>{retailer.id}</TableCell>
+                      <TableCell>{retailer.name}</TableCell>
+                      <TableCell>{retailer.location}</TableCell>
+                      <TableCell>{retailer.contact_person}</TableCell>
+                      <TableCell>{retailer.contact_number}</TableCell>
+                      <td className="whitespace-nowrap border border-gray-300 px-4 py-2 text-black dark:border-gray-600 dark:text-white">
+                        {retailer.assigned_admin ? (
+                          admins.find(
+                            (admin) =>
+                              `${admin.id}` === retailer.assigned_admin,
+                          )?.name || "N/A"
+                        ) : (
+                          <span className="text-red-500">N/A</span>
+                        )}
+                      </td>
+                      <TableCell>
+                        {retailer.terminal_access ? "Yes" : "No"}
+                      </TableCell>
+                      <TableCell>{retailer.active ? "Yes" : "No"}</TableCell>
+                      {userRole === "superAdmin" && (
+                        <TableCell>
+                          <p
+                            className="cursor-pointer underline"
+                            onClick={() => handleEditOpen(retailer)}
+                          >
+                            Edit
+                          </p>
+                        </TableCell>
                       )}
-                    </td>
-                    <TableCell>
-                      {retailer.terminal_access ? "Yes" : "No"}
-                    </TableCell>
-                    <TableCell>{retailer.active ? "Yes" : "No"}</TableCell>
-                  </tr>
-                ))}
+                    </tr>
+                  ))}
               </tbody>
             </table>
           </div>

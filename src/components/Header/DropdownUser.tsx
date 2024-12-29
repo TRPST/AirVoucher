@@ -3,7 +3,7 @@ import Link from "next/link";
 import Image from "next/image";
 import ClickOutside from "@/components/ClickOutside";
 import { signOutAction, getUserAction } from "@/app/actions";
-import { User } from "@supabase/supabase-js";
+import { User } from "@/app/types/common";
 
 const DropdownUser = () => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -21,6 +21,21 @@ const DropdownUser = () => {
 
     getUser();
   }, []);
+
+  const getUserRole = () => {
+    switch (user?.role) {
+      case "superAdmin":
+        return "Super Admin";
+      case "admin":
+        return "Admin";
+      case "retailer":
+        return "Retailer";
+      case "cashier":
+        return "Cashier";
+      default:
+        return "";
+    }
+  };
 
   return (
     <ClickOutside onClick={() => setDropdownOpen(false)} className="relative">
@@ -88,10 +103,13 @@ const DropdownUser = () => {
 
             <span className="block">
               <span className="block font-medium text-dark dark:text-white">
-                Super Admin
+                {user?.name}
               </span>
               <span className="block font-medium text-dark-5 dark:text-dark-6">
                 {user?.email}
+              </span>
+              <span className="block font-medium text-dark-5 dark:text-dark-6">
+                {getUserRole()}
               </span>
             </span>
           </div>
