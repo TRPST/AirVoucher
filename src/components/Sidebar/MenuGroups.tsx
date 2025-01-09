@@ -152,7 +152,9 @@ export const superAdminMenu = [
         ),
         label: "Terminals",
         route: "#",
-        children: [{ label: "Manage Terminals", route: "manageTerminals" }],
+        children: [
+          { label: "Manage Terminals", route: "/protected/manageTerminals" },
+        ],
       },
       {
         icon: (
