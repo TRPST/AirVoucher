@@ -282,7 +282,7 @@ const RetailersList = () => {
         ];
 
   return (
-    <DefaultLayout>
+    <>
       <div className="container mx-auto p-6">
         <div className="mb-6 flex flex-row items-center justify-between">
           <h2 className="text-3xl font-bold text-gray-800 dark:text-white">
@@ -404,7 +404,7 @@ const RetailersList = () => {
           generateSecurePassword={generateSecurePassword}
         />
       )}
-    </DefaultLayout>
+    </>
   );
 };
 

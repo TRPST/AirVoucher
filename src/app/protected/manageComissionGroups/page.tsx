@@ -229,7 +229,7 @@ const CommissionManagement = () => {
   const generateUniqueCommGroupID = () => `AD${String(Date.now()).slice(-4)}`;
 
   return (
-    <DefaultLayout>
+    <>
       <div className="container mx-auto py-8">
         <div className="mb-6 flex items-center justify-between">
           <h2 className="text-3xl font-semibold text-gray-800 dark:text-white">
@@ -336,7 +336,7 @@ const CommissionManagement = () => {
           generateSecurePassword={generateSecurePassword}
         />
       )}
-    </DefaultLayout>
+    </>
   );
 };
 

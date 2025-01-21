@@ -5,6 +5,8 @@ import "@/css/satoshi.css";
 import "@/css/style.css";
 import React, { useEffect, useState } from "react";
 import Loader from "@/components/common/Loader";
+import { usePathname } from "next/navigation";
+import DefaultLayout from "@/components/Layouts/DefaultLayout";
 
 export default function RootLayout({
   children,
@@ -14,7 +16,10 @@ export default function RootLayout({
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [loading, setLoading] = useState<boolean>(true);
 
-  // const pathname = usePathname();
+  const pathname = usePathname();
+  const isProtectedRoute = pathname?.startsWith("/protected");
+
+  console.log("isProtectedRoute", isProtectedRoute);
 
   useEffect(() => {
     setTimeout(() => setLoading(false), 1000);
@@ -23,7 +28,13 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body suppressHydrationWarning={true}>
-        {loading ? <Loader /> : children}
+        {loading ? (
+          <Loader />
+        ) : isProtectedRoute ? (
+          <DefaultLayout>{children}</DefaultLayout>
+        ) : (
+          children
+        )}
       </body>
     </html>
   );

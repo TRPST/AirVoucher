@@ -3,6 +3,7 @@ import DefaultLayout from "@/components/Layouts/DefaultLayout";
 import { createClient } from "../../../utils/supabase/server";
 
 import { redirect } from "next/navigation";
+import Home from "./dashboard/page";
 
 export default async function ProtectedPage() {
   const supabase = await createClient();
@@ -15,9 +16,5 @@ export default async function ProtectedPage() {
     return redirect("/sign-in");
   }
 
-  return (
-    <DefaultLayout>
-      <ECommerce />
-    </DefaultLayout>
-  );
+  return <Home />;
 }
