@@ -20,7 +20,7 @@
 
 import React from "react";
 import { useParams, useRouter, usePathname } from "next/navigation";
-import DefaultLayout from "@/components/Layouts/DefaultLaout";
+import DefaultLayout from "@/components/Layouts/DefaultLayout";
 
 const TerminalDashboard = () => {
   const { terminalId } = useParams(); // Terminal ID from URL

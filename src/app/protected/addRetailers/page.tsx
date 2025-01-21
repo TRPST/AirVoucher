@@ -1,6 +1,6 @@
 "use client"; // Add this at the top to make it a Client Component
 
-import DefaultLayout from "@/components/Layouts/DefaultLaout";
+import DefaultLayout from "@/components/Layouts/DefaultLayout";
 import { redirect } from "next/navigation";
 
 import React, { useState, useEffect } from "react";

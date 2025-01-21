@@ -1,5 +1,5 @@
 import ECommerce from "@/components/Dashboard/E-commerce";
-import DefaultLayout from "@/components/Layouts/DefaultLaout";
+import DefaultLayout from "@/components/Layouts/DefaultLayout";
 import { createClient } from "../../../utils/supabase/server";
 
 import { redirect } from "next/navigation";

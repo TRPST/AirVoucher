@@ -1,7 +1,7 @@
 "use client";
 
 import { User } from "@/app/types/common";
-import DefaultLayout from "@/components/Layouts/DefaultLaout";
+import DefaultLayout from "@/components/Layouts/DefaultLayout";
 import { Switch } from "@mui/material";
 import React, { useEffect, useState } from "react";
 import { signUpAction, signUpAdminAction } from "@/app/actions";

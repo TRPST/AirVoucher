@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import DefaultLayout from "@/components/Layouts/DefaultLaout";
+import DefaultLayout from "@/components/Layouts/DefaultLayout";
 import axios from "axios";
 import crypto from "crypto";
 import { saveVoucherToDatabase } from "../../../../ott_actions";

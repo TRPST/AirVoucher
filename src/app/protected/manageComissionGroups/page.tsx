@@ -7,7 +7,7 @@ import {
   signUpCommGroupAction,
 } from "./actions";
 import { CommGroup, User } from "@/app/types/common";
-import DefaultLayout from "@/components/Layouts/DefaultLaout";
+import DefaultLayout from "@/components/Layouts/DefaultLayout";
 import React, { useEffect, useState } from "react";
 import TableCell from "../../../components/Tables/TableCell";
 import { Button } from "@mui/material";

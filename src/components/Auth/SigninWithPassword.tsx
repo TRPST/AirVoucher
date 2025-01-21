@@ -3,19 +3,16 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { signInAction } from "@/app/actions";
 import { createClient } from "utils/supabase/server";
-import { redirect } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { FormMessage, Message } from "@/components/form-message";
 import { Spinner } from "@nextui-org/spinner";
 import Loader from "@/components/common/Loader";
+import useLocalStorage from "@/hooks/useLocalStorage";
 
 export default function SigninWithPassword(props: {
   searchParams: Promise<Message>;
 }) {
-  // const [data, setData] = useState({
-  //   remember: false,
-  // });
-  //const searchParams = await props.searchParams;
-
+  const router = useRouter();
   const [actionState, setActionState] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -27,9 +24,10 @@ export default function SigninWithPassword(props: {
     try {
       const formData = new FormData(event.target as HTMLFormElement);
       const result = await signInAction(formData);
-      console.log("Result: ", result);
-      if (result) {
-        setActionState(result);
+
+      if (typeof result === "object" && result.userData) {
+        localStorage.setItem("user", JSON.stringify(result.userData));
+        router.push("/protected/dashboard");
         setLoading(false);
       }
     } catch (error) {

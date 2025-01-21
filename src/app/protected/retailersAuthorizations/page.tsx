@@ -1,6 +1,6 @@
 "use client";
 
-import DefaultLayout from "@/components/Layouts/DefaultLaout";
+import DefaultLayout from "@/components/Layouts/DefaultLayout";
 import React, { useState } from "react";
 
 const RetailersAuthorizations = () => {
