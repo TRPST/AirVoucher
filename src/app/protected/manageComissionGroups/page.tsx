@@ -4,7 +4,7 @@ import {
   deleteCommGroupAction,
   editCommGroupAction,
   getCommGroupsAction,
-  signUpCommGroupAction,
+  createCommGroup,
 } from "./actions";
 import { CommGroup, User } from "@/app/types/common";
 import DefaultLayout from "@/components/Layouts/DefaultLayout";
@@ -14,14 +14,13 @@ import { Button } from "@mui/material";
 import AddCommGroupModal from "./AddCommGroupModal";
 import EditCommGroupModal from "./EditCommGroupModal";
 import { getUserAction } from "@/app/actions";
+import CommissionTable from "./CommissionsTable";
+import AddSupplierModal from "./AddSupplierModal";
 
 const CommissionManagement = () => {
   const [commGroups, setCommGroups] = useState<CommGroup[]>([]);
   const [newCommGroup, setNewCommGroup] = useState<CommGroup>({
-    id: "",
     name: "",
-    suppliers: [],
-    created_at: new Date(),
   });
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -83,8 +82,6 @@ const CommissionManagement = () => {
     setEditError("");
   }, [newCommGroup, updatedCommGroup]);
 
-  const generateUniqueID = () => `AD${String(Date.now()).slice(-4)}`;
-
   const handleCreateCommGroup = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -94,16 +91,9 @@ const CommissionManagement = () => {
       return;
     }
 
-    const commGroup: CommGroup = {
-      id: generateUniqueID(),
-      name: newCommGroup.name,
-      suppliers: newCommGroup.suppliers,
-      created_at: newCommGroup.created_at,
-    };
-
     try {
       setLoading(true);
-      const result = await signUpCommGroupAction(commGroup);
+      const result = await createCommGroup(newCommGroup);
       console.log("Result: ", result);
       if (result.error) {
         setError(result.error);
@@ -117,17 +107,6 @@ const CommissionManagement = () => {
     }
   };
 
-  const generateSecurePassword = () => {
-    const charset =
-      "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+|}{[]:;?><,./-=";
-    let password = "";
-    for (let i = 0; i < 12; i++) {
-      const randomIndex = Math.floor(Math.random() * charset.length);
-      password += charset[randomIndex];
-    }
-    return password;
-  };
-
   const handleEditOpen = (commGroup: CommGroup) => {
     setUpdatedCommGroup(commGroup);
     setEditCommGroupModalOpen(true);
@@ -136,10 +115,7 @@ const CommissionManagement = () => {
   const handleClose = () => {
     setAddCommGroupModalOpen(false);
     setNewCommGroup({
-      id: "",
       name: "",
-      suppliers: [],
-      created_at: new Date(),
     });
 
     setError("");
@@ -210,10 +186,7 @@ const CommissionManagement = () => {
   const handleEditClose = () => {
     setEditCommGroupModalOpen(false);
     setUpdatedCommGroup({
-      id: "",
       name: "",
-      suppliers: [],
-      created_at: new Date(),
     });
 
     setEditError("");
@@ -227,6 +200,185 @@ const CommissionManagement = () => {
       : ["Name", "Suppliers"];
 
   const generateUniqueCommGroupID = () => `AD${String(Date.now()).slice(-4)}`;
+
+  const dummyData = [
+    {
+      name: "Gold",
+      suppliers: [
+        {
+          name: "Supplier 1",
+          vouchers: [
+            {
+              name: "Voucher 1",
+              total_commission: 5,
+              retailer_commission: 4,
+              agent_commission: 2,
+            },
+            {
+              name: "Voucher 2",
+              total_commission: 6,
+              retailer_commission: 4,
+              agent_commission: 3,
+            },
+            {
+              name: "Voucher 3",
+              total_commission: 4,
+              retailer_commission: 4,
+              agent_commission: 1,
+            },
+          ],
+        },
+        {
+          name: "Supplier 2",
+          vouchers: [
+            {
+              name: "Voucher 1",
+              total_commission: 5,
+              retailer_commission: 4,
+              agent_commission: 2,
+            },
+            {
+              name: "Voucher 2",
+              total_commission: 6,
+              retailer_commission: 4,
+              agent_commission: 3,
+            },
+            {
+              name: "Voucher 3",
+              total_commission: 4,
+              retailer_commission: 4,
+              agent_commission: 1,
+            },
+          ],
+        },
+        {
+          name: "Supplier 3",
+          vouchers: [
+            {
+              name: "Voucher 1",
+              total_commission: 2,
+              retailer_commission: 2,
+              agent_commission: 2,
+            },
+            {
+              name: "Voucher 2",
+              total_commission: 3,
+              retailer_commission: 3,
+              agent_commission: 3,
+            },
+            {
+              name: "Voucher 3",
+              total_commission: 1,
+              retailer_commission: 1,
+              agent_commission: 1,
+            },
+            {
+              name: "Voucher 4",
+              total_commission: 5,
+              retailer_commission: 5,
+              agent_commission: 5,
+            },
+          ],
+        },
+      ],
+    },
+    {
+      name: "Silver",
+      suppliers: [
+        {
+          name: "Supplier 1",
+          vouchers: [
+            {
+              name: "Voucher 1",
+              total_commission: 5,
+              retailer_commission: 4,
+              agent_commission: 2,
+            },
+            {
+              name: "Voucher 2",
+              total_commission: 6,
+              retailer_commission: 4,
+              agent_commission: 3,
+            },
+            {
+              name: "Voucher 3",
+              total_commission: 4,
+              retailer_commission: 4,
+              agent_commission: 1,
+            },
+          ],
+        },
+        {
+          name: "Supplier 2",
+          vouchers: [
+            {
+              name: "Voucher 1",
+              total_commission: 5,
+              retailer_commission: 4,
+              agent_commission: 2,
+            },
+            {
+              name: "Voucher 2",
+              total_commission: 6,
+              retailer_commission: 4,
+              agent_commission: 3,
+            },
+            {
+              name: "Voucher 3",
+              total_commission: 4,
+              retailer_commission: 4,
+              agent_commission: 1,
+            },
+          ],
+        },
+        {
+          name: "Supplier 3",
+          vouchers: [
+            {
+              name: "Voucher 1",
+              total_commission: 2,
+              retailer_commission: 2,
+              agent_commission: 2,
+            },
+            {
+              name: "Voucher 2",
+              total_commission: 3,
+              retailer_commission: 3,
+              agent_commission: 3,
+            },
+            {
+              name: "Voucher 3",
+              total_commission: 1,
+              retailer_commission: 1,
+              agent_commission: 1,
+            },
+            {
+              name: "Voucher 4",
+              total_commission: 5,
+              retailer_commission: 5,
+              agent_commission: 5,
+            },
+          ],
+        },
+      ],
+    },
+  ];
+
+  const [commissionGroups, setCommissionGroups] = useState(dummyData);
+  const [addSupplierModalOpen, setAddSupplierModalOpen] = useState(false);
+
+  const handleAddSupplier = (groupId, newSupplier) => {
+    console.log("Adding supplier: ", newSupplier);
+    const updatedGroups = commissionGroups.map((group) =>
+      group.id === groupId
+        ? {
+            ...group,
+            suppliers: [...group.suppliers, newSupplier],
+          }
+        : group,
+    );
+    setCommissionGroups(updatedGroups);
+  };
 
   return (
     <>
@@ -248,7 +400,7 @@ const CommissionManagement = () => {
           )}
         </div>
 
-        <div>
+        {/* <div>
           {loading ? (
             <div className="flex justify-center">
               <div className="h-8 w-8 animate-spin rounded-full border-4 border-solid border-primary border-t-transparent"></div>
@@ -262,6 +414,7 @@ const CommissionManagement = () => {
               <p className="font-bold text-gray-800 dark:text-white">
                 Commission Groups
               </p>
+
               <div className="mt-5 overflow-x-auto">
                 <table className="min-w-full border-collapse rounded-lg bg-white shadow-md dark:bg-gray-800">
                   <thead>
@@ -284,17 +437,14 @@ const CommissionManagement = () => {
                         className=" bg-white transition-colors duration-200 hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700"
                       >
                         <TableCell>{commGroup.name}</TableCell>
-                        <TableCell>{commGroup.suppliers?.length}</TableCell>
-                        {userRole === "superAdmin" && (
-                          <TableCell>
-                            <p
-                              className="cursor-pointer underline"
-                              onClick={() => handleEditOpen(commGroup)}
-                            >
-                              Edit
-                            </p>
-                          </TableCell>
-                        )}
+                        <TableCell>
+                          <p
+                            className="cursor-pointer underline"
+                            onClick={() => handleEditOpen(commGroup)}
+                          >
+                            Edit
+                          </p>
+                        </TableCell>
                       </tr>
                     ))}
                   </tbody>
@@ -302,8 +452,30 @@ const CommissionManagement = () => {
               </div>
             </>
           )}
+        </div> */}
+
+        <div>
+          {commissionGroups.map((group) => (
+            <div key={group.id}>
+              <CommissionTable data={[group]} />
+              <button
+                className="mt-4 rounded bg-blue-500 px-4 py-2 text-white"
+                onClick={() => setAddSupplierModalOpen(true)}
+              >
+                Add Supplier
+              </button>
+              <AddSupplierModal
+                isOpen={addSupplierModalOpen}
+                onClose={() => setAddSupplierModalOpen(false)}
+                onAddSupplier={(supplier) =>
+                  handleAddSupplier(group.id, supplier)
+                }
+              />
+            </div>
+          ))}
         </div>
       </div>
+
       <AddCommGroupModal
         open={addCommGroupModalOpen}
         handleClose={handleClose}
@@ -314,8 +486,6 @@ const CommissionManagement = () => {
         success={success}
         loading={loading}
         setLoading={setLoading}
-        generateUniqueCommGroupID={generateUniqueCommGroupID}
-        generateSecurePassword={generateSecurePassword}
       />
       {updatedCommGroup && (
         <EditCommGroupModal

@@ -38,10 +38,7 @@ export type Terminal = {
 };
 
 export type CommGroup = {
-  id: string;
   name: string;
-  suppliers: string[];
-  created_at: Date;
 };
 
 export type Supplier = {

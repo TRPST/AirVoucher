@@ -33,47 +33,82 @@ export const signUpAction = async (formData: FormData) => {
   }
 };
 
-export const signUpCommGroupAction = async (commGroup: CommGroup) => {
+export const createCommGroup = async (commGroup: CommGroup) => {
   const supabase = await createClient();
-  const origin = (await headers()).get("origin");
 
   if (!commGroup.name) {
     return { error: "Commission group name is required" };
   }
 
-  const { data, error } = await supabase.auth.admin.createCommGroup({
-    email: commGroup.email,
-    password: commGroup.password,
-    email_confirm: true,
-    user_metadata: {
-      role: commGroup.role,
-    },
-  });
+  const { data, error } = await supabase
+    .from("commission_groups")
+    .insert([{ name: commGroup.name }]);
 
   if (error) {
     return { error: error.message };
   }
 
-  const userId = data.user?.id;
-  if (!userId) {
-    return { error: "CommGroup ID not found" };
-  }
-  const { error: upsertError } = await supabase.from("users").upsert({
-    id: userId,
-    name: commGroup.name,
-    email: commGroup.email,
-    contact_number: commGroup.contact_number,
-    role: commGroup.role, // or any other role you want to assign
-    active: commGroup.active,
-    terminal_access: commGroup.terminal_access,
-    assigned_retailers: commGroup.assigned_retailers,
-  });
+  return { success: "Commission group created successfully" };
+};
 
-  if (upsertError) {
-    return { error: upsertError.message };
+// Fetch Commission Groups with Suppliers and Vouchers
+export const getCommGroupsWithSuppliersAndVouchers = async () => {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from("commission_groups")
+    .select(
+      "id, name, commission_group_suppliers(supplier_id, suppliers(name, vouchers(id, name, total_commission, retailer_commission, agent_commission)))",
+    );
+
+  if (error) {
+    console.error("Error fetching commission groups:", error);
+    return [];
   }
 
-  return { success: "CommGroup created successfully" };
+  console.log("DATA", data);
+
+  return data.map((group) => ({
+    id: group.id,
+    name: group.name,
+    suppliers: group.commission_group_suppliers.map((entry) => ({
+      id: entry.supplier_id,
+      name: entry.suppliers[0].name,
+      vouchers: entry.suppliers[0].vouchers.map((voucher) => ({
+        id: voucher.id,
+        name: voucher.name,
+        total_commission: voucher.total_commission,
+        retailer_commission: voucher.retailer_commission,
+        agent_commission: voucher.agent_commission,
+      })),
+    })),
+  }));
+};
+
+// Update Voucher Commissions
+export const updateVoucherCommissions = async (
+  voucherId,
+  totalCommission,
+  retailerCommission,
+  agentCommission,
+) => {
+  const supabase = await createClient();
+
+  const { error } = await supabase
+    .from("vouchers")
+    .update({
+      total_commission: totalCommission,
+      retailer_commission: retailerCommission,
+      agent_commission: agentCommission,
+    })
+    .eq("id", voucherId);
+
+  if (error) {
+    console.error("Error updating voucher commissions:", error);
+    return { error: error.message };
+  }
+
+  return { success: true };
 };
 
 export const getCommGroupsAction = async () => {

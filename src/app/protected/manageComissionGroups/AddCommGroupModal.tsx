@@ -13,8 +13,6 @@ interface AddCommGroupModalProps {
   success: string;
   loading: boolean;
   setLoading: (value: boolean) => void;
-  generateUniqueCommGroupID: () => string;
-  generateSecurePassword: () => void;
 }
 
 const AddCommGroupModal: React.FC<AddCommGroupModalProps> = ({
@@ -27,8 +25,6 @@ const AddCommGroupModal: React.FC<AddCommGroupModalProps> = ({
   success,
   loading,
   setLoading,
-  generateUniqueCommGroupID,
-  generateSecurePassword,
 }) => {
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
