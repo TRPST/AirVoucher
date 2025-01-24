@@ -45,24 +45,16 @@ export const getSalesAnalyticsAction = async (terminalId: string) => {
       0,
     ); // Sum up all amounts
 
-    // Fetch sales trends and sales counts (last 30 days)
+    // Fetch sales trends (last 30 days)
     const trendsByDate: { [date: string]: number } = {};
-    const countsByDate: { [date: string]: number } = {};
-
     totalSalesData.forEach((sale: any) => {
-      const date = new Date(sale.issued_at).toISOString().split("T")[0];
+      const date = new Date(sale.issued_at).toISOString().split("T")[0]; // Format as YYYY-MM-DD
       trendsByDate[date] = (trendsByDate[date] || 0) + sale.amount; // Sum amounts by date
-      countsByDate[date] = (countsByDate[date] || 0) + 1; // Count sales per date
     });
 
     const salesTrends = {
-      dates: Object.keys(trendsByDate),
-      amounts: Object.values(trendsByDate),
-    };
-
-    const salesCounts = {
-      dates: Object.keys(countsByDate),
-      counts: Object.values(countsByDate),
+      dates: Object.keys(trendsByDate), // Dates
+      amounts: Object.values(trendsByDate), // Corresponding amounts
     };
 
     // Sales history (all sales with timestamps)
@@ -75,7 +67,6 @@ export const getSalesAnalyticsAction = async (terminalId: string) => {
       totalSales,
       totalRevenue,
       salesTrends,
-      salesCounts,
       salesHistory,
     };
   } catch (error) {
@@ -83,3 +74,4 @@ export const getSalesAnalyticsAction = async (terminalId: string) => {
     throw new Error("Error fetching sales analytics.");
   }
 };
+
