@@ -74,7 +74,7 @@ const TerminalDashboard = () => {
           {/* Glocell Service */}
           <div
             className="cursor-pointer rounded-lg border p-4 text-center shadow transition-transform hover:scale-105 hover:shadow-lg"
-            onClick={() => navigateToFeatures("serviceA")}
+            onClick={() => navigateToFeatures("glocell_mobile_airtime_api")}
           >
             <img
               src="/images/glocell.png"
