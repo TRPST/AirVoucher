@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import DefaultLayout from "@/components/Layouts/DefaultLaout";
+import DefaultLayout from "@/components/Layouts/DefaultLayout";
 import {
   getRetailersByUserIdAction,
   getTerminalsAction,
@@ -336,7 +336,7 @@ const TerminalManagement = () => {
   };
 
   return (
-    <DefaultLayout>
+    <>
       <div className="container mx-auto p-6">
         <div>
           <div className="mb-6 flex flex-row items-center justify-between">
@@ -492,7 +492,7 @@ const TerminalManagement = () => {
           setEditLoading={setEditLoading}
         />
       )}
-    </DefaultLayout>
+    </>
   );
 };
 

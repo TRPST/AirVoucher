@@ -132,7 +132,7 @@ export const signInAction = async (formData: FormData) => {
   const password = formData.get("password") as string;
   const supabase = await createClient();
 
-  const { error } = await supabase.auth.signInWithPassword({
+  const { data, error } = await supabase.auth.signInWithPassword({
     email,
     password,
   });
@@ -143,7 +143,20 @@ export const signInAction = async (formData: FormData) => {
     return error.message;
   }
 
-  return redirect("/protected/dashboard");
+  const { data: userData, error: dbError } = await supabase
+    .from("users")
+    .select("*")
+    .eq("id", data.user.id)
+    .single(); // Use single() for one row
+
+  if (dbError) {
+    console.error("Database error:", dbError);
+    return dbError.message;
+  }
+
+  return { userData };
+
+  //return redirect("/protected/dashboard");
 };
 
 export const forgotPasswordAction = async (formData: FormData) => {

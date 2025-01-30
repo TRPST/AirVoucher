@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
@@ -28,14 +28,11 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
   const [userRole, setUserRole] = useState<string>("");
 
   useEffect(() => {
-    const fetchUserRole = async () => {
-      const user = await getUserAction();
-      //console.log("User: ", user);
-      if (user) {
-        setUserRole(user?.role || "");
-      }
-    };
-    fetchUserRole();
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) {
+      const user = JSON.parse(storedUser);
+      setUserRole(user.role);
+    }
   }, []);
 
   //function to return menuGroups based on user role

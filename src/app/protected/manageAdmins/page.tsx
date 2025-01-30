@@ -7,7 +7,7 @@ import {
   signUpAdminAction,
 } from "./actions";
 import { User } from "@/app/types/common";
-import DefaultLayout from "@/components/Layouts/DefaultLaout";
+import DefaultLayout from "@/components/Layouts/DefaultLayout";
 import React, { useEffect, useState } from "react";
 import TableCell from "../../../components/Tables/TableCell";
 import { Button } from "@mui/material";
@@ -269,7 +269,7 @@ const ManageAdmins = () => {
   const generateUniqueAdminID = () => `AD${String(Date.now()).slice(-4)}`;
 
   return (
-    <DefaultLayout>
+    <>
       <div className="container mx-auto py-8">
         <div className="mb-6 flex items-center justify-between">
           <h2 className="text-3xl font-semibold text-gray-800 dark:text-white">
@@ -437,7 +437,7 @@ const ManageAdmins = () => {
           generateSecurePassword={generateSecurePassword}
         />
       )}
-    </DefaultLayout>
+    </>
   );
 };
 

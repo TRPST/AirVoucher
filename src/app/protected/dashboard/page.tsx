@@ -1,6 +1,6 @@
 import ECommerce from "@/components/Dashboard/E-commerce";
 import { Metadata } from "next";
-import DefaultLayout from "@/components/Layouts/DefaultLaout";
+import DefaultLayout from "@/components/Layouts/DefaultLayout";
 import React from "react";
 
 export const metadata: Metadata = {
@@ -11,15 +11,13 @@ export const metadata: Metadata = {
 export default function Home() {
   return (
     <>
-      <DefaultLayout>
-        <div className="mt-50 flex h-screen justify-center">
-          <p className="text-center text-2xl font-semibold">
-            Sales Analytics Dashboard <br />
-            Coming Soon
-          </p>
-        </div>
-        {/* <ECommerce /> */}
-      </DefaultLayout>
+      <div className="mt-50 flex h-screen justify-center">
+        <p className="text-center text-2xl font-semibold">
+          Sales Analytics Dashboard <br />
+          Coming Soon
+        </p>
+      </div>
+      {/* <ECommerce /> */}
     </>
   );
 }

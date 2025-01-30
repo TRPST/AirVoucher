@@ -1,6 +1,6 @@
 "use client";
 
-import DefaultLayout from "@/components/Layouts/DefaultLaout";
+import DefaultLayout from "@/components/Layouts/DefaultLayout";
 import React, { useState } from "react";
 
 const RetailersAuthorizations = () => {
@@ -45,7 +45,7 @@ const RetailersAuthorizations = () => {
   };
 
   return (
-    <DefaultLayout>
+    <>
       <div className="container mx-auto p-6">
         <h2 className="mb-6 text-3xl font-bold text-gray-800 dark:text-white">
           Retailer Authorizations
@@ -148,7 +148,7 @@ const RetailersAuthorizations = () => {
           </table>
         </div>
       </div>
-    </DefaultLayout>
+    </>
   );
 };
 

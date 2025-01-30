@@ -2,17 +2,11 @@
 
 import React, { useState } from "react";
 import DefaultLayout from "@/components/Layouts/DefaultLayout";
-import { useParams } from "next/navigation";
-
-import DefaultLayout from "@/components/Layouts/DefaultLaout";
 import axios from "axios";
 import crypto from "crypto";
-import { saveVoucherToDatabase } from "../../../../ott_actions";
-import { useRouter } from "next/navigation";
-
+import { saveVoucherToDatabase } from "../../ott_actions";
 
 const OTTVoucherManagement = () => {
-  const { terminalId } = useParams(); // Extract terminal ID from the route
   const BASE_URL = "/api"; // Use the rewrite proxy
   const username = "AIRVOUCHER";
   const password = "v95Hp_#kc+";
@@ -33,12 +27,7 @@ const OTTVoucherManagement = () => {
   const [rejectResponse, setRejectResponse] = useState<any>(null);
   const [loading, setLoading] = useState<string | null>(null);
   const [manageReference, setManageReference] = useState("");
-  const router = useRouter();
 
-  // Navigate back to Terminal Management
-  const navigateToTerminalManagement = () => {
-    router.push("/protected/manageTerminals");
-  };
   // Helper function to generate a unique reference
   const generateUniqueReference = () =>
     `ref-${Date.now()}-${Math.random().toString(36).substr(2, 8)}`;
@@ -81,19 +70,6 @@ const OTTVoucherManagement = () => {
   ) => {
     const { name, value } = e.target;
     setVoucherDetails({ ...voucherDetails, [name]: value });
-  };
-
-  // Reset voucher form
-  const resetForm = () => {
-    setVoucherDetails({
-      branch: "",
-      cashier: "",
-      mobileForSMS: "",
-      till: "",
-      value: "",
-    });
-    setVoucherResponse(null);
-    setUniqueReference("");
   };
 
   // API Call: GetBalance
@@ -172,7 +148,6 @@ const OTTVoucherManagement = () => {
           sale_id: voucherData.saleID,
           pin: voucherData.pin,
           amount: parseFloat(voucherData.amount), // Convert to number
-          terminal_id: terminalId, // Add terminal ID
         });
 
         if (saveResponse.success) {
@@ -323,209 +298,176 @@ const OTTVoucherManagement = () => {
   return (
     <DefaultLayout>
       <div className="container mx-auto p-6">
-        {/* Back Button */}
-        <button
-          onClick={navigateToTerminalManagement}
-          className="mb-6 w-full rounded-lg bg-gray-700 px-4 py-2 text-white shadow-lg hover:bg-gray-800 md:w-auto"
-        >
-          Back to Terminal Management
-        </button>
-
-        {/* Page Header */}
-        <h2 className="mb-8 text-3xl font-bold text-gray-800">
-          OTT Voucher Management - Terminal {terminalId}
+        <h2 className="mb-6 text-3xl font-bold text-gray-800 dark:text-white">
+          OTT Voucher Management
         </h2>
 
-        {/* Sections */}
-        <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
-          {/* Balance Section */}
-          <div className="rounded-lg bg-white p-6 shadow-md">
-            <h3 className="mb-4 text-xl font-semibold text-gray-700">
-              Check Balance
-            </h3>
+        {/* Balance Section */}
+        <div className="mb-6">
+          <h3 className="mb-4 text-xl font-semibold">Check Balance</h3>
+          <button
+            onClick={fetchBalance}
+            className={`rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600 ${
+              loading === "balance" ? "cursor-not-allowed opacity-50" : ""
+            }`}
+            disabled={loading === "balance"}
+          >
+            {loading === "balance" ? "Loading..." : "Fetch Balance"}
+          </button>
+          {balanceResponse && (
+            <div className="mt-4 rounded bg-gray-100 p-4">
+              <h4 className="font-semibold">Balance Response:</h4>
+              <p>{balanceResponse}</p>
+            </div>
+          )}
+        </div>
+
+        {/* Issue Voucher Section */}
+        <div className="mb-6">
+          <h3 className="mb-4 text-xl font-semibold">Issue Voucher</h3>
+          <input
+            type="text"
+            name="branch"
+            value={voucherDetails.branch}
+            onChange={handleInputChange}
+            placeholder="Branch Code"
+            className="mb-4 w-full rounded border p-2"
+          />
+          <input
+            type="text"
+            name="value"
+            value={voucherDetails.value}
+            onChange={handleInputChange}
+            placeholder="Voucher Value"
+            className="mb-4 w-full rounded border p-2"
+          />
+          <button
+            onClick={issueVoucher}
+            className={`rounded bg-green-500 px-4 py-2 text-white hover:bg-green-600 ${
+              loading === "voucher" ? "cursor-not-allowed opacity-50" : ""
+            }`}
+            disabled={loading === "voucher"}
+          >
+            {loading === "voucher" ? "Processing..." : "Issue Voucher"}
+          </button>
+          {uniqueReference && (
+            <p className="mt-4">
+              <strong>Unique Reference:</strong> {uniqueReference}
+            </p>
+          )}
+          {voucherResponse && (
+            <div className="mt-4 rounded bg-gray-100 p-4">
+              <h4 className="font-semibold">Voucher Response:</h4>
+              {voucherResponse.success ? (
+                <>
+                  <p>
+                    <strong>Voucher ID:</strong>{" "}
+                    {voucherResponse.voucher?.voucherID}
+                  </p>
+                  <p>
+                    <strong>Sale ID:</strong> {voucherResponse.voucher?.saleID}
+                  </p>
+                  <p>
+                    <strong>PIN:</strong>{" "}
+                    <span className="font-bold text-blue-700">
+                      {voucherResponse.voucher?.pin}
+                    </span>
+                  </p>
+                  <p>
+                    <strong>Amount:</strong>{" "}
+                    <span className="font-bold text-green-700">
+                      {voucherResponse.voucher?.amount}
+                    </span>
+                  </p>
+                </>
+              ) : (
+                <p>{voucherResponse.message}</p>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Manage Voucher Section */}
+        <div>
+          <h3 className="mb-4 text-xl font-semibold">Manage Voucher</h3>
+          <input
+            type="text"
+            value={manageReference}
+            onChange={(e) => setManageReference(e.target.value)}
+            placeholder="Enter Voucher Reference"
+            className="mb-4 w-full rounded border p-2"
+          />
+          <div className="flex space-x-4">
             <button
-              onClick={fetchBalance}
-              className={`w-full rounded-lg bg-blue-500 py-2 text-white hover:bg-blue-600 ${
-                loading === "balance" && "cursor-not-allowed opacity-50"
+              onClick={checkVoucher}
+              className={`rounded bg-yellow-500 px-4 py-2 text-white hover:bg-yellow-600 ${
+                loading === "check" ? "cursor-not-allowed opacity-50" : ""
               }`}
-              disabled={loading === "balance"}
+              disabled={loading === "check"}
             >
-              {loading === "balance" ? "Loading..." : "Fetch Balance"}
+              {loading === "check" ? "Checking..." : "Check Voucher"}
             </button>
-            {balanceResponse && (
-              <div className="mt-4 rounded-lg bg-gray-100 p-4">
-                <h4 className="font-semibold text-gray-700">Balance:</h4>
-                <p className="text-gray-600">{balanceResponse}</p>
-              </div>
-            )}
+            <button
+              onClick={confirmVoucher}
+              className={`rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600 ${
+                loading === "confirm" ? "cursor-not-allowed opacity-50" : ""
+              }`}
+              disabled={loading === "confirm"}
+            >
+              {loading === "confirm" ? "Confirming..." : "Confirm Voucher"}
+            </button>
+            <button
+              onClick={rejectVoucher}
+              className={`rounded bg-red-500 px-4 py-2 text-white hover:bg-red-600 ${
+                loading === "reject" ? "cursor-not-allowed opacity-50" : ""
+              }`}
+              disabled={loading === "reject"}
+            >
+              {loading === "reject" ? "Rejecting..." : "Reject Voucher"}
+            </button>
           </div>
-
-          {/* Issue Voucher Section */}
-          <div className="rounded-lg bg-white p-6 shadow-md">
-            <h3 className="mb-4 text-xl font-semibold text-gray-700">
-              Issue Voucher
-            </h3>
-            <input
-              type="text"
-              name="branch"
-              value={voucherDetails.branch}
-              onChange={handleInputChange}
-              placeholder="Branch Code"
-              className="mb-4 w-full rounded-lg border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-blue-300"
-            />
-            <input
-              type="number"
-              name="value"
-              value={voucherDetails.value}
-              onChange={handleInputChange}
-              placeholder="Voucher Value"
-              className="mb-4 w-full rounded-lg border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-blue-300"
-            />
-            <div className="flex gap-4">
-              <button
-                onClick={issueVoucher}
-                className={`w-full rounded-lg bg-green-500 py-2 text-white hover:bg-green-600 ${
-                  loading === "voucher" && "cursor-not-allowed opacity-50"
-                }`}
-                disabled={loading === "voucher"}
-              >
-                {loading === "voucher" ? "Processing..." : "Issue Voucher"}
-              </button>
-              <button
-                onClick={resetForm}
-                className="w-full rounded-lg bg-gray-500 py-2 text-white hover:bg-gray-600"
-              >
-                Reset
-              </button>
+          {checkResponse && (
+            <div className="mt-4 rounded bg-gray-100 p-4">
+              <h4 className="font-semibold">Check Voucher Response:</h4>
+              {checkResponse.success ? (
+                <>
+                  <p>
+                    <strong>Voucher ID:</strong>{" "}
+                    {checkResponse.voucher?.voucherID}
+                  </p>
+                  <p>
+                    <strong>Sale ID:</strong> {checkResponse.voucher?.saleID}
+                  </p>
+                  <p>
+                    <strong>PIN:</strong>{" "}
+                    <span className="font-bold text-blue-700">
+                      {checkResponse.voucher?.pin}
+                    </span>
+                  </p>
+                  <p>
+                    <strong>Amount:</strong>{" "}
+                    <span className="font-bold text-green-700">
+                      {checkResponse.voucher?.amount}
+                    </span>
+                  </p>
+                </>
+              ) : (
+                <p>{checkResponse.message}</p>
+              )}
             </div>
-            {uniqueReference && (
-              <p className="mt-4 text-sm text-gray-600">
-                <strong>Reference:</strong> {uniqueReference}
-              </p>
-            )}
-            {voucherResponse && (
-              <div className="mt-4 rounded-lg bg-gray-100 p-4">
-                <h4 className="font-semibold text-gray-700">
-                  Voucher Response:
-                </h4>
-                {voucherResponse.success ? (
-                  <>
-                    <p>
-                      <strong>ID:</strong> {voucherResponse.voucher?.voucherID}
-                    </p>
-                    <p>
-                      <strong>Sale ID:</strong>{" "}
-                      {voucherResponse.voucher?.saleID}
-                    </p>
-                    <p>
-                      <strong>PIN:</strong>{" "}
-                      <span className="font-bold text-blue-700">
-                        {voucherResponse.voucher?.pin}
-                      </span>
-                    </p>
-                    <p>
-                      <strong>Amount:</strong>{" "}
-                      <span className="font-bold text-green-700">
-                        {voucherResponse.voucher?.amount}
-                      </span>
-                    </p>
-                  </>
-                ) : (
-                  <p className="text-red-600">{voucherResponse.message}</p>
-                )}
-              </div>
-            )}
-          </div>
-
-          {/* Manage Voucher Section */}
-          <div className="rounded-lg bg-white p-6 shadow-md">
-            <h3 className="mb-4 text-xl font-semibold text-gray-700">
-              Manage Voucher
-            </h3>
-            <input
-              type="text"
-              value={manageReference}
-              onChange={(e) => setManageReference(e.target.value)}
-              placeholder="Voucher Reference"
-              className="mb-4 w-full rounded-lg border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-blue-300"
-            />
-            <div className="flex flex-col gap-4">
-              <button
-                onClick={checkVoucher}
-                className={`rounded-lg bg-yellow-500 py-2 text-white hover:bg-yellow-600 ${
-                  loading === "check" && "cursor-not-allowed opacity-50"
-                }`}
-                disabled={loading === "check"}
-              >
-                {loading === "check" ? "Checking..." : "Check Voucher"}
-              </button>
-              <button
-                onClick={confirmVoucher}
-                className={`rounded-lg bg-blue-500 py-2 text-white hover:bg-blue-600 ${
-                  loading === "confirm" && "cursor-not-allowed opacity-50"
-                }`}
-                disabled={loading === "confirm"}
-              >
-                {loading === "confirm" ? "Confirming..." : "Confirm Voucher"}
-              </button>
-              <button
-                onClick={rejectVoucher}
-                className={`rounded-lg bg-red-500 py-2 text-white hover:bg-red-600 ${
-                  loading === "reject" && "cursor-not-allowed opacity-50"
-                }`}
-                disabled={loading === "reject"}
-              >
-                {loading === "reject" ? "Rejecting..." : "Reject Voucher"}
-              </button>
+          )}
+          {confirmResponse && (
+            <div className="mt-4 rounded bg-gray-100 p-4">
+              <h4 className="font-semibold">Confirm Voucher Response:</h4>
+              <p>{confirmResponse.message}</p>
             </div>
-            {checkResponse && (
-              <div className="mt-4 rounded-lg bg-gray-100 p-4">
-                <h4 className="font-semibold text-gray-700">
-                  Check Voucher Response:
-                </h4>
-                {checkResponse.success ? (
-                  <>
-                    <p>
-                      <strong>ID:</strong> {checkResponse.voucher?.voucherID}
-                    </p>
-                    <p>
-                      <strong>Sale ID:</strong> {checkResponse.voucher?.saleID}
-                    </p>
-                    <p>
-                      <strong>PIN:</strong>{" "}
-                      <span className="font-bold text-blue-700">
-                        {checkResponse.voucher?.pin}
-                      </span>
-                    </p>
-                    <p>
-                      <strong>Amount:</strong>{" "}
-                      <span className="font-bold text-green-700">
-                        {checkResponse.voucher?.amount}
-                      </span>
-                    </p>
-                  </>
-                ) : (
-                  <p className="text-red-600">{checkResponse.message}</p>
-                )}
-              </div>
-            )}
-            {confirmResponse && (
-              <div className="mt-4 rounded-lg bg-gray-100 p-4">
-                <h4 className="font-semibold text-gray-700">
-                  Confirm Voucher Response:
-                </h4>
-                <p>{confirmResponse.message}</p>
-              </div>
-            )}
-            {rejectResponse && (
-              <div className="mt-4 rounded-lg bg-gray-100 p-4">
-                <h4 className="font-semibold text-gray-700">
-                  Reject Voucher Response:
-                </h4>
-                <p>{rejectResponse.message}</p>
-              </div>
-            )}
-          </div>
+          )}
+          {rejectResponse && (
+            <div className="mt-4 rounded bg-gray-100 p-4">
+              <h4 className="font-semibold">Reject Voucher Response:</h4>
+              <p>{rejectResponse.message}</p>
+            </div>
+          )}
         </div>
       </div>
     </DefaultLayout>

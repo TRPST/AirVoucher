@@ -36,3 +36,20 @@ export type Terminal = {
   active: boolean;
   created_at: Date;
 };
+
+export type CommGroup = {
+  name: string;
+};
+
+export type Supplier = {
+  id: string;
+  supplier_name: string;
+  created_at: Date;
+};
+
+export type Voucher = {
+  id: string;
+  supplier: string;
+  voucher_name: string;
+  created_at: Date;
+};
