@@ -51,6 +51,45 @@ export const createCommGroup = async (commGroup: CommGroup) => {
   return { success: "Commission group created successfully" };
 };
 
+export const getSuppliersAction = async () => {
+  const supabase = await createClient();
+
+  console.log("Fetching suppliers from database...");
+
+  const { data: suppliers, error } = await supabase
+    .from("suppliers")
+    .select("*");
+
+  if (error) {
+    console.error("Error fetching suppliers:", error);
+    return { error: error.message };
+  }
+
+  console.log("Suppliers fetched:", suppliers);
+
+  if (!suppliers || suppliers.length === 0) {
+    console.log("No suppliers found.");
+    return { suppliers: [] };
+  }
+
+  return { suppliers };
+};
+
+export const getSupplierVouchers = async (supplierId: string) => {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from("vouchers")
+    .select("*")
+    .eq("supplier_id", supplierId);
+
+  if (error) {
+    return { error: error.message };
+  }
+
+  return { vouchers: data };
+};
+
 // Fetch Commission Groups with Suppliers and Vouchers
 export const getCommGroupsWithSuppliersAndVouchers = async () => {
   const supabase = await createClient();

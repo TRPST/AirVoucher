@@ -457,13 +457,11 @@ const CommissionManagement = () => {
         <div>
           {commissionGroups.map((group) => (
             <div key={group.id}>
-              <CommissionTable data={[group]} />
-              <button
-                className="mt-4 rounded bg-blue-500 px-4 py-2 text-white"
-                onClick={() => setAddSupplierModalOpen(true)}
-              >
-                Add Supplier
-              </button>
+              <CommissionTable
+                data={[group]}
+                setAddSupplierModalOpen={() => setAddSupplierModalOpen(true)}
+              />
+
               <AddSupplierModal
                 isOpen={addSupplierModalOpen}
                 onClose={() => setAddSupplierModalOpen(false)}
