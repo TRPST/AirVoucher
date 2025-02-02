@@ -1,8 +1,13 @@
 import React, { useEffect, useState } from "react";
 import Modal from "@mui/material/Modal";
 import { Box, MenuItem, Select } from "@mui/material";
-import { getSuppliersAction, getSupplierVouchers } from "./actions";
-import { Supplier, Terminal, Retailer } from "@/app/types/common";
+import {
+  getSuppliersAction,
+  getSupplierVouchers,
+  getSupplierVoucherGroups,
+} from "./actions";
+import { Supplier, Terminal, Retailer, VoucherGroup } from "@/app/types/common";
+import { useTheme } from "@mui/material/styles";
 
 const AddSupplierModal = ({ isOpen, onClose, onAddSupplier }) => {
   const [supplierName, setSupplierName] = useState("");
@@ -16,28 +21,45 @@ const AddSupplierModal = ({ isOpen, onClose, onAddSupplier }) => {
   ]);
 
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
+  const [voucherGroups, setVoucherGroups] = useState<VoucherGroup[]>([]);
+  const [selectedVoucherGroups, setSelectedVoucherGroups] = useState<
+    VoucherGroup[]
+  >([]);
+  const [selectedVoucherGroup, setSelectedVoucherGroup] =
+    useState<VoucherGroup>();
   const [loading, setLoading] = useState<boolean>(false);
-  const [selectedSupplier, setSelectedSupplier] = useState<string>("");
+  const [selectedSupplier, setSelectedSupplier] = useState<Supplier>();
+  const [voucherGroupsLoading, setVoucherGroupsLoading] =
+    useState<boolean>(false);
 
   useEffect(() => {
     const fetchSuppliers = async () => {
       setLoading(true);
-
       const result = await getSuppliersAction();
-
-      console.log("Suppliers result", result);
-
       const suppliers = result?.suppliers || [];
-
       if (suppliers) {
         setSuppliers(suppliers);
       }
-
       setLoading(false);
     };
-
     fetchSuppliers();
   }, []);
+
+  const fetchSupplierVoucherGroups = async (supplierId: number) => {
+    setVoucherGroupsLoading(true);
+    const result = await getSupplierVoucherGroups(supplierId);
+    const voucherGroups = result?.voucherGroups || [];
+    if (voucherGroups) {
+      setVoucherGroups(voucherGroups);
+    }
+    setVoucherGroupsLoading(false);
+  };
+
+  useEffect(() => {
+    if (selectedSupplier) {
+      fetchSupplierVoucherGroups(selectedSupplier.id);
+    }
+  }, [selectedSupplier]);
 
   const handleAddVoucher = () => {
     setVouchers([
@@ -63,10 +85,15 @@ const AddSupplierModal = ({ isOpen, onClose, onAddSupplier }) => {
     onClose();
   };
 
+  const handleModalClose = () => {
+    setSelectedSupplier(undefined);
+    onClose();
+  };
+
   return (
     <Modal
       open={isOpen}
-      onClose={onClose}
+      onClose={handleModalClose}
       aria-labelledby="modal-modal-title"
       aria-describedby="modal-modal-description"
     >
@@ -91,18 +118,18 @@ const AddSupplierModal = ({ isOpen, onClose, onAddSupplier }) => {
             <h2 className="mb-6 text-center text-3xl font-semibold text-gray-800 dark:text-white">
               Add Supplier
             </h2>
-
+            <h3 className="mb-2 mt-5 font-semibold">Supplier</h3>
             <div>
               <Select
                 labelId="retailer-select-label"
-                value={selectedSupplier}
+                value={selectedSupplier ? selectedSupplier.id : ""}
                 onChange={(event) => {
-                  const selectedSupplierId = event.target.value;
+                  const selectedSupplierId = Number(event.target.value);
                   const selectedSupplier = suppliers.find(
                     (s) => s.id === selectedSupplierId,
                   );
                   if (selectedSupplier) {
-                    setSelectedSupplier(selectedSupplierId);
+                    setSelectedSupplier(selectedSupplier);
                     setSupplierName(selectedSupplier.supplier_name);
                   }
                 }}
@@ -122,7 +149,7 @@ const AddSupplierModal = ({ isOpen, onClose, onAddSupplier }) => {
                     border: "2px solid grey",
                   },
                   "& .MuiSelect-select": {
-                    color: "grey",
+                    color: "white",
                     padding: "0",
                     paddingLeft: "0px",
                   },
@@ -142,31 +169,114 @@ const AddSupplierModal = ({ isOpen, onClose, onAddSupplier }) => {
               </Select>
             </div>
 
-            {/* <div className="mb-4">
-              <label className="block font-semibold">Supplier Name:</label>
+            <h3 className="mb-2 mt-5 font-semibold">Voucher Groups</h3>
+            <div className="mb-5 flex flex-col space-y-3">
+              <Select
+                value={
+                  selectedVoucherGroup
+                    ? selectedVoucherGroup.voucher_group_name
+                    : ""
+                }
+                onChange={(e) =>
+                  handleVoucherChange(index, "name", e.target.value)
+                }
+                displayEmpty
+                className="w-full rounded-lg border border-gray-300 bg-gray-50 px-4 py-2 text-gray-900 shadow-sm dark:bg-gray-700 dark:text-white"
+                style={{ color: "white" }}
+                sx={{
+                  height: "40px",
+                  alignItems: "center",
+                  "& .MuiOutlinedInput-notchedOutline": {
+                    border: "1px solid grey",
+                  },
+                  "&:hover .MuiOutlinedInput-notchedOutline": {
+                    border: "2px solid grey",
+                  },
+                  "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                    border: "2px solid grey",
+                  },
+                  "& .MuiSelect-select": {
+                    color: "white",
+                    padding: "0",
+                    paddingLeft: "0px",
+                  },
+                  "& .MuiSelect-icon": {
+                    color: "grey",
+                  },
+                }}
+              >
+                <MenuItem value="" disabled>
+                  Select Voucher Group
+                </MenuItem>
+                {voucherGroups.map((group) => (
+                  <MenuItem key={group.id} value={group.voucher_group_name}>
+                    {group.voucher_group_name}
+                  </MenuItem>
+                ))}
+              </Select>
               <input
-                type="text"
-                value={supplierName}
-                onChange={(e) => setSupplierName(e.target.value)}
-                className="w-full rounded border px-2 py-1"
-                placeholder="Enter supplier name"
+                type="number"
+                value={selectedVoucherGroup?.total_comm}
+                onChange={(e) =>
+                  handleVoucherChange(
+                    index,
+                    "total_commission",
+                    parseFloat(e.target.value),
+                  )
+                }
+                className="w-full rounded-lg border px-4 py-2 dark:bg-gray-700"
+                placeholder="Total Commission (%)"
               />
-            </div> */}
-            <h3 className="mb-2 mt-10 font-semibold">Vouchers</h3>
-            {vouchers.map((voucher, index) => (
+              <input
+                type="number"
+                value={selectedVoucherGroup?.retailer_comm}
+                onChange={(e) =>
+                  handleVoucherChange(
+                    index,
+                    "retailer_commission",
+                    parseFloat(e.target.value),
+                  )
+                }
+                className="w-full rounded-lg border px-4 py-2 dark:bg-gray-700"
+                placeholder="Retailer Commission (%)"
+              />
+              <input
+                type="number"
+                value={selectedVoucherGroup?.sales_agent_comm}
+                onChange={(e) =>
+                  handleVoucherChange(
+                    index,
+                    "agent_commission",
+                    parseFloat(e.target.value),
+                  )
+                }
+                className="w-full rounded-lg border px-4 py-2 dark:bg-gray-700"
+                placeholder="Agent Commission (%)"
+              />
+            </div>
+
+            {selectedVoucherGroups.map((selectedVoucherGroup, index) => (
               <div key={index} className="mb-2 grid grid-cols-5 gap-2">
-                <input
-                  type="text"
-                  value={voucher.name}
+                <Select
+                  value={selectedVoucherGroup.voucher_group_name}
                   onChange={(e) =>
                     handleVoucherChange(index, "name", e.target.value)
                   }
                   className="col-span-2 rounded border px-2 py-1"
-                  placeholder="Voucher Name"
-                />
+                  displayEmpty
+                >
+                  <MenuItem value="" disabled>
+                    Select Voucher Group
+                  </MenuItem>
+                  {voucherGroups.map((group) => (
+                    <MenuItem key={group.id} value={group.voucher_group_name}>
+                      {group.voucher_group_name}
+                    </MenuItem>
+                  ))}
+                </Select>
                 <input
                   type="number"
-                  value={voucher.total_commission}
+                  value={selectedVoucherGroup.total_comm}
                   onChange={(e) =>
                     handleVoucherChange(
                       index,
@@ -179,7 +289,7 @@ const AddSupplierModal = ({ isOpen, onClose, onAddSupplier }) => {
                 />
                 <input
                   type="number"
-                  value={voucher.retailer_commission}
+                  value={selectedVoucherGroup.retailer_comm}
                   onChange={(e) =>
                     handleVoucherChange(
                       index,
@@ -192,7 +302,7 @@ const AddSupplierModal = ({ isOpen, onClose, onAddSupplier }) => {
                 />
                 <input
                   type="number"
-                  value={voucher.agent_commission}
+                  value={selectedVoucherGroup.sales_agent_comm}
                   onChange={(e) =>
                     handleVoucherChange(
                       index,

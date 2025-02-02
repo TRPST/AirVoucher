@@ -54,25 +54,46 @@ export const createCommGroup = async (commGroup: CommGroup) => {
 export const getSuppliersAction = async () => {
   const supabase = await createClient();
 
-  console.log("Fetching suppliers from database...");
+  try {
+    const { data: suppliers, error } = await supabase
+      .from("suppliers")
+      .select("*");
 
-  const { data: suppliers, error } = await supabase
-    .from("suppliers")
-    .select("*");
+    if (error) {
+      console.error("Error fetching suppliers:", error);
+      return { error: error.message };
+    }
 
-  if (error) {
-    console.error("Error fetching suppliers:", error);
+    if (!suppliers || suppliers.length === 0) {
+      console.log("No suppliers found.");
+      return { suppliers: [] };
+    }
+
+    return { suppliers };
+  } catch (error) {
+    console.error("Unexpected error fetching suppliers:", error);
     return { error: error.message };
   }
+};
 
-  console.log("Suppliers fetched:", suppliers);
+export const getSupplierVoucherGroups = async (supplierId: number) => {
+  const supabase = await createClient();
 
-  if (!suppliers || suppliers.length === 0) {
-    console.log("No suppliers found.");
-    return { suppliers: [] };
+  try {
+    const { data: voucherGroups, error } = await supabase
+      .from("voucher_groups")
+      .select("*")
+      .eq("supplier_id", supplierId);
+
+    if (error) {
+      return { error: error.message };
+    }
+
+    return { voucherGroups };
+  } catch (error) {
+    console.error("Unexpected error fetching supplier voucher groups:", error);
+    return { error: error.message };
   }
-
-  return { suppliers };
 };
 
 export const getSupplierVouchers = async (supplierId: string) => {

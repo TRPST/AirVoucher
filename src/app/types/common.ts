@@ -42,13 +42,22 @@ export type CommGroup = {
 };
 
 export type Supplier = {
-  id: string;
+  id: number;
   supplier_name: string;
   created_at: Date;
 };
 
+export type VoucherGroup = {
+  id: number;
+  voucher_group_name: string;
+  total_comm: number;
+  retailer_comm: number;
+  sales_agent_comm: number;
+  created_at: Date;
+};
+
 export type Voucher = {
-  id: string;
+  id: number;
   supplier: string;
   voucher_name: string;
   created_at: Date;
