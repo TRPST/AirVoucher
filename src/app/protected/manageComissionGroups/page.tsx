@@ -206,10 +206,33 @@ const CommissionManagement = () => {
       name: "Gold",
       suppliers: [
         {
-          name: "Supplier 1",
+          name: "Glocell",
           vouchers: [
             {
-              name: "Voucher 1",
+              name: "MTN",
+              total_commission: 5,
+              retailer_commission: 4,
+              agent_commission: 2,
+            },
+            {
+              name: "CellC",
+              total_commission: 6,
+              retailer_commission: 4,
+              agent_commission: 3,
+            },
+            {
+              name: "Vodacom",
+              total_commission: 4,
+              retailer_commission: 4,
+              agent_commission: 1,
+            },
+          ],
+        },
+        {
+          name: "OTT",
+          vouchers: [
+            {
+              name: "OTT",
               total_commission: 5,
               retailer_commission: 4,
               agent_commission: 2,
@@ -229,30 +252,7 @@ const CommissionManagement = () => {
           ],
         },
         {
-          name: "Supplier 2",
-          vouchers: [
-            {
-              name: "Voucher 1",
-              total_commission: 5,
-              retailer_commission: 4,
-              agent_commission: 2,
-            },
-            {
-              name: "Voucher 2",
-              total_commission: 6,
-              retailer_commission: 4,
-              agent_commission: 3,
-            },
-            {
-              name: "Voucher 3",
-              total_commission: 4,
-              retailer_commission: 4,
-              agent_commission: 1,
-            },
-          ],
-        },
-        {
-          name: "Supplier 3",
+          name: "BlueLabel 3",
           vouchers: [
             {
               name: "Voucher 1",

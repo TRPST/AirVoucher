@@ -4,33 +4,51 @@ import { Box, MenuItem, Select } from "@mui/material";
 import {
   getSuppliersAction,
   getSupplierVouchers,
-  getSupplierVoucherGroups,
+  getSupplierMainVoucherGroups,
+  getSupplierMobileDataVouchers,
+  getSupplierApis,
 } from "./actions";
-import { Supplier, Terminal, Retailer, VoucherGroup } from "@/app/types/common";
+import {
+  Supplier,
+  Terminal,
+  Retailer,
+  VoucherGroup,
+  MainVoucherGroup,
+  MobileDataVoucher,
+  SupplierAPI,
+} from "@/app/types/common";
 import { useTheme } from "@mui/material/styles";
 
 const AddSupplierModal = ({ isOpen, onClose, onAddSupplier }) => {
   const [supplierName, setSupplierName] = useState("");
-  const [vouchers, setVouchers] = useState([
-    {
-      name: "",
-      total_commission: 0,
-      retailer_commission: 0,
-      agent_commission: 0,
-    },
-  ]);
+  const [mobileDataVouchers, setMobileDataVouchers] = useState<
+    MobileDataVoucher[]
+  >([]);
 
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [voucherGroups, setVoucherGroups] = useState<VoucherGroup[]>([]);
-  const [selectedVoucherGroups, setSelectedVoucherGroups] = useState<
-    VoucherGroup[]
+  const [mainVoucherGroups, setMainVoucherGroups] = useState<
+    MainVoucherGroup[]
   >([]);
+  const [selectedMainVoucherGroups, setSelectedMainVoucherGroups] = useState<
+    MainVoucherGroup[]
+  >([]);
+  const [selectedMainVoucherGroup, setSelectedMainVoucherGroup] =
+    useState<MainVoucherGroup>();
   const [selectedVoucherGroup, setSelectedVoucherGroup] =
     useState<VoucherGroup>();
   const [loading, setLoading] = useState<boolean>(false);
   const [selectedSupplier, setSelectedSupplier] = useState<Supplier>();
   const [voucherGroupsLoading, setVoucherGroupsLoading] =
     useState<boolean>(false);
+
+  const [vouchersLoading, setVouchersLoading] = useState<boolean>(false);
+
+  const [supplierApis, setSupplierApis] = useState([]);
+
+  const [selectedSupplierApi, setSelectedSupplierApi] = useState<
+    SupplierAPI | undefined
+  >();
 
   useEffect(() => {
     const fetchSuppliers = async () => {
@@ -47,17 +65,48 @@ const AddSupplierModal = ({ isOpen, onClose, onAddSupplier }) => {
 
   const fetchSupplierVoucherGroups = async (supplierId: number) => {
     setVoucherGroupsLoading(true);
-    const result = await getSupplierVoucherGroups(supplierId);
-    const voucherGroups = result?.voucherGroups || [];
-    if (voucherGroups) {
-      setVoucherGroups(voucherGroups);
+    const result = await getSupplierMainVoucherGroups(supplierId);
+    console.log("result", result);
+    const mainVoucherGroups = result?.mainVoucherGroups || [];
+    if (mainVoucherGroups) {
+      setMainVoucherGroups(mainVoucherGroups);
     }
     setVoucherGroupsLoading(false);
   };
 
+  const fetchSupplierApis = async (supplierName: string) => {
+    setVouchersLoading(true);
+
+    const result = await getSupplierApis(supplierName);
+
+    console.log("Supplier api results", result);
+
+    const supplierApis = result?.supplierApis || [];
+    if (supplierApis) {
+      setSupplierApis(supplierApis);
+    }
+    setVouchersLoading(false);
+  };
+
+  const fetchSupplierMobileDataVouchers = async (supplierName: string) => {
+    setVouchersLoading(true);
+
+    const result = await getSupplierMobileDataVouchers(supplierName);
+
+    console.log("Mobile data results", result);
+
+    const mobileDataVouchers = result?.mobileDataVouchers || [];
+    if (mobileDataVouchers) {
+      setMobileDataVouchers(mobileDataVouchers);
+    }
+    setVouchersLoading(false);
+  };
+
   useEffect(() => {
     if (selectedSupplier) {
-      fetchSupplierVoucherGroups(selectedSupplier.id);
+      //fetchSupplierVoucherGroups(selectedSupplier.id);
+      fetchSupplierMobileDataVouchers(selectedSupplier.supplier_name);
+      fetchSupplierApis(selectedSupplier.supplier_name);
     }
   }, [selectedSupplier]);
 
@@ -80,8 +129,35 @@ const AddSupplierModal = ({ isOpen, onClose, onAddSupplier }) => {
     setVouchers(updatedVouchers);
   };
 
+  const handleAddVoucherGroup = () => {
+    if (selectedMainVoucherGroup) {
+      setSelectedMainVoucherGroups([
+        ...selectedMainVoucherGroups,
+        {
+          id: selectedMainVoucherGroup.id,
+          name: selectedMainVoucherGroup.name,
+          supplier_id: selectedMainVoucherGroup.supplier_id,
+          created_at: selectedMainVoucherGroup.created_at,
+          total_comm: selectedMainVoucherGroup.total_comm,
+          retailer_comm: selectedMainVoucherGroup.retailer_comm,
+          sales_agent_comm: selectedMainVoucherGroup.sales_agent_comm,
+        },
+      ]);
+      setSelectedVoucherGroup(undefined);
+    }
+  };
+
+  const handleVoucherGroupChange = (field, value) => {
+    if (selectedMainVoucherGroup) {
+      setSelectedMainVoucherGroup({
+        ...selectedMainVoucherGroup,
+        [field]: value,
+      });
+    }
+  };
+
   const handleSubmit = () => {
-    onAddSupplier({ name: supplierName, vouchers });
+    onAddSupplier({ name: supplierName, vouchers: selectedMainVoucherGroups });
     onClose();
   };
 
@@ -103,7 +179,7 @@ const AddSupplierModal = ({ isOpen, onClose, onAddSupplier }) => {
           top: "50%",
           left: "50%",
           transform: "translate(-50%, -50%)",
-          width: 500,
+          width: "70%",
           maxHeight: "90vh", // Limit height to 90% of the viewport height
           overflowY: "auto", // Make contents scrollable
           bgcolor: "background.paper",
@@ -119,7 +195,7 @@ const AddSupplierModal = ({ isOpen, onClose, onAddSupplier }) => {
               Add Supplier
             </h2>
             <h3 className="mb-2 mt-5 font-semibold">Supplier</h3>
-            <div>
+            <div className="mb-5">
               <Select
                 labelId="retailer-select-label"
                 value={selectedSupplier ? selectedSupplier.id : ""}
@@ -169,17 +245,118 @@ const AddSupplierModal = ({ isOpen, onClose, onAddSupplier }) => {
               </Select>
             </div>
 
-            <h3 className="mb-2 mt-5 font-semibold">Voucher Groups</h3>
+            <h3 className="mb-2 mt-5 font-semibold">Supplier API</h3>
+            <div className="mb-5">
+              <Select
+                labelId="supplier-api-select-label"
+                value={selectedSupplierApi ? selectedSupplierApi.id : ""}
+                onChange={(event) => {
+                  const selectedApiId = Number(event.target.value);
+                  const selectedApi = supplierApis.find(
+                    (api: SupplierAPI) => api.id === selectedApiId,
+                  );
+                  if (selectedApi) {
+                    setSelectedSupplierApi(selectedApi);
+                  }
+                }}
+                displayEmpty
+                className="w-full rounded-lg border border-gray-300 bg-gray-50 px-4 py-2 text-gray-900 shadow-sm dark:bg-gray-700 dark:text-white"
+                style={{ color: "white" }}
+                sx={{
+                  height: "40px",
+                  alignItems: "center",
+                  "& .MuiOutlinedInput-notchedOutline": {
+                    border: "1px solid grey",
+                  },
+                  "&:hover .MuiOutlinedInput-notchedOutline": {
+                    border: "2px solid grey",
+                  },
+                  "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                    border: "2px solid grey",
+                  },
+                  "& .MuiSelect-select": {
+                    color: "white",
+                    padding: "0",
+                    paddingLeft: "0px",
+                  },
+                  "& .MuiSelect-icon": {
+                    color: "grey",
+                  },
+                }}
+              >
+                <MenuItem value="" disabled sx={{ display: "none" }}>
+                  Select the supplier API
+                </MenuItem>
+                {supplierApis.map((api: SupplierAPI) => (
+                  <MenuItem key={api.id} value={api.id}>
+                    {api.name}
+                  </MenuItem>
+                ))}
+              </Select>
+            </div>
+
+            {selectedMainVoucherGroups.length > 0 && (
+              <table className="min-w-full border-collapse rounded-lg bg-white shadow-md dark:bg-gray-800">
+                <thead>
+                  <tr className="bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300">
+                    <th className="border border-gray-300 px-4 py-2 text-left text-sm font-semibold dark:border-gray-600">
+                      Supplier
+                    </th>
+                    <th className="border border-gray-300 px-4 py-2 text-left text-sm font-semibold dark:border-gray-600">
+                      Voucher
+                    </th>
+                    <th className="border border-gray-300 px-4 py-2 text-left text-sm font-semibold dark:border-gray-600">
+                      Total comm
+                    </th>
+                    <th className="border border-gray-300 px-4 py-2 text-left text-sm font-semibold dark:border-gray-600">
+                      Retailer comm
+                    </th>
+                    <th className="border border-gray-300 px-4 py-2 text-left text-sm font-semibold dark:border-gray-600">
+                      Sales Agent comm
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {selectedVouchers.map((selectedVoucher, index) => (
+                    <tr
+                      key={index}
+                      className="bg-white transition-colors duration-200 hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700"
+                    >
+                      <td className="border border-gray-300 px-4 py-2 dark:border-gray-600">
+                        {selectedMainVoucherGroup.supplier}
+                      </td>
+                      <td className="border border-gray-300 px-4 py-2 dark:border-gray-600">
+                        {selectedMainVoucherGroup.name}
+                      </td>
+                      <td className="border border-gray-300 px-4 py-2 dark:border-gray-600">
+                        {selectedMainVoucherGroup.total_comm}
+                      </td>
+                      <td className="border border-gray-300 px-4 py-2 dark:border-gray-600">
+                        {selectedMainVoucherGroup.retailer_comm}
+                      </td>
+                      <td className="border border-gray-300 px-4 py-2 dark:border-gray-600">
+                        {selectedMainVoucherGroup.sales_agent_comm}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+
+            <h3 className="mb-2 mt-5 font-semibold">Vouchers</h3>
             <div className="mb-5 flex flex-col space-y-3">
               <Select
                 value={
-                  selectedVoucherGroup
-                    ? selectedVoucherGroup.voucher_group_name
-                    : ""
+                  selectedMainVoucherGroup ? selectedMainVoucherGroup.id : ""
                 }
-                onChange={(e) =>
-                  handleVoucherChange(index, "name", e.target.value)
-                }
+                onChange={(e) => {
+                  const selectedGroupId = Number(e.target.value);
+                  const selectedGroup = mainVoucherGroups.find(
+                    (group) => group.id === selectedGroupId,
+                  );
+                  console.log("selectedGroup", selectedGroup);
+                  setSelectedMainVoucherGroup(selectedGroup);
+                }}
                 displayEmpty
                 className="w-full rounded-lg border border-gray-300 bg-gray-50 px-4 py-2 text-gray-900 shadow-sm dark:bg-gray-700 dark:text-white"
                 style={{ color: "white" }}
@@ -208,19 +385,18 @@ const AddSupplierModal = ({ isOpen, onClose, onAddSupplier }) => {
                 <MenuItem value="" disabled>
                   Select Voucher Group
                 </MenuItem>
-                {voucherGroups.map((group) => (
-                  <MenuItem key={group.id} value={group.voucher_group_name}>
-                    {group.voucher_group_name}
+                {mainVoucherGroups.map((group) => (
+                  <MenuItem key={group.id} value={group.id}>
+                    {group.name}
                   </MenuItem>
                 ))}
               </Select>
               <input
-                type="number"
+                type="name"
                 value={selectedVoucherGroup?.total_comm}
                 onChange={(e) =>
-                  handleVoucherChange(
-                    index,
-                    "total_commission",
+                  handleVoucherGroupChange(
+                    "total_comm",
                     parseFloat(e.target.value),
                   )
                 }
@@ -228,12 +404,11 @@ const AddSupplierModal = ({ isOpen, onClose, onAddSupplier }) => {
                 placeholder="Total Commission (%)"
               />
               <input
-                type="number"
+                type="name"
                 value={selectedVoucherGroup?.retailer_comm}
                 onChange={(e) =>
-                  handleVoucherChange(
-                    index,
-                    "retailer_commission",
+                  handleVoucherGroupChange(
+                    "retailer_comm",
                     parseFloat(e.target.value),
                   )
                 }
@@ -241,86 +416,25 @@ const AddSupplierModal = ({ isOpen, onClose, onAddSupplier }) => {
                 placeholder="Retailer Commission (%)"
               />
               <input
-                type="number"
+                type="name"
                 value={selectedVoucherGroup?.sales_agent_comm}
                 onChange={(e) =>
-                  handleVoucherChange(
-                    index,
-                    "agent_commission",
+                  handleVoucherGroupChange(
+                    "sales_agent_comm",
                     parseFloat(e.target.value),
                   )
                 }
                 className="w-full rounded-lg border px-4 py-2 dark:bg-gray-700"
                 placeholder="Agent Commission (%)"
               />
+              <button
+                className="mt-2 rounded bg-green-500 px-4 py-2 text-white hover:bg-green-600"
+                onClick={handleAddVoucherGroup}
+              >
+                Add Voucher Group
+              </button>
             </div>
 
-            {selectedVoucherGroups.map((selectedVoucherGroup, index) => (
-              <div key={index} className="mb-2 grid grid-cols-5 gap-2">
-                <Select
-                  value={selectedVoucherGroup.voucher_group_name}
-                  onChange={(e) =>
-                    handleVoucherChange(index, "name", e.target.value)
-                  }
-                  className="col-span-2 rounded border px-2 py-1"
-                  displayEmpty
-                >
-                  <MenuItem value="" disabled>
-                    Select Voucher Group
-                  </MenuItem>
-                  {voucherGroups.map((group) => (
-                    <MenuItem key={group.id} value={group.voucher_group_name}>
-                      {group.voucher_group_name}
-                    </MenuItem>
-                  ))}
-                </Select>
-                <input
-                  type="number"
-                  value={selectedVoucherGroup.total_comm}
-                  onChange={(e) =>
-                    handleVoucherChange(
-                      index,
-                      "total_commission",
-                      parseFloat(e.target.value),
-                    )
-                  }
-                  className="rounded border px-2 py-1"
-                  placeholder="Total Comm (%)"
-                />
-                <input
-                  type="number"
-                  value={selectedVoucherGroup.retailer_comm}
-                  onChange={(e) =>
-                    handleVoucherChange(
-                      index,
-                      "retailer_commission",
-                      parseFloat(e.target.value),
-                    )
-                  }
-                  className="rounded border px-2 py-1"
-                  placeholder="Retailer Comm (%)"
-                />
-                <input
-                  type="number"
-                  value={selectedVoucherGroup.sales_agent_comm}
-                  onChange={(e) =>
-                    handleVoucherChange(
-                      index,
-                      "agent_commission",
-                      parseFloat(e.target.value),
-                    )
-                  }
-                  className="rounded border px-2 py-1"
-                  placeholder="Agent Comm (%)"
-                />
-              </div>
-            ))}
-            <button
-              className="mb-4 rounded bg-green-500 px-4 py-2 text-white hover:bg-green-600"
-              onClick={handleAddVoucher}
-            >
-              Add Voucher
-            </button>
             <div className="flex justify-end">
               <button
                 className="mr-2 rounded bg-gray-500 px-4 py-2 text-white hover:bg-gray-600"

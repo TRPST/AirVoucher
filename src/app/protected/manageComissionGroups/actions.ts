@@ -5,6 +5,7 @@ import { createClient } from "../../../../utils/supabase/server";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { CommGroup } from "../../types/common";
+import axios from "axios";
 
 export const signUpAction = async (formData: FormData) => {
   const email = formData.get("email")?.toString();
@@ -76,12 +77,12 @@ export const getSuppliersAction = async () => {
   }
 };
 
-export const getSupplierVoucherGroups = async (supplierId: number) => {
+export const getSupplierMainVoucherGroups = async (supplierId: number) => {
   const supabase = await createClient();
 
   try {
-    const { data: voucherGroups, error } = await supabase
-      .from("voucher_groups")
+    const { data: mainVoucherGroups, error } = await supabase
+      .from("main_voucher_groups")
       .select("*")
       .eq("supplier_id", supplierId);
 
@@ -89,10 +90,74 @@ export const getSupplierVoucherGroups = async (supplierId: number) => {
       return { error: error.message };
     }
 
-    return { voucherGroups };
+    console.log("Voucher Groups", mainVoucherGroups);
+
+    return { mainVoucherGroups };
   } catch (error) {
     console.error("Unexpected error fetching supplier voucher groups:", error);
     return { error: error.message };
+  }
+};
+
+export const getSupplierMobileDataVouchers = async (supplierName: string) => {
+  switch (supplierName.toLowerCase()) {
+    case "glocell": {
+      try {
+        const response = await axios.get(
+          "https://api.qa.bltelecoms.net/v2/trade/mobile/bundle/products",
+          {
+            headers: {
+              accept: "application/json",
+              "Trade-Vend-Channel": "API",
+              apikey: process.env.GLOCEL_API_KEY,
+              authorization: "Basic YmxkOm9ybnVrM2k5dnNlZWkxMjVzOHFlYTcxa3Vi",
+            },
+          },
+        );
+
+        if (response.status === 200) {
+          const filteredVouchers = response.data.filter(
+            (voucher) => voucher.category.toLowerCase() === "data",
+          );
+          return { mobileDataVouchers: filteredVouchers };
+        }
+
+        return { error: "Failed to fetch mobile data vouchers" };
+      } catch (error) {
+        if (error instanceof Error) {
+          console.error("Error fetching mobile data vouchers:", error);
+          return { error: error.message };
+        }
+        return { error: "An unexpected error occurred" };
+      }
+    }
+    default:
+      return {
+        error: "Mobile data vouchers not available for this supplier yet",
+      };
+  }
+};
+
+export const getSupplierApis = async (supplierName: string) => {
+  try {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from("suppliers")
+      .select("supplier_apis")
+      .eq("supplier_name", supplierName)
+      .single();
+
+    if (error) return { error: error.message };
+    if (!data?.supplier_apis || data.supplier_apis.length === 0) {
+      return { error: "No supplier APIs setup yet" };
+    }
+    return { supplierApis: data.supplier_apis };
+  } catch (error) {
+    console.error("Unexpected error fetching supplier APIs:", error);
+    return {
+      error:
+        error instanceof Error ? error.message : "An unexpected error occurred",
+    };
   }
 };
 

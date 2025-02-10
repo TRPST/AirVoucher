@@ -56,9 +56,26 @@ export type VoucherGroup = {
   created_at: Date;
 };
 
-export type Voucher = {
+export type MainVoucherGroup = {
   id: number;
-  supplier: string;
+  name: string;
+  supplier_id: number;
+  total_comm: number;
+  retailer_comm: number;
+  sales_agent_comm: number;
+  created_at: Date;
+};
+
+export type MobileDataVoucher = {
+  id: number;
+  supplier_id: number;
+  supplier_name: string;
   voucher_name: string;
+  category: string;
+  vendorId: string;
+  amount: number;
+  total_comm?: number;
+  retailer_comm?: number;
+  sales_agent_comm?: number;
   created_at: Date;
 };
