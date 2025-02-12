@@ -181,9 +181,9 @@ const TerminalDashboard = () => {
         throw new Error("Please select a provider.");
       }
 
-      // **Fix: Use `id` instead of `vendorId`**
+      // **Filtering Logic**
       const filteredVouchers = data.filter(
-        (v) => v.id?.toLowerCase() === selectedProvider.toLowerCase(),
+        (v) => v.vendorId?.toLowerCase() === selectedProvider.toLowerCase(),
       );
 
       if (filteredVouchers.length === 0) {
