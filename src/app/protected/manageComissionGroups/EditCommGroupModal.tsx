@@ -150,7 +150,7 @@ const EditCommGroupModal: React.FC<EditCommGroupModalProps> = ({
     if (retailer) {
       const { error } = await assignCommGroupToRetailer(
         selectedRetailerId,
-        updatedCommGroup.id ?? "", // Provide empty string as fallback
+        updatedCommGroup.id ?? "",
       );
 
       if (error) {
@@ -158,9 +158,9 @@ const EditCommGroupModal: React.FC<EditCommGroupModalProps> = ({
         return;
       }
 
-      setUpdatedCommGroup((prev: any) => ({
+      setUpdatedCommGroup((prev: CommGroup) => ({
         ...prev,
-        assigned_retailers: [...prev.assigned_retailers, retailer],
+        assigned_retailers: [...(prev.assigned_retailers || []), retailer],
       }));
 
       // Update the retailers state list
@@ -183,10 +183,10 @@ const EditCommGroupModal: React.FC<EditCommGroupModalProps> = ({
       return;
     }
 
-    setUpdatedCommGroup((prevCommGroup: User) => ({
+    setUpdatedCommGroup((prevCommGroup: CommGroup) => ({
       ...prevCommGroup,
-      assigned_retailers: prevCommGroup.assigned_retailers?.filter(
-        (retailer) => retailer !== retailerId,
+      assigned_retailers: (prevCommGroup.assigned_retailers || []).filter(
+        (retailer) => retailer.id !== retailerId,
       ),
     }));
 
@@ -297,8 +297,7 @@ const EditCommGroupModal: React.FC<EditCommGroupModalProps> = ({
                   </Select>
                 </FormControl>
               </div>
-              {updatedCommGroup.assigned_retailers &&
-              updatedCommGroup.assigned_retailers.length > 0 ? (
+              {updatedCommGroup.assigned_retailers?.length > 0 ? (
                 <table className="min-w-full border-collapse rounded-lg bg-white shadow-md dark:bg-gray-800">
                   <thead>
                     <tr className="bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300">
@@ -476,7 +475,7 @@ const EditCommGroupModal: React.FC<EditCommGroupModalProps> = ({
               {assignedRetailersUpdated && (
                 <button
                   style={{ marginTop: 15 }}
-                  onClick={() => handleEditCommGroupRetailers(updatedCommGroup)}
+                  // onClick={() => handleEditCommGroupRetailers(updatedCommGroup)}
                   className="w-full rounded-lg bg-blue-700 py-3 font-semibold text-white shadow transition duration-300 hover:bg-blue-800 dark:bg-blue-600 dark:hover:bg-blue-700"
                 >
                   Update

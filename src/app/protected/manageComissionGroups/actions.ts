@@ -423,13 +423,13 @@ export const deleteCommGroupAction = async (commGroupId: string) => {
   return { success: "CommGroup deleted successfully" };
 };
 
-export const checkCommGroupSignedIn = async () => {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getCommGroup();
+// export const checkCommGroupSignedIn = async () => {
+//   const supabase = await createClient();
+//   const {
+//     data: { user },
+//   } = await supabase.auth.getCommGroup();
 
-  if (!user) {
-    return redirect("/");
-  }
-};
+//   if (!user) {
+//     return redirect("/");
+//   }
+// };

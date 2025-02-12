@@ -40,6 +40,12 @@ export type Terminal = {
 export interface CommGroup {
   id?: string;
   name: string;
+  email: string;
+  contact_number: string;
+  active: boolean;
+  terminal_access: boolean;
+  role: string;
+  assigned_retailers: Retailer[];
   vouchers?: MobileDataVoucher[];
 }
 
