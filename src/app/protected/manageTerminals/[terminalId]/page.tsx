@@ -181,9 +181,9 @@ const TerminalDashboard = () => {
         throw new Error("Please select a provider.");
       }
 
-      // **Fix: Use `id` instead of `vendorId`**
+      // **Filtering Logic**
       const filteredVouchers = data.filter(
-        (v) => v.id?.toLowerCase() === selectedProvider.toLowerCase(),
+        (v) => v.vendorId?.toLowerCase() === selectedProvider.toLowerCase(),
       );
 
       if (filteredVouchers.length === 0) {
@@ -666,7 +666,7 @@ const TerminalDashboard = () => {
                       <img
                         src="/images/ott_logo.png"
                         alt="OTT Logo"
-                        style={{ width: 40, height: 40, marginBottom: 5 }}
+                        style={{ height: 40, width: "auto", marginBottom: 5 }}
                       />
                       <Typography variant="h6">R{amount}</Typography>
                     </Button>
