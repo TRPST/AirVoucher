@@ -81,3 +81,10 @@ export interface MobileDataVoucher {
   category?: string;
   profit?: number;
 }
+
+export interface SupplierAPI {
+  id: number;
+  name: string;
+  supplier_name: string;
+  created_at: Date;
+}

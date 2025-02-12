@@ -57,9 +57,7 @@ const AddSupplierModal = ({
 
   const [supplierApis, setSupplierApis] = useState([]);
 
-  const [selectedSupplierApi, setSelectedSupplierApi] = useState<
-    SupplierAPI | undefined
-  >();
+  const [selectedSupplierApi, setSelectedSupplierApi] = useState<>();
 
   // Add new state for selected vouchers and current voucher
   const [selectedVouchers, setSelectedVouchers] = useState<MobileDataVoucher[]>(
