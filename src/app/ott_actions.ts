@@ -3,6 +3,7 @@
 import { createClient } from "../../utils/supabase/server";
 
 export const saveVoucherToDatabase = async (voucherData: {
+  pin: any;
   voucher_id: number;
   terminal_id: string;
   sale_id: number;
@@ -74,4 +75,3 @@ export const getSalesAnalyticsAction = async (terminalId: string) => {
     throw new Error("Error fetching sales analytics.");
   }
 };
-
