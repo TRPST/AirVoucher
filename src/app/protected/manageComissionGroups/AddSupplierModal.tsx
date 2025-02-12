@@ -220,6 +220,15 @@ const AddSupplierModal = ({ isOpen, onClose, onAddSupplier, commGroupId }) => {
     );
   };
 
+  const ottVoucher = {
+    name: "OTT Variable Amount",
+    vendorId: "OTT",
+    amount: 0,
+    total_comm: 0,
+    retailer_comm: 0,
+    sales_agent_comm: 0,
+  };
+
   return (
     <Modal
       open={isOpen}
@@ -261,6 +270,12 @@ const AddSupplierModal = ({ isOpen, onClose, onAddSupplier, commGroupId }) => {
                   if (selectedSupplier) {
                     setSelectedSupplier(selectedSupplier);
                     setSupplierName(selectedSupplier.supplier_name);
+
+                    if (selectedSupplier.supplier_name === "OTT") {
+                      setSelectedSupplierApi("OTT");
+                    } else if (selectedSupplier.supplier_name === "Glocell") {
+                      setSelectedSupplierApi("Mobile Data");
+                    }
                   }
                 }}
                 displayEmpty
@@ -438,22 +453,29 @@ const AddSupplierModal = ({ isOpen, onClose, onAddSupplier, commGroupId }) => {
                           {voucher.vendorId}
                         </td>
                         <td className="whitespace-nowrap border border-gray-300 px-4 py-2 dark:border-gray-600">
-                          {voucherAmount.toFixed(2)}
+                          {voucher.name != "OTT Variable Amount"
+                            ? voucherAmount.toFixed(2)
+                            : "-"}
                         </td>
                         <td className="whitespace-nowrap border border-gray-300 px-4 py-2 dark:border-gray-600">
-                          {voucher.total_comm} (R{" "}
-                          {totalCommissionAmount.toFixed(2)})
+                          {voucher.name === "OTT Variable Amount"
+                            ? voucher.total_comm
+                            : `${voucher.total_comm} (R ${totalCommissionAmount.toFixed(2)})`}
                         </td>
                         <td className="whitespace-nowrap border border-gray-300 px-4 py-2 dark:border-gray-600">
-                          {voucher.retailer_comm} (R{" "}
-                          {retailerCommissionAmount.toFixed(2)})
+                          {voucher.name === "OTT Variable Amount"
+                            ? voucher.retailer_comm
+                            : `${voucher.retailer_comm} (R ${retailerCommissionAmount.toFixed(2)})`}
                         </td>
                         <td className="whitespace-nowrap border border-gray-300 px-4 py-2 dark:border-gray-600">
-                          {voucher.sales_agent_comm} (R{" "}
-                          {salesAgentCommissionAmount.toFixed(2)})
+                          {voucher.name === "OTT Variable Amount"
+                            ? voucher.sales_agent_comm
+                            : `${voucher.sales_agent_comm} (R ${salesAgentCommissionAmount.toFixed(2)})`}
                         </td>
                         <td className="whitespace-nowrap border border-gray-300 px-4 py-2 dark:border-gray-600">
-                          R {profitAmount.toFixed(2)}
+                          {voucher.name === "OTT Variable Amount"
+                            ? "-"
+                            : `R ${profitAmount.toFixed(2)}`}
                         </td>
                         <td className="whitespace-nowrap border border-gray-300 px-4 py-2 dark:border-gray-600">
                           <button
@@ -488,6 +510,8 @@ const AddSupplierModal = ({ isOpen, onClose, onAddSupplier, commGroupId }) => {
                 value={currentVoucher.name}
                 onChange={(e) => {
                   console.log("Selected voucher value:", e.target.value);
+                  console.log("Selected supplierApi:", selectedSupplierApi);
+
                   const voucherName = e.target.value;
                   if (selectedSupplierApi?.name === "Mobile Data") {
                     const selectedVoucher = mobileDataVouchers.find(
@@ -505,19 +529,18 @@ const AddSupplierModal = ({ isOpen, onClose, onAddSupplier, commGroupId }) => {
                         supplier_name: selectedSupplier?.supplier_name || "",
                       });
                     }
-                  } else {
-                    const selectedGroup = mainVoucherGroups.find(
-                      (group) => group.name === voucherName,
-                    );
-                    if (selectedGroup) {
-                      setSelectedMainVoucherGroup(selectedGroup);
-                      setCurrentVoucher({
-                        name: selectedGroup.name,
-                        total_comm: selectedGroup.total_comm || 0,
-                        retailer_comm: selectedGroup.retailer_comm || 0,
-                        sales_agent_comm: selectedGroup.sales_agent_comm || 0,
-                      });
-                    }
+                  } else if (voucherName === "OTT Variable Amount") {
+                    console.log("OTT voucher");
+                    setCurrentVoucher({
+                      name: "OTT Variable Amount",
+                      vendorId: "OTT",
+                      amount: 0,
+                      total_comm: ottVoucher.total_comm || 0,
+                      retailer_comm: ottVoucher.retailer_comm || 0,
+                      sales_agent_comm: ottVoucher.sales_agent_comm || 0,
+                      supplier_id: selectedSupplier?.id || 0,
+                      supplier_name: selectedSupplier?.supplier_name || "",
+                    });
                   }
                 }}
                 displayEmpty
@@ -572,32 +595,30 @@ const AddSupplierModal = ({ isOpen, onClose, onAddSupplier, commGroupId }) => {
                 <MenuItem value="" disabled>
                   Select voucher
                 </MenuItem>
-                {selectedSupplierApi?.name === "Mobile Data"
-                  ? mobileDataVouchers.map((voucher) => {
-                      return (
-                        <MenuItem
-                          key={voucher.id}
-                          value={voucher.name}
-                          className="hover:bg-gray-700"
-                        >
-                          {voucher.vendorId?.toUpperCase()} --- {voucher.name}{" "}
-                          --- (R {(voucher.amount / 100).toFixed(2)})
-                        </MenuItem>
-                      );
-                    })
-                  : selectedSupplierApi?.name === "Mobile Airtime"
-                    ? mainVoucherGroups.map((group) => (
-                        <MenuItem
-                          key={group.id}
-                          value={group.name}
-                          className="hover:bg-gray-700"
-                        >
-                          {group.name}
-                        </MenuItem>
-                      ))
-                    : null}
+                {selectedSupplier?.supplier_name === "OTT" ? (
+                  <MenuItem
+                    value={ottVoucher.name}
+                    className="hover:bg-gray-700"
+                  >
+                    OTT Variable Amount
+                  </MenuItem>
+                ) : selectedSupplierApi?.name === "Mobile Data" ? (
+                  mobileDataVouchers.map((voucher) => {
+                    return (
+                      <MenuItem
+                        key={voucher.id}
+                        value={voucher.name}
+                        className="hover:bg-gray-700"
+                      >
+                        {voucher.vendorId?.toUpperCase()} --- {voucher.name} ---
+                        (R {(voucher.amount / 100).toFixed(2)})
+                      </MenuItem>
+                    );
+                  })
+                ) : null}
               </Select>
-              <div className="mb-5 flex flex-col space-y-4">
+
+              <div className="mb-5 mt-10 flex flex-col space-y-4">
                 <div className="flex items-center space-x-4">
                   <label className="w-1/3 font-semibold text-gray-700 dark:text-gray-300">
                     Total Commission (%)
