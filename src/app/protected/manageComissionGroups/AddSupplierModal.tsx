@@ -20,13 +20,18 @@ import {
   SupplierAPI,
 } from "@/app/types/common";
 import { useTheme } from "@mui/material/styles";
-
 const AddSupplierModal = ({
   isOpen,
   onClose,
   onAddVouchers,
   commGroupId,
   commGroupName,
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+  onAddVouchers: (vouchers: MobileDataVoucher[]) => void;
+  commGroupId: number;
+  commGroupName: string;
 }) => {
   const [supplierName, setSupplierName] = useState("");
   const [mobileDataVouchers, setMobileDataVouchers] = useState<
@@ -57,7 +62,7 @@ const AddSupplierModal = ({
 
   const [supplierApis, setSupplierApis] = useState([]);
 
-  const [selectedSupplierApi, setSelectedSupplierApi] = useState<>();
+  const [selectedSupplierApi, setSelectedSupplierApi] = useState<string>();
 
   // Add new state for selected vouchers and current voucher
   const [selectedVouchers, setSelectedVouchers] = useState<MobileDataVoucher[]>(
@@ -219,7 +224,7 @@ const AddSupplierModal = ({
           supplier_name: "",
         });
         setSelectedMainVoucherGroup(undefined);
-        onAddVouchers();
+        onAddVouchers(selectedVouchers);
         onClose();
       }
       setLoading(false);
