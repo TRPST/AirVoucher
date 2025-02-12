@@ -131,30 +131,37 @@ const CommissionTable: React.FC<CommissionTableProps> = ({
                       <td
                         className={`${columnWidths.amount} border border-gray-300 px-4 py-2 dark:border-gray-600`}
                       >
-                        R {voucherAmount.toFixed(2)}
+                        {voucher.name !== "OTT Variable Amount"
+                          ? `R ${voucherAmount.toFixed(2)}`
+                          : "-"}
                       </td>
                       <td
                         className={`${columnWidths.totalComm} border border-gray-300 px-4 py-2 dark:border-gray-600`}
                       >
-                        {voucher.total_comm} (R{" "}
-                        {totalCommissionAmount.toFixed(2)})
+                        {voucher.name === "OTT Variable Amount"
+                          ? voucher.total_comm
+                          : `${voucher.total_comm} (R ${totalCommissionAmount.toFixed(2)})`}
                       </td>
                       <td
                         className={`${columnWidths.retailerComm} border border-gray-300 px-4 py-2 dark:border-gray-600`}
                       >
-                        {voucher.retailer_comm} (R{" "}
-                        {retailerCommissionAmount.toFixed(2)})
+                        {voucher.name === "OTT Variable Amount"
+                          ? voucher.retailer_comm
+                          : `${voucher.retailer_comm} (R ${retailerCommissionAmount.toFixed(2)})`}
                       </td>
                       <td
                         className={`${columnWidths.salesAgentComm} border border-gray-300 px-4 py-2 dark:border-gray-600`}
                       >
-                        {voucher.sales_agent_comm} (R{" "}
-                        {salesAgentCommissionAmount.toFixed(2)})
+                        {voucher.name === "OTT Variable Amount"
+                          ? voucher.sales_agent_comm
+                          : `${voucher.sales_agent_comm} (R ${salesAgentCommissionAmount.toFixed(2)})`}
                       </td>
                       <td
                         className={`${columnWidths.profit} border border-gray-300 px-4 py-2 dark:border-gray-600`}
                       >
-                        R {profitAmount.toFixed(2)}
+                        {voucher.name === "OTT Variable Amount"
+                          ? "-"
+                          : `R ${profitAmount.toFixed(2)}`}
                       </td>
                       <td
                         className={`${columnWidths.actions} border border-gray-300 px-4 py-2 dark:border-gray-600`}

@@ -20,7 +20,7 @@ import {
 } from "@/app/types/common";
 import { useTheme } from "@mui/material/styles";
 
-const AddSupplierModal = ({ isOpen, onClose, onAddSupplier, commGroupId }) => {
+const AddSupplierModal = ({ isOpen, onClose, onAddVouchers, commGroupId }) => {
   const [supplierName, setSupplierName] = useState("");
   const [mobileDataVouchers, setMobileDataVouchers] = useState<
     MobileDataVoucher[]
@@ -203,6 +203,7 @@ const AddSupplierModal = ({ isOpen, onClose, onAddSupplier, commGroupId }) => {
           supplier_name: "",
         });
         setSelectedMainVoucherGroup(undefined);
+        onAddVouchers();
         onClose();
       }
       setLoading(false);
