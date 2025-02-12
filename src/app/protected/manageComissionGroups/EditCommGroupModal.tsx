@@ -41,7 +41,7 @@ interface EditCommGroupModalProps {
   editLoading: boolean;
   setEditLoading: (value: boolean) => void;
   generateUniqueCommGroupID: () => string;
-  generateSecurePassword: () => void;
+  generateSecurePassword: () => string;
 }
 
 const EditCommGroupModal: React.FC<EditCommGroupModalProps> = ({
@@ -77,7 +77,7 @@ const EditCommGroupModal: React.FC<EditCommGroupModalProps> = ({
 
   const handleDeleteClick = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
-    if (confirmDeleteCommGroup) {
+    if (confirmDeleteCommGroup && updatedCommGroup.id) {
       handleDeleteCommGroup(updatedCommGroup.id);
     } else {
       setConfirmDeleteCommGroup(true);
@@ -150,11 +150,11 @@ const EditCommGroupModal: React.FC<EditCommGroupModalProps> = ({
     if (retailer) {
       const { error } = await assignCommGroupToRetailer(
         selectedRetailerId,
-        updatedCommGroup.id,
+        updatedCommGroup.id ?? "", // Provide empty string as fallback
       );
 
       if (error) {
-        console.error("Error assigning admin to retailer:", error);
+        console.error("Error assigning commission group to retailer:", error);
         return;
       }
 
