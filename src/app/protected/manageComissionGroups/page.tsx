@@ -44,6 +44,8 @@ const CommissionManagement = () => {
   const [selectedCommGroupId, setSelectedCommGroupId] = useState<string | null>(
     null,
   );
+  const [selectedCommGroupName, setSelectedCommGroupName] =
+    useState<string>("");
 
   useEffect(() => {
     const fetchUserRole = async () => {
@@ -230,8 +232,10 @@ const CommissionManagement = () => {
             <div key={group.id}>
               <CommissionTable
                 data={[group]}
-                setAddSupplierModalOpen={(open, commGroupId) => {
+                setAddSupplierModalOpen={(open, commGroupId, commGroupName) => {
+                  console.log("commGroupName", commGroupName);
                   setSelectedCommGroupId(commGroupId || null);
+                  setSelectedCommGroupName(commGroupName || "");
                   setAddSupplierModalOpen(open);
                 }}
               />
@@ -240,6 +244,7 @@ const CommissionManagement = () => {
                 isOpen={addSupplierModalOpen}
                 onClose={() => setAddSupplierModalOpen(false)}
                 commGroupId={selectedCommGroupId}
+                commGroupName={selectedCommGroupName}
                 onAddVouchers={handleAddVouchers}
               />
             </div>

@@ -7,7 +7,11 @@ interface CommissionTableProps {
     name: string;
     vouchers: MobileDataVoucher[];
   }>;
-  setAddSupplierModalOpen: (open: boolean, commGroupId?: string) => void;
+  setAddSupplierModalOpen: (
+    open: boolean,
+    commGroupId?: string,
+    commGroupName?: string,
+  ) => void;
   handleDeleteVoucher?: (groupId: string, voucherIndex: number) => void;
 }
 
@@ -37,7 +41,9 @@ const CommissionTable: React.FC<CommissionTableProps> = ({
             <h2 className="text-2xl font-bold">{group.name}</h2>
             <button
               className="rounded border border-blue-700 px-3 py-2 font-semibold text-blue-500 shadow transition duration-300 hover:bg-blue-800 hover:text-white dark:border-blue-600 dark:hover:bg-blue-700"
-              onClick={() => setAddSupplierModalOpen(true, group.id)}
+              onClick={() => {
+                setAddSupplierModalOpen(true, group.id, group.name);
+              }}
             >
               Add Vouchers
             </button>

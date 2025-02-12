@@ -138,6 +138,40 @@ export const getSupplierMobileDataVouchers = async (supplierName: string) => {
   }
 };
 
+export const getSupplierMobileAirtimeVouchers = async (
+  supplierName: string,
+) => {
+  switch (supplierName.toLowerCase()) {
+    case "glocell": {
+      try {
+        const response = await axios.get(
+          "https://api.qa.bltelecoms.net/v2/trade/mobile/airtime/products",
+          {
+            headers: {
+              accept: "application/json",
+              "Trade-Vend-Channel": "API",
+              apikey: process.env.GLOCEL_API_KEY,
+              authorization: "Basic YmxkOm9ybnVrM2k5dnNlZWkxMjVzOHFlYTcxa3Vi",
+            },
+          },
+        );
+
+        if (response.status === 200) {
+          return { mobileAirtimeVouchers: response.data };
+        }
+
+        return { error: "Failed to fetch mobile airtime vouchers" };
+      } catch (error) {
+        if (error instanceof Error) {
+          console.error("Error fetching mobile airtime vouchers:", error);
+          return { error: error.message };
+        }
+        return { error: "An unexpected error occurred" };
+      }
+    }
+  }
+};
+
 export const getSupplierApis = async (supplierName: string) => {
   try {
     const supabase = await createClient();

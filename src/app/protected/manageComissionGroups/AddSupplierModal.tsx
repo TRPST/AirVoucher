@@ -8,6 +8,7 @@ import {
   getSupplierMobileDataVouchers,
   getSupplierApis,
   addVouchersToMobileDataVouchers,
+  getSupplierMobileAirtimeVouchers,
 } from "./actions";
 import {
   Supplier,
@@ -20,9 +21,18 @@ import {
 } from "@/app/types/common";
 import { useTheme } from "@mui/material/styles";
 
-const AddSupplierModal = ({ isOpen, onClose, onAddVouchers, commGroupId }) => {
+const AddSupplierModal = ({
+  isOpen,
+  onClose,
+  onAddVouchers,
+  commGroupId,
+  commGroupName,
+}) => {
   const [supplierName, setSupplierName] = useState("");
   const [mobileDataVouchers, setMobileDataVouchers] = useState<
+    MobileDataVoucher[]
+  >([]);
+  const [mobileAirtimeVouchers, setMobileAirtimeVouchers] = useState<
     MobileDataVoucher[]
   >([]);
 
@@ -107,12 +117,19 @@ const AddSupplierModal = ({ isOpen, onClose, onAddVouchers, commGroupId }) => {
 
   const fetchSupplierMobileDataVouchers = async (supplierName: string) => {
     setVouchersLoading(true);
-    console.log("Fetching vouchers for supplier:", supplierName);
     const result = await getSupplierMobileDataVouchers(supplierName);
-    console.log("Mobile data vouchers result:", result);
     const mobileDataVouchers = result?.mobileDataVouchers || [];
-    console.log("Setting mobile data vouchers:", mobileDataVouchers);
+    console.log("Mobile data vouchers", mobileDataVouchers);
     setMobileDataVouchers(mobileDataVouchers);
+    setVouchersLoading(false);
+  };
+
+  const fetchSupplierMobileAirtimeVouchers = async (supplierName: string) => {
+    setVouchersLoading(true);
+    const result = await getSupplierMobileAirtimeVouchers(supplierName);
+    const mobileAirtimeVouchers = result?.mobileAirtimeVouchers || [];
+    setMobileAirtimeVouchers(mobileAirtimeVouchers);
+    console.log("Mobile airtime vouchers", mobileAirtimeVouchers);
     setVouchersLoading(false);
   };
 
@@ -120,6 +137,7 @@ const AddSupplierModal = ({ isOpen, onClose, onAddVouchers, commGroupId }) => {
     if (selectedSupplier) {
       //fetchSupplierVoucherGroups(selectedSupplier.id);
       fetchSupplierMobileDataVouchers(selectedSupplier.supplier_name);
+      fetchSupplierMobileAirtimeVouchers(selectedSupplier.supplier_name);
       fetchSupplierApis(selectedSupplier.supplier_name);
     }
   }, [selectedSupplier]);
@@ -258,6 +276,9 @@ const AddSupplierModal = ({ isOpen, onClose, onAddVouchers, commGroupId }) => {
             <h2 className="mb-6 text-center text-3xl font-semibold text-gray-800 dark:text-white">
               Add Vouchers
             </h2>
+            <h4 className="mb-6 text-center text-2xl font-semibold text-gray-800 dark:text-white">
+              {commGroupName}
+            </h4>
             <h3 className="mb-2 mt-5 font-semibold">Supplier</h3>
             <div className="mb-5">
               <Select
@@ -308,7 +329,11 @@ const AddSupplierModal = ({ isOpen, onClose, onAddVouchers, commGroupId }) => {
                   Select a supplier
                 </MenuItem>
                 {suppliers.map((supplier: Supplier) => (
-                  <MenuItem key={supplier.id} value={supplier.id}>
+                  <MenuItem
+                    key={supplier.id}
+                    value={supplier.id}
+                    disabled={supplier.supplier_name === "BlueLabel"}
+                  >
                     {supplier.supplier_name}
                   </MenuItem>
                 ))}
@@ -454,27 +479,32 @@ const AddSupplierModal = ({ isOpen, onClose, onAddVouchers, commGroupId }) => {
                           {voucher.vendorId}
                         </td>
                         <td className="whitespace-nowrap border border-gray-300 px-4 py-2 dark:border-gray-600">
-                          {voucher.name != "OTT Variable Amount"
-                            ? voucherAmount.toFixed(2)
-                            : "-"}
+                          {voucher.name === "OTT Variable Amount" ||
+                          !voucher.amount
+                            ? "-"
+                            : voucherAmount.toFixed(2)}
                         </td>
                         <td className="whitespace-nowrap border border-gray-300 px-4 py-2 dark:border-gray-600">
-                          {voucher.name === "OTT Variable Amount"
+                          {voucher.name === "OTT Variable Amount" ||
+                          !voucher.amount
                             ? voucher.total_comm
                             : `${voucher.total_comm} (R ${totalCommissionAmount.toFixed(2)})`}
                         </td>
                         <td className="whitespace-nowrap border border-gray-300 px-4 py-2 dark:border-gray-600">
-                          {voucher.name === "OTT Variable Amount"
+                          {voucher.name === "OTT Variable Amount" ||
+                          !voucher.amount
                             ? voucher.retailer_comm
                             : `${voucher.retailer_comm} (R ${retailerCommissionAmount.toFixed(2)})`}
                         </td>
                         <td className="whitespace-nowrap border border-gray-300 px-4 py-2 dark:border-gray-600">
-                          {voucher.name === "OTT Variable Amount"
+                          {voucher.name === "OTT Variable Amount" ||
+                          !voucher.amount
                             ? voucher.sales_agent_comm
                             : `${voucher.sales_agent_comm} (R ${salesAgentCommissionAmount.toFixed(2)})`}
                         </td>
                         <td className="whitespace-nowrap border border-gray-300 px-4 py-2 dark:border-gray-600">
-                          {voucher.name === "OTT Variable Amount"
+                          {voucher.name === "OTT Variable Amount" ||
+                          !voucher.amount
                             ? "-"
                             : `R ${profitAmount.toFixed(2)}`}
                         </td>
@@ -530,6 +560,23 @@ const AddSupplierModal = ({ isOpen, onClose, onAddVouchers, commGroupId }) => {
                         supplier_name: selectedSupplier?.supplier_name || "",
                       });
                     }
+                  }
+                  if (selectedSupplierApi?.name === "Mobile Airtime") {
+                    const selectedVoucher = mobileAirtimeVouchers.find(
+                      (v) => v.name === voucherName,
+                    );
+                    if (selectedVoucher) {
+                      setCurrentVoucher({
+                        name: selectedVoucher.name,
+                        vendorId: selectedVoucher.vendorId,
+                        amount: selectedVoucher.amount,
+                        total_comm: selectedVoucher.total_comm || 0,
+                        retailer_comm: selectedVoucher.retailer_comm || 0,
+                        sales_agent_comm: selectedVoucher.sales_agent_comm || 0,
+                        supplier_id: selectedSupplier?.id || 0,
+                        supplier_name: selectedSupplier?.supplier_name || "",
+                      });
+                    }
                   } else if (voucherName === "OTT Variable Amount") {
                     console.log("OTT voucher");
                     setCurrentVoucher({
@@ -551,6 +598,7 @@ const AddSupplierModal = ({ isOpen, onClose, onAddVouchers, commGroupId }) => {
                   height: "40px",
                   alignItems: "center",
                   backgroundColor: "#1f2937",
+                  marginBottom: "20px",
                   "& .MuiOutlinedInput-notchedOutline": {
                     border: "1px solid grey",
                   },
@@ -613,6 +661,18 @@ const AddSupplierModal = ({ isOpen, onClose, onAddVouchers, commGroupId }) => {
                       >
                         {voucher.vendorId?.toUpperCase()} --- {voucher.name} ---
                         (R {(voucher.amount / 100).toFixed(2)})
+                      </MenuItem>
+                    );
+                  })
+                ) : selectedSupplierApi?.name === "Mobile Airtime" ? (
+                  mobileAirtimeVouchers.map((voucher) => {
+                    return (
+                      <MenuItem
+                        key={voucher.id}
+                        value={voucher.name}
+                        className="hover:bg-gray-700"
+                      >
+                        {voucher.name}
                       </MenuItem>
                     );
                   })
