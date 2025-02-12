@@ -4,7 +4,7 @@ import { encodedRedirect } from "../../../../utils/utils";
 import { createClient } from "../../../../utils/supabase/server";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
-import { CommGroup } from "../../types/common";
+import { CommGroup, MobileDataVoucher } from "../../types/common";
 import axios from "axios";
 
 export const signUpAction = async (formData: FormData) => {
@@ -161,6 +161,22 @@ export const getSupplierApis = async (supplierName: string) => {
   }
 };
 
+//add vouchers to mobile_data_vouchers table
+export const addVouchersToMobileDataVouchers = async (
+  mobileDataVouchers: MobileDataVoucher[],
+) => {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("mobile_data_vouchers")
+    .insert(mobileDataVouchers);
+
+  if (error) {
+    return { error: error.message };
+  }
+
+  return { success: "Mobile data vouchers added successfully" };
+};
+
 export const getSupplierVouchers = async (supplierId: string) => {
   const supabase = await createClient();
 
@@ -239,34 +255,37 @@ export const updateVoucherCommissions = async (
 export const getCommGroupsAction = async () => {
   const supabase = await createClient();
 
-  // Fetch all commGroups and superCommGroups
-  const { data: users, error: usersError } = await supabase
-    .from("users")
-    .select("*")
-    .in("role", ["commGroup", "superCommGroup"]);
+  const { data: commissionGroups, error } = await supabase.from(
+    "commission_groups",
+  ).select(`
+      id,
+      name,
+      mobile_data_vouchers (
+        id,
+        name,
+        vendorId,
+        amount,
+        total_comm,
+        retailer_comm,
+        sales_agent_comm,
+        supplier_id,
+        supplier_name,
+        profit
+      )
+    `);
 
-  if (usersError) {
-    return { error: usersError.message };
+  if (error) {
+    return { error: error.message };
   }
 
-  // Fetch all retailers
-  const { data: retailers, error: retailersError } = await supabase
-    .from("retailers")
-    .select("*");
-
-  if (retailersError) {
-    return { error: retailersError.message };
-  }
-
-  // Map assigned_retailers IDs to retailer objects
-  const usersWithRetailers = users.map((user) => ({
-    ...user,
-    assigned_retailers: retailers.filter(
-      (retailer) => retailer.assigned_commGroup === `${user.id}`,
-    ),
+  // Transform the data to match expected format
+  const formattedGroups = commissionGroups.map((group) => ({
+    id: group.id,
+    name: group.name,
+    vouchers: group.mobile_data_vouchers,
   }));
 
-  return { users: usersWithRetailers };
+  return { commissionGroups: formattedGroups };
 };
 
 export const assignCommGroupToRetailer = async (

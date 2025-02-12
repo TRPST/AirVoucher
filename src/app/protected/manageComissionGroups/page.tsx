@@ -40,6 +40,8 @@ const CommissionManagement = () => {
 
   const [userRole, setUserRole] = useState<string>("");
 
+  const [addSupplierModalOpen, setAddSupplierModalOpen] = useState(false);
+
   useEffect(() => {
     const fetchUserRole = async () => {
       const user = await getUserAction();
@@ -53,13 +55,13 @@ const CommissionManagement = () => {
 
   const fetchCommGroups = async (doLoad: boolean) => {
     if (doLoad) setLoading(true);
-    const { users, error } = await getCommGroupsAction();
-    console.log("Users: ", users);
+    const { commissionGroups, error } = await getCommGroupsAction();
+    console.log("Commission Groups: ", commissionGroups);
     if (error) {
       console.error(error);
     } else {
-      if (users) {
-        setCommGroups(users);
+      if (commissionGroups) {
+        setCommGroups(commissionGroups);
       }
     }
     setLoading(false);
@@ -364,20 +366,23 @@ const CommissionManagement = () => {
     },
   ];
 
-  const [commissionGroups, setCommissionGroups] = useState(dummyData);
-  const [addSupplierModalOpen, setAddSupplierModalOpen] = useState(false);
-
-  const handleAddSupplier = (groupId, newSupplier) => {
-    console.log("Adding supplier: ", newSupplier);
-    const updatedGroups = commissionGroups.map((group) =>
-      group.id === groupId
-        ? {
-            ...group,
-            suppliers: [...group.suppliers, newSupplier],
-          }
-        : group,
-    );
-    setCommissionGroups(updatedGroups);
+  const handleAddVouchers = (
+    groupId: string,
+    voucherData: {
+      supplier: string;
+      vouchers: Array<{
+        name: string;
+        vendorId: string;
+        amount: number;
+        total_comm: number;
+        retailer_comm: number;
+        sales_agent_comm: number;
+      }>;
+    },
+  ) => {
+    console.log("Adding supplier to group:", groupId, supplierData);
+    // TODO: Add API call to save supplier data
+    setAddSupplierModalOpen(false);
   };
 
   return (
@@ -400,62 +405,8 @@ const CommissionManagement = () => {
           )}
         </div>
 
-        {/* <div>
-          {loading ? (
-            <div className="flex justify-center">
-              <div className="h-8 w-8 animate-spin rounded-full border-4 border-solid border-primary border-t-transparent"></div>
-            </div>
-          ) : commGroups.length === 0 ? (
-            <p className="text-gray-600 dark:text-gray-400">
-              No commission groups available. Please create one.
-            </p>
-          ) : (
-            <>
-              <p className="font-bold text-gray-800 dark:text-white">
-                Commission Groups
-              </p>
-
-              <div className="mt-5 overflow-x-auto">
-                <table className="min-w-full border-collapse rounded-lg bg-white shadow-md dark:bg-gray-800">
-                  <thead>
-                    <tr className="bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300">
-                      {tableHeaders.map((header) => (
-                        <th
-                          key={header}
-                          className="border border-gray-300 px-4 py-2 text-left text-sm font-semibold dark:border-gray-600"
-                          style={{ width: "15%" }}
-                        >
-                          {header}
-                        </th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {commGroups.map((commGroup, index) => (
-                      <tr
-                        key={index}
-                        className=" bg-white transition-colors duration-200 hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700"
-                      >
-                        <TableCell>{commGroup.name}</TableCell>
-                        <TableCell>
-                          <p
-                            className="cursor-pointer underline"
-                            onClick={() => handleEditOpen(commGroup)}
-                          >
-                            Edit
-                          </p>
-                        </TableCell>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </>
-          )}
-        </div> */}
-
         <div>
-          {commissionGroups.map((group) => (
+          {commGroups.map((group) => (
             <div key={group.id}>
               <CommissionTable
                 data={[group]}
