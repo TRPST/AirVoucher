@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import DefaultLayout from "@/components/Layouts/DefaultLaout";
+import DefaultLayout from "@/components/Layouts/DefaultLayout";
 
 interface Supplier {
   id: string;
@@ -55,7 +55,7 @@ const SupplierManagement = () => {
   };
 
   return (
-    <DefaultLayout>
+    <>
       <div className="container mx-auto p-6">
         <h2 className="mb-6 text-3xl font-bold text-gray-800 dark:text-white">
           Supplier Management
@@ -200,7 +200,7 @@ const SupplierManagement = () => {
           </table>
         </div>
       </div>
-    </DefaultLayout>
+    </>
   );
 };
 

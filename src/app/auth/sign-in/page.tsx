@@ -4,7 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import Breadcrumb from "@/components/Breadcrumbs/Breadcrumb";
 import { Metadata } from "next";
-import DefaultLayout from "@/components/Layouts/DefaultLaout";
+import DefaultLayout from "@/components/Layouts/DefaultLayout";
 import Signin from "@/components/Auth/Signin";
 import dynamic from "next/dynamic";
 
@@ -43,7 +43,7 @@ const SignIn: React.FC = () => {
 
               <p className="w-full font-medium text-dark-4 dark:text-dark-6">
                 Please sign in to your account by completing <br />
-                the necessary fieldsssss
+                the necessary fields
               </p>
 
               <div className="mt-31">

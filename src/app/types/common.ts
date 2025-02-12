@@ -36,3 +36,48 @@ export type Terminal = {
   active: boolean;
   created_at: Date;
 };
+
+export interface CommGroup {
+  id?: string;
+  name: string;
+  vouchers?: MobileDataVoucher[];
+}
+
+export type Supplier = {
+  id: number;
+  supplier_name: string;
+  created_at: Date;
+};
+
+export type VoucherGroup = {
+  id: number;
+  voucher_group_name: string;
+  total_comm: number;
+  retailer_comm: number;
+  sales_agent_comm: number;
+  created_at: Date;
+};
+
+export type MainVoucherGroup = {
+  id: number;
+  name: string;
+  supplier_id: number;
+  total_comm: number;
+  retailer_comm: number;
+  sales_agent_comm: number;
+  created_at: Date;
+};
+
+export interface MobileDataVoucher {
+  id?: string | number;
+  name: string;
+  supplier_id: number;
+  supplier_name: string;
+  vendorId: string;
+  amount: number;
+  total_comm?: number;
+  retailer_comm?: number;
+  sales_agent_comm?: number;
+  category?: string;
+  profit?: number;
+}
