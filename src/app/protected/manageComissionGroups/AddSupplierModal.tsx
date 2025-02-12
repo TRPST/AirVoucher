@@ -20,7 +20,7 @@ import {
 } from "@/app/types/common";
 import { useTheme } from "@mui/material/styles";
 
-const AddSupplierModal = ({ isOpen, onClose, onAddSupplier }) => {
+const AddSupplierModal = ({ isOpen, onClose, onAddSupplier, commGroupId }) => {
   const [supplierName, setSupplierName] = useState("");
   const [mobileDataVouchers, setMobileDataVouchers] = useState<
     MobileDataVoucher[]
@@ -175,10 +175,16 @@ const AddSupplierModal = ({ isOpen, onClose, onAddSupplier }) => {
   };
 
   const handleSubmit = async () => {
-    if (selectedVouchers.length > 0) {
+    if (selectedVouchers.length > 0 && commGroupId) {
       setLoading(true);
       console.log("Selected vouchers:", selectedVouchers);
-      const result = await addVouchersToMobileDataVouchers(selectedVouchers);
+      const vouchersWithCommGroupId = selectedVouchers.map((voucher) => ({
+        ...voucher,
+        comm_group_id: commGroupId,
+      }));
+      const result = await addVouchersToMobileDataVouchers(
+        vouchersWithCommGroupId,
+      );
       if (result.error) {
         console.error("Error adding vouchers:", result.error);
       } else {
