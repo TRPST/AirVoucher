@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { saveVoucherToDatabase } from "../../../ott_actions";
 import axios from "axios";
@@ -41,6 +41,7 @@ const TerminalDashboard = () => {
   const [customAmount, setCustomAmount] = useState("");
   const amounts = [10, 20, 50, 100];
   const [voucherResponse, setVoucherResponse] = useState(null);
+  const [refreshBalance, setRefreshBalance] = useState(false);
 
   // sell vouchers
   const [selectedVoucher, setSelectedVoucher] = useState(null);
@@ -73,7 +74,6 @@ const TerminalDashboard = () => {
 
     if (provider === "OTT") {
       setShowOTTModal(true);
-      fetchBalance();
     }
   };
 
@@ -181,9 +181,9 @@ const TerminalDashboard = () => {
         throw new Error("Please select a provider.");
       }
 
-      // **Filtering Logic**
+      // **Fix: Use `id` instead of `vendorId`**
       const filteredVouchers = data.filter(
-        (v) => v.vendorId?.toLowerCase() === selectedProvider.toLowerCase(),
+        (v) => v.id?.toLowerCase() === selectedProvider.toLowerCase(),
       );
 
       if (filteredVouchers.length === 0) {
@@ -257,9 +257,16 @@ const TerminalDashboard = () => {
     setUniqueReference("");
   };
 
+  // **Fetch Balance when OTT modal opens or refresh is triggered**
+  useEffect(() => {
+    if (showOTTModal) {
+      fetchBalance();
+    }
+  }, [showOTTModal, refreshBalance]);
+
   const fetchBalance = async () => {
     setLoading(true); // Set loading state
-    const uniqueReference = generateUniqueReference();
+    const uniqueReference = `ref-${Date.now()}-${Math.random().toString(36).substr(2, 8)}`;
 
     const params = { uniqueReference };
     const hash = generateHash(params);
@@ -332,6 +339,7 @@ const TerminalDashboard = () => {
           success: true,
           voucher: voucherData,
         });
+        setRefreshBalance((prev) => !prev); // ✅ Trigger balance refresh after issuing OTT voucher
       } else {
         const errorMessage = getErrorMessage(res.data.errorCode);
         setVoucherResponse({
@@ -478,11 +486,11 @@ const TerminalDashboard = () => {
         <Button
           variant="contained"
           color="primary"
-          onClick={() =>
-            router.push(
-              `/protected/manageTerminals/${terminalId}/sales_analytics`,
-            )
-          }
+          // onClick={() =>
+          //   router.push(
+          //     `/protected/manageTerminals/${terminalId}/sales_analytics`,
+          //   )
+          // }
         >
           Sales Analytics
         </Button>
@@ -558,8 +566,12 @@ const TerminalDashboard = () => {
               >
                 <CardContent>
                   <Typography variant="h6">{voucher.name}</Typography>
+                  <Typography>ID {voucher.id}</Typography>
                   <Typography variant="body2" color="text.secondary">
                     R{(voucher.amount / 100).toFixed(2)}
+                  </Typography>
+                  <Typography>
+                    {voucher.vendorId === "11" ? "OTT" : "Mobile"}
                   </Typography>
                 </CardContent>
               </Card>
@@ -677,11 +689,12 @@ const TerminalDashboard = () => {
                 color="primary"
                 fullWidth
                 sx={{ mt: 2 }}
-                onClick={() =>
+                onClick={() => {
+                  setCustomAmount(""); // ✅ Reset input before setting confirmation
                   setConfirmationAction(
                     () => () => issueVoucher(parseFloat(customAmount) || 0),
-                  )
-                }
+                  );
+                }}
               >
                 Confirm Custom Amount
               </Button>
@@ -698,6 +711,12 @@ const TerminalDashboard = () => {
                   <Typography>
                     Serial Number:{" "}
                     {voucherResponse.voucher?.serialNumber || "N/A"}
+                  </Typography>
+                  <Typography>
+                    Sale ID: {voucherResponse.voucher?.saleID || "N/A"}
+                  </Typography>
+                  <Typography>
+                    Amount: R{voucherResponse.voucher?.amount || "N/A"}
                   </Typography>
                 </div>
               )}
