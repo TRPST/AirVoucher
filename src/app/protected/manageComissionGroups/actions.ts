@@ -210,9 +210,15 @@ export const addVouchersToMobileDataVouchers = async (
   mobileDataVouchers: MobileDataVoucher[],
 ) => {
   const supabase = await createClient();
+
+  // Remove any id properties from the vouchers before insertion
+  const vouchersToInsert = mobileDataVouchers.map(
+    ({ id, ...voucher }) => voucher,
+  );
+
   const { data, error } = await supabase
     .from("mobile_data_vouchers")
-    .insert(mobileDataVouchers);
+    .insert(vouchersToInsert);
 
   if (error) {
     return { error: error.message };
