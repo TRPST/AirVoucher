@@ -72,8 +72,11 @@ export const getSuppliersAction = async () => {
 
     return { suppliers };
   } catch (error) {
-    console.error("Unexpected error fetching suppliers:", error);
-    return { error: error.message };
+    if (error instanceof Error) {
+      console.error("Unexpected error fetching suppliers:", error);
+      return { error: error.message };
+    }
+    return { error: "An unexpected error occurred" };
   }
 };
 
@@ -94,8 +97,14 @@ export const getSupplierMainVoucherGroups = async (supplierId: number) => {
 
     return { mainVoucherGroups };
   } catch (error) {
-    console.error("Unexpected error fetching supplier voucher groups:", error);
-    return { error: error.message };
+    if (error instanceof Error) {
+      console.error(
+        "Unexpected error fetching supplier voucher groups:",
+        error,
+      );
+      return { error: error.message };
+    }
+    return { error: "An unexpected error occurred" };
   }
 };
 
