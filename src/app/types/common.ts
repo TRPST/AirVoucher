@@ -85,6 +85,6 @@ export interface MobileDataVoucher {
 export interface SupplierAPI {
   id: number;
   name: string;
-  supplier_name: string;
-  created_at: Date;
+  supplier_name?: string;
+  created_at?: Date;
 }

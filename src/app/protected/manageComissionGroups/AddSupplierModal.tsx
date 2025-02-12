@@ -307,9 +307,9 @@ const AddSupplierModal = ({
                     setSupplierName(selectedSupplier.supplier_name);
 
                     if (selectedSupplier.supplier_name === "OTT") {
-                      setSelectedSupplierApi("OTT");
+                      setSelectedSupplierApi({ id: 0, name: "OTT" });
                     } else if (selectedSupplier.supplier_name === "Glocell") {
-                      setSelectedSupplierApi("Mobile Data");
+                      setSelectedSupplierApi({ id: 0, name: "Mobile Data" });
                     }
                   }
                 }}
