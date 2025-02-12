@@ -33,6 +33,12 @@ const CommissionManagement = () => {
   const [commGroups, setCommGroups] = useState<CommGroup[]>([]);
   const [newCommGroup, setNewCommGroup] = useState<CommGroup>({
     name: "",
+    email: "",
+    contact_number: "",
+    active: true,
+    terminal_access: false,
+    role: "admin",
+    assigned_retailers: [],
   });
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -78,7 +84,7 @@ const CommissionManagement = () => {
       console.error(error);
     } else {
       if (commissionGroups) {
-        setCommGroups(commissionGroups);
+        setCommGroups(commissionGroups as CommGroup[]);
       }
     }
     setLoading(false);
@@ -135,8 +141,13 @@ const CommissionManagement = () => {
     setAddCommGroupModalOpen(false);
     setNewCommGroup({
       name: "",
+      email: "",
+      contact_number: "",
+      active: true,
+      terminal_access: false,
+      role: "admin",
+      assigned_retailers: [],
     });
-
     setError("");
     setSuccess("");
   };
@@ -170,7 +181,9 @@ const CommissionManagement = () => {
     if (!updatedCommGroupRetailers) return;
     try {
       setEditLoading(true);
-      const result = await editCommGroupAction(updatedCommGroupRetailers);
+      const result = await editCommGroupAction(
+        updatedCommGroupRetailers as CommGroup,
+      );
       console.log("Result: ", result);
       if (result.error) {
         setEditError(result.error);
@@ -204,9 +217,7 @@ const CommissionManagement = () => {
 
   const handleEditClose = () => {
     setEditCommGroupModalOpen(false);
-    setUpdatedCommGroup({
-      name: "",
-    });
+    setUpdatedCommGroup(null);
 
     setEditError("");
     setEditSuccess("");
@@ -255,7 +266,7 @@ const CommissionManagement = () => {
               <AddSupplierModal
                 isOpen={addSupplierModalOpen}
                 onClose={() => setAddSupplierModalOpen(false)}
-                commGroupId={selectedCommGroupId}
+                commGroupId={selectedCommGroupId || ""}
                 commGroupName={selectedCommGroupName}
                 onAddVouchers={handleAddVouchers}
               />

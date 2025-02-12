@@ -30,7 +30,7 @@ const AddSupplierModal = ({
   isOpen: boolean;
   onClose: () => void;
   onAddVouchers: (vouchers: MobileDataVoucher[]) => void;
-  commGroupId: number;
+  commGroupId: string;
   commGroupName: string;
 }) => {
   const [supplierName, setSupplierName] = useState("");
