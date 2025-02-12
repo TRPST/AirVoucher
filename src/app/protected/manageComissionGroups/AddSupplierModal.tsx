@@ -62,7 +62,8 @@ const AddSupplierModal = ({
 
   const [supplierApis, setSupplierApis] = useState([]);
 
-  const [selectedSupplierApi, setSelectedSupplierApi] = useState<string>();
+  const [selectedSupplierApi, setSelectedSupplierApi] =
+    useState<SupplierAPI | null>(null);
 
   // Add new state for selected vouchers and current voucher
   const [selectedVouchers, setSelectedVouchers] = useState<MobileDataVoucher[]>(
@@ -167,17 +168,11 @@ const AddSupplierModal = ({
       retailerCommissionAmount -
       salesAgentCommissionAmount;
 
-    const newVoucher = {
+    const newVoucher: MobileDataVoucher = {
+      ...currentVoucher,
       supplier_id: selectedSupplier.id,
       supplier_name: selectedSupplier.supplier_name,
-      vendorId: currentVoucher.vendorId,
-      amount: currentVoucher.amount,
-      name: currentVoucher.name,
-      total_comm: currentVoucher.total_comm,
-      retailer_comm: currentVoucher.retailer_comm,
-      sales_agent_comm: currentVoucher.sales_agent_comm,
-      category: currentVoucher.category,
-      profit: profitAmount.toFixed(2),
+      profit: Number(profitAmount.toFixed(2)),
     };
 
     setSelectedVouchers((prev) => [...prev, newVoucher]);
@@ -211,7 +206,7 @@ const AddSupplierModal = ({
       } else {
         // Reset all form values on successful submission
         setSelectedSupplier(undefined);
-        setSelectedSupplierApi(undefined);
+        setSelectedSupplierApi(null);
         setSelectedVouchers([]);
         setCurrentVoucher({
           name: "",
@@ -235,7 +230,7 @@ const AddSupplierModal = ({
     setSelectedSupplier(undefined);
     // Reset all form values on successful submission
     setSelectedSupplier(undefined);
-    setSelectedSupplierApi(undefined);
+    setSelectedSupplierApi(null);
     setSelectedVouchers([]);
     setCurrentVoucher({
       name: "",
@@ -368,7 +363,7 @@ const AddSupplierModal = ({
                 <div className="mb-5">
                   <Select
                     labelId="supplier-api-select-label"
-                    value={selectedSupplierApi ? selectedSupplierApi.id : ""}
+                    value={selectedSupplierApi?.id || ""}
                     onChange={(event) => {
                       console.log("Selected API ID:", event.target.value);
                       const selectedApiId = Number(event.target.value);
@@ -575,32 +570,21 @@ const AddSupplierModal = ({
                         );
                         if (selectedVoucher) {
                           setCurrentVoucher({
-                            name: selectedVoucher.name,
-                            vendorId: selectedVoucher.vendorId,
-                            amount: selectedVoucher.amount,
-                            total_comm: selectedVoucher.total_comm || 0,
-                            retailer_comm: selectedVoucher.retailer_comm || 0,
-                            sales_agent_comm:
-                              selectedVoucher.sales_agent_comm || 0,
+                            ...selectedVoucher,
                             supplier_id: selectedSupplier?.id || 0,
                             supplier_name:
                               selectedSupplier?.supplier_name || "",
                           });
                         }
-                      }
-                      if (selectedSupplierApi?.name === "Mobile Airtime") {
+                      } else if (
+                        selectedSupplierApi?.name === "Mobile Airtime"
+                      ) {
                         const selectedVoucher = mobileAirtimeVouchers.find(
                           (v) => v.name === voucherName,
                         );
                         if (selectedVoucher) {
                           setCurrentVoucher({
-                            name: selectedVoucher.name,
-                            vendorId: selectedVoucher.vendorId,
-                            amount: selectedVoucher.amount,
-                            total_comm: selectedVoucher.total_comm || 0,
-                            retailer_comm: selectedVoucher.retailer_comm || 0,
-                            sales_agent_comm:
-                              selectedVoucher.sales_agent_comm || 0,
+                            ...selectedVoucher,
                             supplier_id: selectedSupplier?.id || 0,
                             supplier_name:
                               selectedSupplier?.supplier_name || "",
@@ -609,12 +593,7 @@ const AddSupplierModal = ({
                       } else if (voucherName === "OTT Variable Amount") {
                         console.log("OTT voucher");
                         setCurrentVoucher({
-                          name: "OTT Variable Amount",
-                          vendorId: "OTT",
-                          amount: 0,
-                          total_comm: ottVoucher.total_comm || 0,
-                          retailer_comm: ottVoucher.retailer_comm || 0,
-                          sales_agent_comm: ottVoucher.sales_agent_comm || 0,
+                          ...ottVoucher,
                           supplier_id: selectedSupplier?.id || 0,
                           supplier_name: selectedSupplier?.supplier_name || "",
                         });
