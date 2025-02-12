@@ -254,7 +254,7 @@ const CommissionManagement = () => {
           {commGroups.map((group) => (
             <div key={group.id}>
               <CommissionTable
-                data={[group]}
+                data={group.id ? [group as Required<CommGroup>] : []}
                 setAddSupplierModalOpen={(open, commGroupId, commGroupName) => {
                   console.log("commGroupName", commGroupName);
                   setSelectedCommGroupId(commGroupId || null);
