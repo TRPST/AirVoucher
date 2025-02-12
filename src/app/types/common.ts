@@ -75,9 +75,9 @@ export interface MobileDataVoucher {
   supplier_name: string;
   vendorId: string;
   amount: number;
-  total_comm?: number;
-  retailer_comm?: number;
-  sales_agent_comm?: number;
+  total_comm: number;
+  retailer_comm: number;
+  sales_agent_comm: number;
   category?: string;
   profit?: number;
 }
