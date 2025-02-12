@@ -241,3 +241,4 @@ export const getCashierByIdAction = async (cashierId: string) => {
 
   return { cashier };
 };
+

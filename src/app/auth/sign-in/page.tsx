@@ -43,7 +43,7 @@ const SignIn: React.FC = () => {
 
               <p className="w-full font-medium text-dark-4 dark:text-dark-6">
                 Please sign in to your account by completing <br />
-                the necessary fieldsssss
+                the necessary fields
               </p>
 
               <div className="mt-31">
