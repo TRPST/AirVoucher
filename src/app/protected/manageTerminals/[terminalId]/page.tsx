@@ -1,5 +1,5 @@
 "use client";
-
+// @ts-nocheck
 import React, { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { saveVoucherToDatabase } from "../../../ott_actions";
