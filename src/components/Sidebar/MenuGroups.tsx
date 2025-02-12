@@ -49,7 +49,7 @@ export const superAdminMenu = [
         label: "Admins",
         route: "#",
         children: [
-          { label: "Manage Admins", route: "/protected/manageAdmins" },
+          { label: "Manage Admins", route: "manageAdmins" },
           // { label: "Retailers Assignment", route: "#" },
           // { label: "Activate/Deactivate Sub-Admins", route: "#" },
         ],
@@ -102,10 +102,7 @@ export const superAdminMenu = [
         label: "Commission Groups",
         route: "#",
         children: [
-          {
-            label: "Manage Commission Groups",
-            route: "/protected/manageComissionGroups",
-          },
+          { label: "Manage Commission Groups", route: "manageComissionGroups" },
           // { label: "View Existing Groups", route: "#" },
           // { label: "Supplier Prioritization", route: "#" },
         ],
@@ -131,7 +128,7 @@ export const superAdminMenu = [
         label: "Suppliers",
         route: "#",
         children: [
-          { label: "Manage Suppliers", route: "/protected/manageSuppliers" },
+          { label: "Manage Suppliers", route: "manageSuppliers" },
           // { label: "Supplier Activation", route: "#" },
         ],
       },
@@ -155,9 +152,7 @@ export const superAdminMenu = [
         ),
         label: "Terminals",
         route: "#",
-        children: [
-          { label: "Manage Terminals", route: "/protected/manageTerminals" },
-        ],
+        children: [{ label: "Manage Terminals", route: "manageTerminals" }],
       },
       {
         icon: (
