@@ -117,7 +117,8 @@ export const getSupplierMobileDataVouchers = async (supplierName: string) => {
 
         if (response.status === 200) {
           const filteredVouchers = response.data.filter(
-            (voucher) => voucher.category.toLowerCase() === "data",
+            (voucher: { category: string }) =>
+              voucher.category.toLowerCase() === "data",
           );
           return { mobileDataVouchers: filteredVouchers };
         }
@@ -262,10 +263,10 @@ export const getCommGroupsWithSuppliersAndVouchers = async () => {
 
 // Update Voucher Commissions
 export const updateVoucherCommissions = async (
-  voucherId,
-  totalCommission,
-  retailerCommission,
-  agentCommission,
+  voucherId: any,
+  totalCommission: any,
+  retailerCommission: any,
+  agentCommission: any,
 ) => {
   const supabase = await createClient();
 
