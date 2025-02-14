@@ -4,7 +4,8 @@ import { encodedRedirect } from "../../../../utils/utils";
 import { createClient } from "../../../../utils/supabase/server";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
-import { CommGroup } from "../../types/common";
+import { CommGroup, MobileDataVoucher } from "../../types/common";
+import axios from "axios";
 
 export const signUpAction = async (formData: FormData) => {
   const email = formData.get("email")?.toString();
@@ -54,25 +55,176 @@ export const createCommGroup = async (commGroup: CommGroup) => {
 export const getSuppliersAction = async () => {
   const supabase = await createClient();
 
-  console.log("Fetching suppliers from database...");
+  try {
+    const { data: suppliers, error } = await supabase
+      .from("suppliers")
+      .select("*");
 
-  const { data: suppliers, error } = await supabase
-    .from("suppliers")
-    .select("*");
+    if (error) {
+      console.error("Error fetching suppliers:", error);
+      return { error: error.message };
+    }
+
+    if (!suppliers || suppliers.length === 0) {
+      console.log("No suppliers found.");
+      return { suppliers: [] };
+    }
+
+    return { suppliers };
+  } catch (error) {
+    if (error instanceof Error) {
+      console.error("Unexpected error fetching suppliers:", error);
+      return { error: error.message };
+    }
+    return { error: "An unexpected error occurred" };
+  }
+};
+
+export const getSupplierMainVoucherGroups = async (supplierId: number) => {
+  const supabase = await createClient();
+
+  try {
+    const { data: mainVoucherGroups, error } = await supabase
+      .from("main_voucher_groups")
+      .select("*")
+      .eq("supplier_id", supplierId);
+
+    if (error) {
+      return { error: error.message };
+    }
+
+    console.log("Voucher Groups", mainVoucherGroups);
+
+    return { mainVoucherGroups };
+  } catch (error) {
+    if (error instanceof Error) {
+      console.error(
+        "Unexpected error fetching supplier voucher groups:",
+        error,
+      );
+      return { error: error.message };
+    }
+    return { error: "An unexpected error occurred" };
+  }
+};
+
+export const getSupplierMobileDataVouchers = async (supplierName: string) => {
+  switch (supplierName.toLowerCase()) {
+    case "glocell": {
+      try {
+        const response = await axios.get(
+          "https://api.qa.bltelecoms.net/v2/trade/mobile/bundle/products",
+          {
+            headers: {
+              accept: "application/json",
+              "Trade-Vend-Channel": "API",
+              apikey: process.env.GLOCEL_API_KEY,
+              authorization: "Basic YmxkOm9ybnVrM2k5dnNlZWkxMjVzOHFlYTcxa3Vi",
+            },
+          },
+        );
+
+        if (response.status === 200) {
+          const filteredVouchers = response.data.filter(
+            (voucher: { category: string }) =>
+              voucher.category.toLowerCase() === "data",
+          );
+          return { mobileDataVouchers: filteredVouchers };
+        }
+
+        return { error: "Failed to fetch mobile data vouchers" };
+      } catch (error) {
+        if (error instanceof Error) {
+          console.error("Error fetching mobile data vouchers:", error);
+          return { error: error.message };
+        }
+        return { error: "An unexpected error occurred" };
+      }
+    }
+    default:
+      return {
+        error: "Mobile data vouchers not available for this supplier yet",
+      };
+  }
+};
+
+export const getSupplierMobileAirtimeVouchers = async (
+  supplierName: string,
+) => {
+  switch (supplierName.toLowerCase()) {
+    case "glocell": {
+      try {
+        const response = await axios.get(
+          "https://api.qa.bltelecoms.net/v2/trade/mobile/airtime/products",
+          {
+            headers: {
+              accept: "application/json",
+              "Trade-Vend-Channel": "API",
+              apikey: process.env.GLOCEL_API_KEY,
+              authorization: "Basic YmxkOm9ybnVrM2k5dnNlZWkxMjVzOHFlYTcxa3Vi",
+            },
+          },
+        );
+
+        if (response.status === 200) {
+          return { mobileAirtimeVouchers: response.data };
+        }
+
+        return { error: "Failed to fetch mobile airtime vouchers" };
+      } catch (error) {
+        if (error instanceof Error) {
+          console.error("Error fetching mobile airtime vouchers:", error);
+          return { error: error.message };
+        }
+        return { error: "An unexpected error occurred" };
+      }
+    }
+  }
+};
+
+export const getSupplierApis = async (supplierName: string) => {
+  try {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from("suppliers")
+      .select("supplier_apis")
+      .eq("supplier_name", supplierName)
+      .single();
+
+    if (error) return { error: error.message };
+    if (!data?.supplier_apis || data.supplier_apis.length === 0) {
+      return { error: "No supplier APIs setup yet" };
+    }
+    return { supplierApis: data.supplier_apis };
+  } catch (error) {
+    console.error("Unexpected error fetching supplier APIs:", error);
+    return {
+      error:
+        error instanceof Error ? error.message : "An unexpected error occurred",
+    };
+  }
+};
+
+//add vouchers to mobile_data_vouchers table
+export const addVouchersToMobileDataVouchers = async (
+  mobileDataVouchers: MobileDataVoucher[],
+) => {
+  const supabase = await createClient();
+
+  // Remove any id properties from the vouchers before insertion
+  const vouchersToInsert = mobileDataVouchers.map(
+    ({ id, ...voucher }) => voucher,
+  );
+
+  const { data, error } = await supabase
+    .from("mobile_data_vouchers")
+    .insert(vouchersToInsert);
 
   if (error) {
-    console.error("Error fetching suppliers:", error);
     return { error: error.message };
   }
 
-  console.log("Suppliers fetched:", suppliers);
-
-  if (!suppliers || suppliers.length === 0) {
-    console.log("No suppliers found.");
-    return { suppliers: [] };
-  }
-
-  return { suppliers };
+  return { success: "Mobile data vouchers added successfully" };
 };
 
 export const getSupplierVouchers = async (supplierId: string) => {
@@ -126,10 +278,10 @@ export const getCommGroupsWithSuppliersAndVouchers = async () => {
 
 // Update Voucher Commissions
 export const updateVoucherCommissions = async (
-  voucherId,
-  totalCommission,
-  retailerCommission,
-  agentCommission,
+  voucherId: any,
+  totalCommission: any,
+  retailerCommission: any,
+  agentCommission: any,
 ) => {
   const supabase = await createClient();
 
@@ -153,34 +305,37 @@ export const updateVoucherCommissions = async (
 export const getCommGroupsAction = async () => {
   const supabase = await createClient();
 
-  // Fetch all commGroups and superCommGroups
-  const { data: users, error: usersError } = await supabase
-    .from("users")
-    .select("*")
-    .in("role", ["commGroup", "superCommGroup"]);
+  const { data: commissionGroups, error } = await supabase.from(
+    "commission_groups",
+  ).select(`
+      id,
+      name,
+      mobile_data_vouchers (
+        id,
+        name,
+        vendorId,
+        amount,
+        total_comm,
+        retailer_comm,
+        sales_agent_comm,
+        supplier_id,
+        supplier_name,
+        profit
+      )
+    `);
 
-  if (usersError) {
-    return { error: usersError.message };
+  if (error) {
+    return { error: error.message };
   }
 
-  // Fetch all retailers
-  const { data: retailers, error: retailersError } = await supabase
-    .from("retailers")
-    .select("*");
-
-  if (retailersError) {
-    return { error: retailersError.message };
-  }
-
-  // Map assigned_retailers IDs to retailer objects
-  const usersWithRetailers = users.map((user) => ({
-    ...user,
-    assigned_retailers: retailers.filter(
-      (retailer) => retailer.assigned_commGroup === `${user.id}`,
-    ),
+  // Transform the data to match expected format
+  const formattedGroups = commissionGroups.map((group) => ({
+    id: group.id,
+    name: group.name,
+    vouchers: group.mobile_data_vouchers,
   }));
 
-  return { users: usersWithRetailers };
+  return { commissionGroups: formattedGroups };
 };
 
 export const assignCommGroupToRetailer = async (
@@ -283,13 +438,48 @@ export const deleteCommGroupAction = async (commGroupId: string) => {
   return { success: "CommGroup deleted successfully" };
 };
 
-export const checkCommGroupSignedIn = async () => {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getCommGroup();
+// export const checkCommGroupSignedIn = async () => {
+//   const supabase = await createClient();
+//   const {
+//     data: { user },
+//   } = await supabase.auth.getCommGroup();
 
-  if (!user) {
-    return redirect("/");
+//   if (!user) {
+//     return redirect("/");
+//   }
+// };
+
+export const editVoucherAction = async (voucher: MobileDataVoucher) => {
+  const supabase = await createClient();
+
+  const { error } = await supabase
+    .from("mobile_data_vouchers")
+    .update({
+      total_comm: voucher.total_comm,
+      retailer_comm: voucher.retailer_comm,
+      sales_agent_comm: voucher.sales_agent_comm,
+    })
+    .eq("id", voucher.id);
+
+  if (error) {
+    return { error: error.message };
   }
+
+  return { success: "Voucher updated successfully" };
+};
+
+// Add this new action
+export const deleteVoucherAction = async (voucherId: string | number) => {
+  const supabase = await createClient();
+
+  const { error } = await supabase
+    .from("mobile_data_vouchers")
+    .delete()
+    .eq("id", voucherId);
+
+  if (error) {
+    return { error: error.message };
+  }
+
+  return { success: "Voucher deleted successfully" };
 };

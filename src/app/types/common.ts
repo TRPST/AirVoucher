@@ -37,19 +37,60 @@ export type Terminal = {
   created_at: Date;
 };
 
-export type CommGroup = {
+export interface CommGroup {
+  id?: string;
   name: string;
-};
+  email: string;
+  contact_number: string;
+  active: boolean;
+  terminal_access: boolean;
+  role: string;
+  assigned_retailers: Retailer[];
+  vouchers?: MobileDataVoucher[];
+}
 
 export type Supplier = {
-  id: string;
+  id: number;
   supplier_name: string;
   created_at: Date;
 };
 
-export type Voucher = {
-  id: string;
-  supplier: string;
-  voucher_name: string;
+export type VoucherGroup = {
+  id: number;
+  voucher_group_name: string;
+  total_comm: number;
+  retailer_comm: number;
+  sales_agent_comm: number;
   created_at: Date;
 };
+
+export type MainVoucherGroup = {
+  id: number;
+  name: string;
+  supplier_id: number;
+  total_comm: number;
+  retailer_comm: number;
+  sales_agent_comm: number;
+  created_at: Date;
+};
+
+export interface MobileDataVoucher {
+  id?: string | number;
+  name: string;
+  supplier_id: number;
+  supplier_name: string;
+  vendorId: string;
+  amount: number;
+  total_comm: number;
+  retailer_comm: number;
+  sales_agent_comm: number;
+  category?: string;
+  profit?: number;
+}
+
+export interface SupplierAPI {
+  id: number;
+  name: string;
+  supplier_name?: string;
+  created_at?: Date;
+}

@@ -1,5 +1,5 @@
 "use client";
-
+// @ts-nocheck
 import React, { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { saveVoucherToDatabase } from "../../../ott_actions";
@@ -676,7 +676,7 @@ const TerminalDashboard = () => {
                       <img
                         src="/images/ott_logo.png"
                         alt="OTT Logo"
-                        style={{ width: 40, height: 40, marginBottom: 5 }}
+                        style={{ height: 40, width: "auto", marginBottom: 5 }}
                       />
                       <Typography variant="h6">R{amount}</Typography>
                     </Button>

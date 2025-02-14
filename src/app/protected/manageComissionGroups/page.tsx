@@ -5,22 +5,42 @@ import {
   editCommGroupAction,
   getCommGroupsAction,
   createCommGroup,
+  editVoucherAction,
+  deleteVoucherAction,
 } from "./actions";
-import { CommGroup, User } from "@/app/types/common";
+import { CommGroup, User, MobileDataVoucher } from "@/app/types/common";
 import DefaultLayout from "@/components/Layouts/DefaultLayout";
 import React, { useEffect, useState } from "react";
 import TableCell from "../../../components/Tables/TableCell";
 import { Button } from "@mui/material";
 import AddCommGroupModal from "./AddCommGroupModal";
-import EditCommGroupModal from "./EditCommGroupModal";
+//import EditCommGroupModal from "./EditCommGroupModal";
 import { getUserAction } from "@/app/actions";
 import CommissionTable from "./CommissionsTable";
 import AddSupplierModal from "./AddSupplierModal";
+
+const generateSecurePassword = () => {
+  const length = 12;
+  const charset =
+    "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*";
+  let password = "";
+  for (let i = 0; i < length; i++) {
+    const randomIndex = Math.floor(Math.random() * charset.length);
+    password += charset[randomIndex];
+  }
+  return password;
+};
 
 const CommissionManagement = () => {
   const [commGroups, setCommGroups] = useState<CommGroup[]>([]);
   const [newCommGroup, setNewCommGroup] = useState<CommGroup>({
     name: "",
+    email: "",
+    contact_number: "",
+    active: true,
+    terminal_access: false,
+    role: "admin",
+    assigned_retailers: [],
   });
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -40,6 +60,13 @@ const CommissionManagement = () => {
 
   const [userRole, setUserRole] = useState<string>("");
 
+  const [addSupplierModalOpen, setAddSupplierModalOpen] = useState(false);
+  const [selectedCommGroupId, setSelectedCommGroupId] = useState<string | null>(
+    null,
+  );
+  const [selectedCommGroupName, setSelectedCommGroupName] =
+    useState<string>("");
+
   useEffect(() => {
     const fetchUserRole = async () => {
       const user = await getUserAction();
@@ -53,13 +80,13 @@ const CommissionManagement = () => {
 
   const fetchCommGroups = async (doLoad: boolean) => {
     if (doLoad) setLoading(true);
-    const { users, error } = await getCommGroupsAction();
-    console.log("Users: ", users);
+    const { commissionGroups, error } = await getCommGroupsAction();
+    //console.log("Commission Groups: ", commissionGroups);
     if (error) {
       console.error(error);
     } else {
-      if (users) {
-        setCommGroups(users);
+      if (commissionGroups) {
+        setCommGroups(commissionGroups as CommGroup[]);
       }
     }
     setLoading(false);
@@ -94,7 +121,7 @@ const CommissionManagement = () => {
     try {
       setLoading(true);
       const result = await createCommGroup(newCommGroup);
-      console.log("Result: ", result);
+      //console.log("Result: ", result);
       if (result.error) {
         setError(result.error);
       } else {
@@ -116,8 +143,13 @@ const CommissionManagement = () => {
     setAddCommGroupModalOpen(false);
     setNewCommGroup({
       name: "",
+      email: "",
+      contact_number: "",
+      active: true,
+      terminal_access: false,
+      role: "admin",
+      assigned_retailers: [],
     });
-
     setError("");
     setSuccess("");
   };
@@ -132,7 +164,7 @@ const CommissionManagement = () => {
     try {
       setEditLoading(true);
       const result = await editCommGroupAction(updatedCommGroup);
-      console.log("Result: ", result);
+      //console.log("Result: ", result);
       if (result.error) {
         setEditError(result.error);
       } else {
@@ -151,8 +183,10 @@ const CommissionManagement = () => {
     if (!updatedCommGroupRetailers) return;
     try {
       setEditLoading(true);
-      const result = await editCommGroupAction(updatedCommGroupRetailers);
-      console.log("Result: ", result);
+      const result = await editCommGroupAction(
+        updatedCommGroupRetailers as CommGroup,
+      );
+      //console.log("Result: ", result);
       if (result.error) {
         setEditError(result.error);
       } else {
@@ -170,7 +204,7 @@ const CommissionManagement = () => {
     try {
       setEditLoading(true);
       const result = await deleteCommGroupAction(id);
-      console.log("Result: ", result);
+      //console.log("Result: ", result);
       if (result.error) {
         setEditError(result.error);
       } else {
@@ -185,199 +219,72 @@ const CommissionManagement = () => {
 
   const handleEditClose = () => {
     setEditCommGroupModalOpen(false);
-    setUpdatedCommGroup({
-      name: "",
-    });
+    setUpdatedCommGroup(null);
 
     setEditError("");
     setEditSuccess("");
     setConfirmDeleteCommGroup(false);
   };
 
-  const tableHeaders =
-    userRole === "superAdmin"
-      ? ["Name", "Suppliers", ""]
-      : ["Name", "Suppliers"];
-
   const generateUniqueCommGroupID = () => `AD${String(Date.now()).slice(-4)}`;
 
-  const dummyData = [
-    {
-      name: "Gold",
-      suppliers: [
-        {
-          name: "Supplier 1",
-          vouchers: [
-            {
-              name: "Voucher 1",
-              total_commission: 5,
-              retailer_commission: 4,
-              agent_commission: 2,
-            },
-            {
-              name: "Voucher 2",
-              total_commission: 6,
-              retailer_commission: 4,
-              agent_commission: 3,
-            },
-            {
-              name: "Voucher 3",
-              total_commission: 4,
-              retailer_commission: 4,
-              agent_commission: 1,
-            },
-          ],
-        },
-        {
-          name: "Supplier 2",
-          vouchers: [
-            {
-              name: "Voucher 1",
-              total_commission: 5,
-              retailer_commission: 4,
-              agent_commission: 2,
-            },
-            {
-              name: "Voucher 2",
-              total_commission: 6,
-              retailer_commission: 4,
-              agent_commission: 3,
-            },
-            {
-              name: "Voucher 3",
-              total_commission: 4,
-              retailer_commission: 4,
-              agent_commission: 1,
-            },
-          ],
-        },
-        {
-          name: "Supplier 3",
-          vouchers: [
-            {
-              name: "Voucher 1",
-              total_commission: 2,
-              retailer_commission: 2,
-              agent_commission: 2,
-            },
-            {
-              name: "Voucher 2",
-              total_commission: 3,
-              retailer_commission: 3,
-              agent_commission: 3,
-            },
-            {
-              name: "Voucher 3",
-              total_commission: 1,
-              retailer_commission: 1,
-              agent_commission: 1,
-            },
-            {
-              name: "Voucher 4",
-              total_commission: 5,
-              retailer_commission: 5,
-              agent_commission: 5,
-            },
-          ],
-        },
-      ],
-    },
-    {
-      name: "Silver",
-      suppliers: [
-        {
-          name: "Supplier 1",
-          vouchers: [
-            {
-              name: "Voucher 1",
-              total_commission: 5,
-              retailer_commission: 4,
-              agent_commission: 2,
-            },
-            {
-              name: "Voucher 2",
-              total_commission: 6,
-              retailer_commission: 4,
-              agent_commission: 3,
-            },
-            {
-              name: "Voucher 3",
-              total_commission: 4,
-              retailer_commission: 4,
-              agent_commission: 1,
-            },
-          ],
-        },
-        {
-          name: "Supplier 2",
-          vouchers: [
-            {
-              name: "Voucher 1",
-              total_commission: 5,
-              retailer_commission: 4,
-              agent_commission: 2,
-            },
-            {
-              name: "Voucher 2",
-              total_commission: 6,
-              retailer_commission: 4,
-              agent_commission: 3,
-            },
-            {
-              name: "Voucher 3",
-              total_commission: 4,
-              retailer_commission: 4,
-              agent_commission: 1,
-            },
-          ],
-        },
-        {
-          name: "Supplier 3",
-          vouchers: [
-            {
-              name: "Voucher 1",
-              total_commission: 2,
-              retailer_commission: 2,
-              agent_commission: 2,
-            },
-            {
-              name: "Voucher 2",
-              total_commission: 3,
-              retailer_commission: 3,
-              agent_commission: 3,
-            },
-            {
-              name: "Voucher 3",
-              total_commission: 1,
-              retailer_commission: 1,
-              agent_commission: 1,
-            },
-            {
-              name: "Voucher 4",
-              total_commission: 5,
-              retailer_commission: 5,
-              agent_commission: 5,
-            },
-          ],
-        },
-      ],
-    },
-  ];
+  const handleAddVouchers = () => {
+    fetchCommGroups(true);
+  };
 
-  const [commissionGroups, setCommissionGroups] = useState(dummyData);
-  const [addSupplierModalOpen, setAddSupplierModalOpen] = useState(false);
+  const handleEditVoucher = async (
+    groupId: string,
+    voucherIndex: number,
+    updatedVoucher: MobileDataVoucher,
+    isJustOpening?: boolean,
+  ) => {
+    if (isJustOpening) {
+      setEditError("");
+      setEditSuccess("");
+      return;
+    }
 
-  const handleAddSupplier = (groupId, newSupplier) => {
-    console.log("Adding supplier: ", newSupplier);
-    const updatedGroups = commissionGroups.map((group) =>
-      group.id === groupId
-        ? {
-            ...group,
-            suppliers: [...group.suppliers, newSupplier],
-          }
-        : group,
-    );
-    setCommissionGroups(updatedGroups);
+    try {
+      setEditLoading(true);
+      const result = await editVoucherAction(updatedVoucher);
+      if (result.error) {
+        setEditError(result.error);
+      } else {
+        setEditSuccess(result.success || "");
+        fetchCommGroups(false);
+      }
+    } catch (error) {
+      console.error("Error: ", error);
+    } finally {
+      setEditLoading(false);
+    }
+  };
+
+  const handleDeleteVoucher = async (voucherId: string) => {
+    try {
+      setEditLoading(true);
+      setEditError("");
+      setEditSuccess("");
+
+      if (!voucherId) {
+        setEditError("Voucher ID not found");
+        return;
+      }
+
+      const result = await deleteVoucherAction(voucherId);
+      if (result.error) {
+        setEditError(result.error);
+      } else {
+        setEditSuccess(result.success || "");
+        // Close the modal and refresh the data
+        fetchCommGroups(false);
+      }
+    } catch (error) {
+      console.error("Error: ", error);
+      setEditError("Failed to delete voucher");
+    } finally {
+      setEditLoading(false);
+    }
   };
 
   return (
@@ -400,74 +307,30 @@ const CommissionManagement = () => {
           )}
         </div>
 
-        {/* <div>
-          {loading ? (
-            <div className="flex justify-center">
-              <div className="h-8 w-8 animate-spin rounded-full border-4 border-solid border-primary border-t-transparent"></div>
-            </div>
-          ) : commGroups.length === 0 ? (
-            <p className="text-gray-600 dark:text-gray-400">
-              No commission groups available. Please create one.
-            </p>
-          ) : (
-            <>
-              <p className="font-bold text-gray-800 dark:text-white">
-                Commission Groups
-              </p>
-
-              <div className="mt-5 overflow-x-auto">
-                <table className="min-w-full border-collapse rounded-lg bg-white shadow-md dark:bg-gray-800">
-                  <thead>
-                    <tr className="bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300">
-                      {tableHeaders.map((header) => (
-                        <th
-                          key={header}
-                          className="border border-gray-300 px-4 py-2 text-left text-sm font-semibold dark:border-gray-600"
-                          style={{ width: "15%" }}
-                        >
-                          {header}
-                        </th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {commGroups.map((commGroup, index) => (
-                      <tr
-                        key={index}
-                        className=" bg-white transition-colors duration-200 hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700"
-                      >
-                        <TableCell>{commGroup.name}</TableCell>
-                        <TableCell>
-                          <p
-                            className="cursor-pointer underline"
-                            onClick={() => handleEditOpen(commGroup)}
-                          >
-                            Edit
-                          </p>
-                        </TableCell>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </>
-          )}
-        </div> */}
-
         <div>
-          {commissionGroups.map((group) => (
+          {commGroups.map((group) => (
             <div key={group.id}>
               <CommissionTable
-                data={[group]}
-                setAddSupplierModalOpen={() => setAddSupplierModalOpen(true)}
+                data={group.id ? [group as Required<CommGroup>] : []}
+                setAddSupplierModalOpen={(open, commGroupId, commGroupName) => {
+                  //console.log("commGroupName", commGroupName);
+                  setSelectedCommGroupId(commGroupId || null);
+                  setSelectedCommGroupName(commGroupName || "");
+                  setAddSupplierModalOpen(open);
+                }}
+                handleDeleteVoucher={handleDeleteVoucher}
+                handleEditVoucher={handleEditVoucher}
+                editLoading={editLoading}
+                editError={editError}
+                editSuccess={editSuccess}
               />
 
               <AddSupplierModal
                 isOpen={addSupplierModalOpen}
                 onClose={() => setAddSupplierModalOpen(false)}
-                onAddSupplier={(supplier) =>
-                  handleAddSupplier(group.id, supplier)
-                }
+                commGroupId={selectedCommGroupId || ""}
+                commGroupName={selectedCommGroupName}
+                onAddVouchers={handleAddVouchers}
               />
             </div>
           ))}
@@ -485,7 +348,7 @@ const CommissionManagement = () => {
         loading={loading}
         setLoading={setLoading}
       />
-      {updatedCommGroup && (
+      {/* {updatedCommGroup && (
         <EditCommGroupModal
           open={editCommGroupModalOpen}
           handleClose={handleEditClose}
@@ -503,7 +366,7 @@ const CommissionManagement = () => {
           generateUniqueCommGroupID={generateUniqueCommGroupID}
           generateSecurePassword={generateSecurePassword}
         />
-      )}
+      )} */}
     </>
   );
 };
