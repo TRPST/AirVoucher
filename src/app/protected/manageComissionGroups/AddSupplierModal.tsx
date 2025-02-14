@@ -97,7 +97,7 @@ const AddSupplierModal = ({
   const fetchSupplierVoucherGroups = async (supplierId: number) => {
     setVoucherGroupsLoading(true);
     const result = await getSupplierMainVoucherGroups(supplierId);
-    console.log("result", result);
+    //console.log("result", result);
     const mainVoucherGroups = result?.mainVoucherGroups || [];
     if (mainVoucherGroups) {
       setMainVoucherGroups(mainVoucherGroups);
@@ -110,7 +110,7 @@ const AddSupplierModal = ({
 
     const result = await getSupplierApis(supplierName);
 
-    console.log("Supplier api results", result);
+    //console.log("Supplier api results", result);
 
     const supplierApis = result?.supplierApis || [];
     if (supplierApis) {
@@ -123,7 +123,7 @@ const AddSupplierModal = ({
     setVouchersLoading(true);
     const result = await getSupplierMobileDataVouchers(supplierName);
     const mobileDataVouchers = result?.mobileDataVouchers || [];
-    console.log("Mobile data vouchers", mobileDataVouchers);
+    //console.log("Mobile data vouchers", mobileDataVouchers);
     setMobileDataVouchers(mobileDataVouchers);
     setVouchersLoading(false);
   };
@@ -133,7 +133,7 @@ const AddSupplierModal = ({
     const result = await getSupplierMobileAirtimeVouchers(supplierName);
     const mobileAirtimeVouchers = result?.mobileAirtimeVouchers || [];
     setMobileAirtimeVouchers(mobileAirtimeVouchers);
-    console.log("Mobile airtime vouchers", mobileAirtimeVouchers);
+    //console.log("Mobile airtime vouchers", mobileAirtimeVouchers);
     setVouchersLoading(false);
   };
 
@@ -149,20 +149,20 @@ const AddSupplierModal = ({
   const handleVoucherChange = (field: string, value: number) => {
     setCurrentVoucher((prev) => ({
       ...prev,
-      [field]: value,
+      [field]: isNaN(value) ? 0 : value,
     }));
   };
 
   const handleAddVoucher = () => {
     if (!selectedSupplier) return;
 
-    const voucherAmount = currentVoucher.amount / 100; // Convert cents to Rands
+    const voucherAmount = currentVoucher.amount / 100;
     const totalCommissionAmount =
-      voucherAmount * (currentVoucher.total_comm ?? 0);
+      voucherAmount * (currentVoucher.total_comm || 0);
     const retailerCommissionAmount =
-      totalCommissionAmount * (currentVoucher.retailer_comm ?? 0);
+      totalCommissionAmount * (currentVoucher.retailer_comm || 0);
     const salesAgentCommissionAmount =
-      totalCommissionAmount * (currentVoucher.sales_agent_comm ?? 0);
+      totalCommissionAmount * (currentVoucher.sales_agent_comm || 0);
     const profitAmount =
       totalCommissionAmount -
       retailerCommissionAmount -
@@ -176,7 +176,7 @@ const AddSupplierModal = ({
     };
 
     setSelectedVouchers((prev) => [...prev, newVoucher]);
-    // Reset current voucher
+    // Reset with explicit 0 values
     setCurrentVoucher({
       name: "",
       vendorId: "",
@@ -193,7 +193,7 @@ const AddSupplierModal = ({
   const handleSubmit = async () => {
     if (selectedVouchers.length > 0 && commGroupId) {
       setLoading(true);
-      console.log("Selected vouchers:", selectedVouchers);
+      //console.log("Selected vouchers:", selectedVouchers);
       const vouchersWithCommGroupId = selectedVouchers.map((voucher) => ({
         ...voucher,
         comm_group_id: commGroupId,
@@ -365,12 +365,12 @@ const AddSupplierModal = ({
                     labelId="supplier-api-select-label"
                     value={selectedSupplierApi?.id || ""}
                     onChange={(event) => {
-                      console.log("Selected API ID:", event.target.value);
+                      //console.log("Selected API ID:", event.target.value);
                       const selectedApiId = Number(event.target.value);
                       const selectedApi = supplierApis.find(
                         (api: SupplierAPI) => api.id === selectedApiId,
                       );
-                      console.log("Selected API:", selectedApi);
+                      //console.log("Selected API:", selectedApi);
                       if (selectedApi) {
                         setSelectedSupplierApi(selectedApi);
                       }
@@ -560,8 +560,8 @@ const AddSupplierModal = ({
                   <Select
                     value={currentVoucher.name}
                     onChange={(e) => {
-                      console.log("Selected voucher value:", e.target.value);
-                      console.log("Selected supplierApi:", selectedSupplierApi);
+                      //console.log("Selected voucher value:", e.target.value);
+                      //console.log("Selected supplierApi:", selectedSupplierApi);
 
                       const voucherName = e.target.value;
                       if (selectedSupplierApi?.name === "Mobile Data") {
@@ -591,7 +591,7 @@ const AddSupplierModal = ({
                           });
                         }
                       } else if (voucherName === "OTT Variable Amount") {
-                        console.log("OTT voucher");
+                        //console.log("OTT voucher");
                         setCurrentVoucher({
                           ...ottVoucher,
                           supplier_id: selectedSupplier?.id || 0,
@@ -697,14 +697,14 @@ const AddSupplierModal = ({
                         step="0.01"
                         min="0"
                         max="1"
-                        value={currentVoucher.total_comm}
+                        value={currentVoucher.total_comm ?? 0}
                         onChange={(e) =>
                           handleVoucherChange(
                             "total_comm",
-                            parseFloat(e.target.value),
+                            parseFloat(e.target.value) || 0,
                           )
                         }
-                        className="w-2/3 rounded-lg border px-4 py-2 dark:bg-gray-700"
+                        className="w-2/3 rounded-lg border px-4 py-2 dark:bg-gray-700 dark:text-white"
                         placeholder="0.00"
                       />
                     </div>
@@ -718,14 +718,14 @@ const AddSupplierModal = ({
                         step="0.01"
                         min="0"
                         max="1"
-                        value={currentVoucher.retailer_comm}
+                        value={currentVoucher.retailer_comm ?? 0}
                         onChange={(e) =>
                           handleVoucherChange(
                             "retailer_comm",
-                            parseFloat(e.target.value),
+                            parseFloat(e.target.value) || 0,
                           )
                         }
-                        className="w-2/3 rounded-lg border px-4 py-2 dark:bg-gray-700"
+                        className="w-2/3 rounded-lg border px-4 py-2 dark:bg-gray-700 dark:text-white"
                         placeholder="0.00"
                       />
                     </div>
@@ -739,14 +739,14 @@ const AddSupplierModal = ({
                         step="0.01"
                         min="0"
                         max="1"
-                        value={currentVoucher.sales_agent_comm}
+                        value={currentVoucher.sales_agent_comm ?? 0}
                         onChange={(e) =>
                           handleVoucherChange(
                             "sales_agent_comm",
-                            parseFloat(e.target.value),
+                            parseFloat(e.target.value) || 0,
                           )
                         }
-                        className="w-2/3 rounded-lg border px-4 py-2 dark:bg-gray-700"
+                        className="w-2/3 rounded-lg border px-4 py-2 dark:bg-gray-700 dark:text-white"
                         placeholder="0.00"
                       />
                     </div>

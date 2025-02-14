@@ -448,3 +448,38 @@ export const deleteCommGroupAction = async (commGroupId: string) => {
 //     return redirect("/");
 //   }
 // };
+
+export const editVoucherAction = async (voucher: MobileDataVoucher) => {
+  const supabase = await createClient();
+
+  const { error } = await supabase
+    .from("mobile_data_vouchers")
+    .update({
+      total_comm: voucher.total_comm,
+      retailer_comm: voucher.retailer_comm,
+      sales_agent_comm: voucher.sales_agent_comm,
+    })
+    .eq("id", voucher.id);
+
+  if (error) {
+    return { error: error.message };
+  }
+
+  return { success: "Voucher updated successfully" };
+};
+
+// Add this new action
+export const deleteVoucherAction = async (voucherId: string | number) => {
+  const supabase = await createClient();
+
+  const { error } = await supabase
+    .from("mobile_data_vouchers")
+    .delete()
+    .eq("id", voucherId);
+
+  if (error) {
+    return { error: error.message };
+  }
+
+  return { success: "Voucher deleted successfully" };
+};

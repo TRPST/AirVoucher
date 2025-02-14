@@ -5,8 +5,10 @@ import {
   editCommGroupAction,
   getCommGroupsAction,
   createCommGroup,
+  editVoucherAction,
+  deleteVoucherAction,
 } from "./actions";
-import { CommGroup, User } from "@/app/types/common";
+import { CommGroup, User, MobileDataVoucher } from "@/app/types/common";
 import DefaultLayout from "@/components/Layouts/DefaultLayout";
 import React, { useEffect, useState } from "react";
 import TableCell from "../../../components/Tables/TableCell";
@@ -79,7 +81,7 @@ const CommissionManagement = () => {
   const fetchCommGroups = async (doLoad: boolean) => {
     if (doLoad) setLoading(true);
     const { commissionGroups, error } = await getCommGroupsAction();
-    console.log("Commission Groups: ", commissionGroups);
+    //console.log("Commission Groups: ", commissionGroups);
     if (error) {
       console.error(error);
     } else {
@@ -119,7 +121,7 @@ const CommissionManagement = () => {
     try {
       setLoading(true);
       const result = await createCommGroup(newCommGroup);
-      console.log("Result: ", result);
+      //console.log("Result: ", result);
       if (result.error) {
         setError(result.error);
       } else {
@@ -162,7 +164,7 @@ const CommissionManagement = () => {
     try {
       setEditLoading(true);
       const result = await editCommGroupAction(updatedCommGroup);
-      console.log("Result: ", result);
+      //console.log("Result: ", result);
       if (result.error) {
         setEditError(result.error);
       } else {
@@ -184,7 +186,7 @@ const CommissionManagement = () => {
       const result = await editCommGroupAction(
         updatedCommGroupRetailers as CommGroup,
       );
-      console.log("Result: ", result);
+      //console.log("Result: ", result);
       if (result.error) {
         setEditError(result.error);
       } else {
@@ -202,7 +204,7 @@ const CommissionManagement = () => {
     try {
       setEditLoading(true);
       const result = await deleteCommGroupAction(id);
-      console.log("Result: ", result);
+      //console.log("Result: ", result);
       if (result.error) {
         setEditError(result.error);
       } else {
@@ -228,6 +230,61 @@ const CommissionManagement = () => {
 
   const handleAddVouchers = () => {
     fetchCommGroups(true);
+  };
+
+  const handleEditVoucher = async (
+    groupId: string,
+    voucherIndex: number,
+    updatedVoucher: MobileDataVoucher,
+    isJustOpening?: boolean,
+  ) => {
+    if (isJustOpening) {
+      setEditError("");
+      setEditSuccess("");
+      return;
+    }
+
+    try {
+      setEditLoading(true);
+      const result = await editVoucherAction(updatedVoucher);
+      if (result.error) {
+        setEditError(result.error);
+      } else {
+        setEditSuccess(result.success || "");
+        fetchCommGroups(false);
+      }
+    } catch (error) {
+      console.error("Error: ", error);
+    } finally {
+      setEditLoading(false);
+    }
+  };
+
+  const handleDeleteVoucher = async (voucherId: string) => {
+    try {
+      setEditLoading(true);
+      setEditError("");
+      setEditSuccess("");
+
+      if (!voucherId) {
+        setEditError("Voucher ID not found");
+        return;
+      }
+
+      const result = await deleteVoucherAction(voucherId);
+      if (result.error) {
+        setEditError(result.error);
+      } else {
+        setEditSuccess(result.success || "");
+        // Close the modal and refresh the data
+        fetchCommGroups(false);
+      }
+    } catch (error) {
+      console.error("Error: ", error);
+      setEditError("Failed to delete voucher");
+    } finally {
+      setEditLoading(false);
+    }
   };
 
   return (
@@ -256,11 +313,16 @@ const CommissionManagement = () => {
               <CommissionTable
                 data={group.id ? [group as Required<CommGroup>] : []}
                 setAddSupplierModalOpen={(open, commGroupId, commGroupName) => {
-                  console.log("commGroupName", commGroupName);
+                  //console.log("commGroupName", commGroupName);
                   setSelectedCommGroupId(commGroupId || null);
                   setSelectedCommGroupName(commGroupName || "");
                   setAddSupplierModalOpen(open);
                 }}
+                handleDeleteVoucher={handleDeleteVoucher}
+                handleEditVoucher={handleEditVoucher}
+                editLoading={editLoading}
+                editError={editError}
+                editSuccess={editSuccess}
               />
 
               <AddSupplierModal
