@@ -25,7 +25,7 @@ export const superAdminMenu = [
           </svg>
         ),
         label: "Dashboard",
-        route: "dashboard",
+        route: "protected/dashboard",
         //children: [{ label: "eCommerce", route: "/" }],
       },
       {
@@ -49,7 +49,7 @@ export const superAdminMenu = [
         label: "Admins",
         route: "#",
         children: [
-          { label: "Manage Admins", route: "manageAdmins" },
+          { label: "Manage Admins", route: "protected/manageAdmins" },
           // { label: "Retailers Assignment", route: "#" },
           // { label: "Activate/Deactivate Sub-Admins", route: "#" },
         ],
@@ -75,9 +75,12 @@ export const superAdminMenu = [
         label: "Retailers",
         route: "#",
         children: [
-          { label: "Manage Retailers", route: "retailersList" },
+          { label: "Manage Retailers", route: "protected/retailersList" },
           // { label: "Retailers Status", route: "retailersStatus" },
-          { label: "Authorizations", route: "retailersAuthorizations" },
+          {
+            label: "Authorizations",
+            route: "protected/retailersAuthorizations",
+          },
         ],
       },
 
@@ -102,7 +105,10 @@ export const superAdminMenu = [
         label: "Commission Groups",
         route: "#",
         children: [
-          { label: "Manage Commission Groups", route: "manageComissionGroups" },
+          {
+            label: "Manage Commission Groups",
+            route: "protected/manageComissionGroups",
+          },
           // { label: "View Existing Groups", route: "#" },
           // { label: "Supplier Prioritization", route: "#" },
         ],
@@ -128,7 +134,7 @@ export const superAdminMenu = [
         label: "Suppliers",
         route: "#",
         children: [
-          { label: "Manage Suppliers", route: "manageSuppliers" },
+          { label: "Manage Suppliers", route: "protected/manageSuppliers" },
           // { label: "Supplier Activation", route: "#" },
         ],
       },
@@ -152,7 +158,9 @@ export const superAdminMenu = [
         ),
         label: "Terminals",
         route: "#",
-        children: [{ label: "Manage Terminals", route: "manageTerminals" }],
+        children: [
+          { label: "Manage Terminals", route: "protected/manageTerminals" },
+        ],
       },
       {
         icon: (
@@ -174,7 +182,7 @@ export const superAdminMenu = [
         ),
         label: "Products",
         route: "#",
-        children: [{ label: "Manage Products", route: "products" }],
+        children: [{ label: "Manage Products", route: "protected/products" }],
       },
     ],
   },
@@ -207,7 +215,7 @@ export const subAdminMenu = [
           </svg>
         ),
         label: "Dashboard",
-        route: "dashboard",
+        route: "protected/dashboard",
         //children: [{ label: "eCommerce", route: "/" }],
       },
       {
@@ -230,7 +238,9 @@ export const subAdminMenu = [
         ),
         label: "Retailers",
         route: "#",
-        children: [{ label: "Manage Retailers", route: "retailersList" }],
+        children: [
+          { label: "Manage Retailers", route: "protected/retailersList" },
+        ],
       },
       {
         icon: (
@@ -252,7 +262,9 @@ export const subAdminMenu = [
         ),
         label: "Terminals",
         route: "#",
-        children: [{ label: "Manage Terminals", route: "manageTerminals" }],
+        children: [
+          { label: "Manage Terminals", route: "protected/manageTerminals" },
+        ],
       },
       {
         icon: (
@@ -274,7 +286,7 @@ export const subAdminMenu = [
         ),
         label: "Products",
         route: "#",
-        children: [{ label: "Manage Products", route: "products" }],
+        children: [{ label: "Manage Products", route: "protected/products" }],
       },
     ],
   },
@@ -304,7 +316,9 @@ export const retailerMenu = [
         ),
         label: "Terminals",
         route: "#",
-        children: [{ label: "Manage Terminals", route: "manageTerminals" }],
+        children: [
+          { label: "Manage Terminals", route: "protected/manageTerminals" },
+        ],
       },
       {
         icon: (
@@ -326,7 +340,7 @@ export const retailerMenu = [
         ),
         label: "Products",
         route: "#",
-        children: [{ label: "Manage Products", route: "products" }],
+        children: [{ label: "Manage Products", route: "protected/products" }],
       },
     ],
   },
@@ -356,7 +370,9 @@ export const cashierMenu = [
         ),
         label: "Terminals",
         route: "#",
-        children: [{ label: "Manage Terminals", route: "manageTerminals" }],
+        children: [
+          { label: "Manage Terminals", route: "protected/manageTerminals" },
+        ],
       },
     ],
   },
