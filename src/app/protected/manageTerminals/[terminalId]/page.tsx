@@ -69,7 +69,7 @@ const TerminalDashboard = () => {
   // Handle provider selection
   const selectProvider = (provider) => {
     setSelectedProvider(provider);
-    setSelectedService(null);
+    setSelectedService("Airtime");
     setVouchers([]);
 
     if (provider === "OTT") {
@@ -171,19 +171,27 @@ const TerminalDashboard = () => {
       }
 
       const data = await response.json();
-      console.log(`Fetched ${service} Data:`, data);
+      console.log(`Fetched ${service} Data:`, JSON.stringify(data, null, 2)); // ✅ Log response
 
-      if (!Array.isArray(data) || data.length === 0) {
-        throw new Error("No vouchers found.");
+      // ✅ Ensure data is valid
+      if (!data || !Array.isArray(data)) {
+        throw new Error("Invalid API response: No vouchers found.");
       }
 
       if (!selectedProvider) {
         throw new Error("Please select a provider.");
       }
 
-      // **Filtering Logic**
-      const filteredVouchers = data.filter(
-        (v) => v.vendorId?.toLowerCase() === selectedProvider.toLowerCase(),
+      console.log("Selected Provider:", selectedProvider);
+
+      // ✅ Fix Filtering Logic (Handle case differences)
+      const filteredVouchers = data.filter((v) =>
+        v.vendorId?.toLowerCase().includes(selectedProvider.toLowerCase()),
+      );
+
+      console.log(
+        "Filtered Vouchers:",
+        JSON.stringify(filteredVouchers, null, 2),
       );
 
       if (filteredVouchers.length === 0) {
@@ -552,6 +560,8 @@ const TerminalDashboard = () => {
           <Typography>{error}</Typography>
         </div>
       )}
+      {/* Debugging Log */}
+      {console.log("Vouchers to Display:", JSON.stringify(vouchers, null, 2))}
 
       {/* Display Vouchers */}
       {selectedService && vouchers.length > 0 && (
@@ -566,13 +576,13 @@ const TerminalDashboard = () => {
               >
                 <CardContent>
                   <Typography variant="h6">{voucher.name}</Typography>
-                  <Typography>ID {voucher.id}</Typography>
+                  <Typography>Mobile {voucher.category}</Typography>
                   <Typography variant="body2" color="text.secondary">
                     R{(voucher.amount / 100).toFixed(2)}
                   </Typography>
-                  <Typography>
+                  {/* <Typography>
                     {voucher.vendorId === "11" ? "OTT" : "Mobile"}
-                  </Typography>
+                  </Typography> */}
                 </CardContent>
               </Card>
             ))}
