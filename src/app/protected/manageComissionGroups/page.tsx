@@ -289,31 +289,27 @@ const CommissionManagement = () => {
 
   return (
     <>
-      <div className="container mx-auto py-8">
-        <div className="mb-6 flex items-center justify-between">
-          <h2 className="text-3xl font-semibold text-gray-800 dark:text-white">
+      <div className="container mx-auto px-4 py-4 sm:py-8">
+        <div className="mb-4 flex flex-col space-y-4 sm:mb-6 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
+          <h2 className="text-2xl font-semibold text-gray-800 dark:text-white sm:text-3xl">
             Manage Commission Groups
           </h2>
-          {/* <Button variant="outlined" onClick={() => setAddCommGroupModalOpen(true)}>
-            Add CommGroup
-          </Button> */}
           {userRole === "superAdmin" && (
             <button
               onClick={() => setAddCommGroupModalOpen(true)}
-              className="rounded border border-blue-700 px-3 py-2 font-semibold text-blue-500 shadow transition duration-300 hover:bg-blue-800 hover:text-white dark:border-blue-600 dark:hover:bg-blue-700"
+              className="w-full rounded border border-blue-700 px-3 py-2 font-semibold text-blue-500 shadow transition duration-300 hover:bg-blue-800 hover:text-white dark:border-blue-600 dark:hover:bg-blue-700 sm:w-auto"
             >
-              Create Commision Group
+              Create Commission Group
             </button>
           )}
         </div>
 
-        <div>
+        <div className=" ">
           {commGroups.map((group) => (
             <div key={group.id}>
               <CommissionTable
                 data={group.id ? [group as Required<CommGroup>] : []}
                 setAddSupplierModalOpen={(open, commGroupId, commGroupName) => {
-                  //console.log("commGroupName", commGroupName);
                   setSelectedCommGroupId(commGroupId || null);
                   setSelectedCommGroupName(commGroupName || "");
                   setAddSupplierModalOpen(open);

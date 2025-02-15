@@ -752,30 +752,29 @@ const AddSupplierModal = ({
                     </div>
                   </div>
                   <button
-                    className="mt-10 rounded bg-green-500 px-4 py-2 text-white hover:bg-green-600"
+                    className="mb-3 w-full rounded-lg bg-blue-700 py-3 font-semibold text-white shadow transition duration-300 hover:bg-blue-800"
                     onClick={handleAddVoucher}
-                    style={{ marginTop: "20px" }}
                   >
                     Add Voucher
                   </button>
                 </div>
 
-                <div className="flex justify-end">
+                <div className="mt-6 flex justify-end space-x-3">
                   <button
-                    className="mr-2 rounded bg-gray-500 px-4 py-2 text-white hover:bg-gray-600"
+                    className="w-32 rounded-lg bg-gray-600 py-3 font-semibold text-white shadow transition duration-300 hover:bg-gray-700"
                     onClick={handleModalClose}
                     disabled={loading}
                   >
                     Cancel
                   </button>
                   <button
-                    className="rounded bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 disabled:bg-blue-300"
+                    className="w-32 rounded-lg bg-blue-700 py-3 font-semibold text-white shadow transition duration-300 hover:bg-blue-800 disabled:bg-blue-300"
                     onClick={handleSubmit}
                     disabled={loading}
                   >
                     {loading ? (
-                      <div className="flex items-center space-x-2">
-                        <div className="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
+                      <div className="flex items-center justify-center space-x-2">
+                        <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
                         <span>Saving...</span>
                       </div>
                     ) : (
