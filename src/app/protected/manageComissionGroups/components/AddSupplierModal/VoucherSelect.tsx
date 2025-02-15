@@ -10,6 +10,7 @@ interface VoucherSelectProps {
   mobileAirtimeVouchers: MobileDataVoucher[];
   onVoucherSelect: (voucher: MobileDataVoucher) => void;
   ottVoucher: MobileDataVoucher;
+  error?: string;
 }
 
 const VoucherSelect = ({
@@ -20,6 +21,7 @@ const VoucherSelect = ({
   mobileAirtimeVouchers,
   onVoucherSelect,
   ottVoucher,
+  error,
 }: VoucherSelectProps) => {
   const getAvailableVouchers = () => {
     const ensureId = (voucher: MobileDataVoucher) => ({
@@ -54,7 +56,7 @@ const VoucherSelect = ({
       return voucher.name;
     }
 
-    return `${voucher.name}`;
+    return `${voucher.vendorId.toUpperCase()} --- ${voucher.name}`;
   };
 
   return (
@@ -80,8 +82,9 @@ const VoucherSelect = ({
         displayKey="name"
         formatDisplay={formatVoucherDisplay}
         placeholder="Search voucher..."
-        className="mb-5"
+        className={`mb-5 ${error ? "border-red-500" : ""}`}
       />
+      {error && <p className="mt-1 text-sm text-red-500">{error}</p>}
     </div>
   );
 };

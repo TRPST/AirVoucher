@@ -37,10 +37,10 @@ const VoucherDropdown: React.FC<VoucherDropdownProps> = ({
   return (
     <div className={cn("relative w-full", className)}>
       <Command
-        className="rounded-lg border border-gray-300 bg-white shadow-sm dark:border-gray-600 dark:bg-gray-800"
+        className="rounded-lg border border-gray-300 bg-white shadow-sm dark:border-gray-400 dark:bg-gray-800"
         shouldFilter={false}
       >
-        <div className="flex items-center border-b border-gray-300 px-3 dark:border-gray-600">
+        <div className="flex items-center border-b border-gray-300 px-3 dark:border-gray-500">
           <Search className="h-4 w-4 shrink-0 text-gray-500 dark:text-gray-400" />
           <Command.Input
             value={search}

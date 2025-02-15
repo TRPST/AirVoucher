@@ -68,10 +68,10 @@ const AddSupplierModal = ({
   const [selectedSupplierApi, setSelectedSupplierApi] =
     useState<SupplierAPI | null>(null);
 
-  // Add new state for selected vouchers and current voucher
-  const [selectedVouchers, setSelectedVouchers] = useState<
-    MobileDataVouchers[]
-  >([]);
+  // Fix for the MobileDataVouchers[] type error
+  const [selectedVouchers, setSelectedVouchers] = useState<MobileDataVoucher[]>(
+    [],
+  );
 
   const {
     formData: currentVoucher,
@@ -88,8 +88,16 @@ const AddSupplierModal = ({
   // Network options constant remains the same
   const networkOptions = ["CELLC", "MTN", "VODACOM", "TELKOM"];
 
-  // Add network brand styling configuration
-  const networkStyles = {
+  // Fix for the networkStyles type safety
+  type NetworkProvider = "CELLC" | "MTN" | "VODACOM" | "TELKOM";
+
+  const networkStyles: Record<
+    NetworkProvider,
+    {
+      selected: string;
+      default: string;
+    }
+  > = {
     CELLC: {
       selected: "border-gray-300 bg-white text-black",
       default:
@@ -111,6 +119,9 @@ const AddSupplierModal = ({
         "border-blue-600 bg-transparent dark:text-white hover:bg-blue-600 hover:text-white",
     },
   };
+
+  // Add new state for voucher selection error
+  const [voucherError, setVoucherError] = useState<string>("");
 
   useEffect(() => {
     const fetchSuppliers = async () => {
@@ -191,6 +202,16 @@ const AddSupplierModal = ({
 
   const handleAddVoucher = () => {
     if (!selectedSupplier) return;
+
+    // Clear previous errors
+    setVoucherError("");
+
+    // Check if a voucher is selected
+    if (!currentVoucher?.name) {
+      setVoucherError("Please select a voucher first");
+      return;
+    }
+
     if (!validate()) return;
 
     const voucherAmount = currentVoucher.amount / 100;
@@ -221,27 +242,48 @@ const AddSupplierModal = ({
   const handleSubmit = async () => {
     if (selectedVouchers.length > 0 && commGroupId) {
       setLoading(true);
-      //console.log("Selected vouchers:", selectedVouchers);
-      const vouchersWithCommGroupId = selectedVouchers.map((voucher) => ({
-        ...voucher,
-        comm_group_id: commGroupId,
-      }));
-      const result = await addVouchersToMobileDataVouchers(
-        vouchersWithCommGroupId,
-      );
-      if (result.error) {
-        console.error("Error adding vouchers:", result.error);
-      } else {
-        // Reset all form values on successful submission
-        setSelectedSupplier(undefined);
-        setSelectedSupplierApi(null);
-        setSelectedVouchers([]);
-        resetVoucherForm();
-        setSelectedMainVoucherGroup(undefined);
-        onAddVouchers(selectedVouchers);
-        onClose();
+
+      type VoucherWithNetwork = MobileDataVoucher & {
+        networkProvider?: string;
+        comm_group_id: string;
+      };
+
+      const vouchersWithCommGroupId: Omit<
+        VoucherWithNetwork,
+        "networkProvider"
+      >[] = selectedVouchers.map((voucher) => {
+        // Create a new object without the networkProvider field
+        const { networkProvider, ...voucherWithoutNetwork } =
+          voucher as VoucherWithNetwork;
+
+        return {
+          ...voucherWithoutNetwork,
+          comm_group_id: commGroupId,
+        };
+      });
+
+      try {
+        const result = await addVouchersToMobileDataVouchers(
+          vouchersWithCommGroupId,
+        );
+
+        if ("error" in result) {
+          console.error("Error adding vouchers:", result.error);
+        } else {
+          // Reset all form values on successful submission
+          setSelectedSupplier(undefined);
+          setSelectedSupplierApi(null);
+          setSelectedVouchers([]);
+          resetVoucherForm();
+          setSelectedMainVoucherGroup(undefined);
+          onAddVouchers(selectedVouchers);
+          onClose();
+        }
+      } catch (error) {
+        console.error("Error adding vouchers:", error);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     }
   };
 
@@ -359,13 +401,17 @@ const AddSupplierModal = ({
                         {networkOptions.map((network) => (
                           <button
                             key={network}
-                            onClick={() => setSelectedNetwork(network)}
+                            onClick={() =>
+                              setSelectedNetwork(network as NetworkProvider)
+                            }
                             className={`
                               rounded-lg border p-4 text-center text-xs font-semibold shadow transition-colors duration-200
                               ${
                                 selectedNetwork === network
-                                  ? networkStyles[network].selected
-                                  : networkStyles[network].default
+                                  ? networkStyles[network as NetworkProvider]
+                                      .selected
+                                  : networkStyles[network as NetworkProvider]
+                                      .default
                               }
                             `}
                           >
@@ -392,6 +438,7 @@ const AddSupplierModal = ({
                   )}
                   onVoucherSelect={handleVoucherSelect}
                   ottVoucher={ottVoucher}
+                  error={voucherError}
                 />
 
                 <CommissionInputs
@@ -416,12 +463,14 @@ const AddSupplierModal = ({
                     Cancel
                   </button>
                   <button
-                    className="w-32 rounded-lg bg-blue-700 py-3 font-semibold text-white shadow transition duration-300 hover:bg-blue-800 disabled:bg-blue-300 dark:text-white"
+                    className={`w-32 rounded-lg bg-blue-700 py-3 font-semibold text-white shadow transition duration-300 ${
+                      loading ? null : "hover:bg-blue-800"
+                    } dark:text-white`}
                     onClick={handleSubmit}
                     disabled={loading}
                   >
                     {loading ? (
-                      <div className="flex items-center justify-center space-x-2">
+                      <div className="flex items-center justify-center space-x-2 bg-blue-700">
                         <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
                         <span className="dark:text-white">Saving...</span>
                       </div>
