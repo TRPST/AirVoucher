@@ -21,6 +21,8 @@ import VoucherSelect from "./components/AddSupplierModal/VoucherSelect";
 import CommissionInputs from "./components/AddSupplierModal/CommissionInputs";
 import VoucherTable from "./components/AddSupplierModal/VoucherTable";
 
+type CommissionField = "total_comm" | "retailer_comm" | "sales_agent_comm";
+
 const AddSupplierModal = ({
   isOpen,
   onClose,
@@ -67,18 +69,48 @@ const AddSupplierModal = ({
     useState<SupplierAPI | null>(null);
 
   // Add new state for selected vouchers and current voucher
-  const [selectedVouchers, setSelectedVouchers] = useState<MobileDataVoucher[]>(
-    [],
-  );
+  const [selectedVouchers, setSelectedVouchers] = useState<
+    MobileDataVouchers[]
+  >([]);
 
   const {
-    voucher: currentVoucher,
+    formData: currentVoucher,
     errors,
     handleChange: handleVoucherFieldChange,
     validate,
     reset: resetVoucherForm,
-    setVoucher: setCurrentVoucher,
+    setFormData: setCurrentVoucher,
   } = useVoucherForm();
+
+  // Update the initial state to select CELLC by default
+  const [selectedNetwork, setSelectedNetwork] = useState<string>("CELLC");
+
+  // Network options constant remains the same
+  const networkOptions = ["CELLC", "MTN", "VODACOM", "TELKOM"];
+
+  // Add network brand styling configuration
+  const networkStyles = {
+    CELLC: {
+      selected: "border-gray-300 bg-white text-black",
+      default:
+        "border-gray-300 bg-transparent dark:text-white hover:bg-gray-50 dark:hover:text-black",
+    },
+    MTN: {
+      selected: "border-yellow-400 bg-yellow-400 text-black",
+      default:
+        "border-yellow-400 bg-transparent dark:text-white hover:bg-yellow-400 dark:hover:text-black",
+    },
+    VODACOM: {
+      selected: "border-red-600 bg-red-600 text-white",
+      default:
+        "border-red-600 bg-transparent dark:text-white hover:bg-red-600 hover:text-white",
+    },
+    TELKOM: {
+      selected: "border-blue-600 bg-blue-600 text-white",
+      default:
+        "border-blue-600 bg-transparent dark:text-white hover:bg-blue-600 hover:text-white",
+    },
+  };
 
   useEffect(() => {
     const fetchSuppliers = async () => {
@@ -145,8 +177,12 @@ const AddSupplierModal = ({
     }
   }, [selectedSupplier]);
 
-  const handleVoucherChange = (field: string, value: number) => {
-    handleVoucherFieldChange(field as keyof MobileDataVoucher, value);
+  const handleVoucherChange = (field: CommissionField, value: number) => {
+    if (handleVoucherFieldChange) {
+      // Only convert to decimal if there's a value
+      const decimalValue = value ? value / 100 : null;
+      handleVoucherFieldChange(field, decimalValue);
+    }
   };
 
   const handleBulkUpload = (vouchers: MobileDataVoucher[]) => {
@@ -158,6 +194,7 @@ const AddSupplierModal = ({
     if (!validate()) return;
 
     const voucherAmount = currentVoucher.amount / 100;
+    // Note: currentVoucher stores values as decimals (0-1)
     const totalCommissionAmount =
       voucherAmount * (currentVoucher.total_comm || 0);
     const retailerCommissionAmount =
@@ -177,7 +214,6 @@ const AddSupplierModal = ({
     };
 
     setSelectedVouchers((prev) => [...prev, newVoucher]);
-    // Reset with explicit 0 values
     resetVoucherForm();
     setSelectedMainVoucherGroup(undefined);
   };
@@ -237,6 +273,19 @@ const AddSupplierModal = ({
     supplier_name: "",
   };
 
+  const handleVoucherSelect = (selectedVoucher: MobileDataVoucher) => {
+    setCurrentVoucher({
+      ...selectedVoucher,
+      supplier_id: selectedSupplier?.id || 0,
+      supplier_name: selectedSupplier?.supplier_name || "",
+      networkProvider: (selectedVoucher.vendorId?.toUpperCase() || "MTN") as
+        | "CELLC"
+        | "MTN"
+        | "TELKOM"
+        | "VODACOM",
+    });
+  };
+
   return (
     <Modal
       open={isOpen}
@@ -277,9 +326,9 @@ const AddSupplierModal = ({
               setSupplierName={setSupplierName}
             />
 
-            <div className="mb-5">
+            {/* <div className="mb-5">
               <BulkUpload onUpload={handleBulkUpload} />
-            </div>
+            </div> */}
 
             {vouchersLoading ? (
               <div className="flex h-64 items-center justify-center">
@@ -298,13 +347,50 @@ const AddSupplierModal = ({
                   onDeleteVoucher={handleDeleteVoucher}
                 />
 
+                {/* Add Network Selection Blocks */}
+                {selectedSupplierApi?.name &&
+                  (selectedSupplierApi.name === "Mobile Data" ||
+                    selectedSupplierApi.name === "Mobile Airtime") && (
+                    <div className="mb-6 mt-6">
+                      <h3 className="mb-2 font-semibold text-gray-800 dark:text-gray-100">
+                        Select Network
+                      </h3>
+                      <div className="grid grid-cols-4 gap-4">
+                        {networkOptions.map((network) => (
+                          <button
+                            key={network}
+                            onClick={() => setSelectedNetwork(network)}
+                            className={`
+                              rounded-lg border p-4 text-center text-xs font-semibold shadow transition-colors duration-200
+                              ${
+                                selectedNetwork === network
+                                  ? networkStyles[network].selected
+                                  : networkStyles[network].default
+                              }
+                            `}
+                          >
+                            {network}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
                 <VoucherSelect
                   currentVoucher={currentVoucher}
                   selectedSupplier={selectedSupplier}
                   selectedSupplierApi={selectedSupplierApi}
-                  mobileDataVouchers={mobileDataVouchers}
-                  mobileAirtimeVouchers={mobileAirtimeVouchers}
-                  onVoucherSelect={setCurrentVoucher}
+                  mobileDataVouchers={mobileDataVouchers.filter(
+                    (voucher) =>
+                      !selectedNetwork ||
+                      voucher.vendorId?.toUpperCase() === selectedNetwork,
+                  )}
+                  mobileAirtimeVouchers={mobileAirtimeVouchers.filter(
+                    (voucher) =>
+                      !selectedNetwork ||
+                      voucher.vendorId?.toUpperCase() === selectedNetwork,
+                  )}
+                  onVoucherSelect={handleVoucherSelect}
                   ottVoucher={ottVoucher}
                 />
 
@@ -315,7 +401,7 @@ const AddSupplierModal = ({
                 />
 
                 <button
-                  className="mb-3 w-full rounded-lg bg-blue-700 py-3 font-semibold text-white shadow transition duration-300 hover:bg-blue-800"
+                  className="mb-3 w-full rounded-lg bg-blue-700 py-3 font-semibold text-white shadow transition duration-300 hover:bg-blue-800 dark:text-white"
                   onClick={handleAddVoucher}
                 >
                   Add Voucher
@@ -323,21 +409,21 @@ const AddSupplierModal = ({
 
                 <div className="mt-6 flex justify-end space-x-3">
                   <button
-                    className="w-32 rounded-lg bg-gray-600 py-3 font-semibold text-white shadow transition duration-300 hover:bg-gray-700"
+                    className="w-32 rounded-lg bg-gray-600 py-3 font-semibold text-white shadow transition duration-300 hover:bg-gray-700 dark:text-white"
                     onClick={handleModalClose}
                     disabled={loading}
                   >
                     Cancel
                   </button>
                   <button
-                    className="w-32 rounded-lg bg-blue-700 py-3 font-semibold text-white shadow transition duration-300 hover:bg-blue-800 disabled:bg-blue-300"
+                    className="w-32 rounded-lg bg-blue-700 py-3 font-semibold text-white shadow transition duration-300 hover:bg-blue-800 disabled:bg-blue-300 dark:text-white"
                     onClick={handleSubmit}
                     disabled={loading}
                   >
                     {loading ? (
                       <div className="flex items-center justify-center space-x-2">
                         <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
-                        <span>Saving...</span>
+                        <span className="dark:text-white">Saving...</span>
                       </div>
                     ) : (
                       "Save"

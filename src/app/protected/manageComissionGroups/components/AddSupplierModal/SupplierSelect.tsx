@@ -19,7 +19,9 @@ const SupplierSelect = ({
 }: SupplierSelectProps) => {
   return (
     <>
-      <h3 className="mb-2 mt-5 font-semibold">Supplier</h3>
+      <h3 className="mb-2 mt-5 font-semibold text-gray-800 dark:text-gray-100">
+        Supplier
+      </h3>
       <VoucherDropdown
         items={suppliers}
         value={selectedSupplier?.supplier_name || ""}

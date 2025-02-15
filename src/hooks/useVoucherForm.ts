@@ -1,26 +1,14 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { z } from "zod";
-import { MobileDataVoucher } from "@/app/types/common";
+import { VoucherFormData, voucherFormSchema } from "@/app/types/vouchers";
+import useLocalStorage from "@/hooks/useLocalStorage";
 
-const voucherSchema = z.object({
-  name: z.string().min(1, "Voucher name is required"),
-  vendorId: z.string().min(1, "Vendor ID is required"),
-  amount: z.number().min(0, "Amount must be positive"),
-  total_comm: z.number().min(0).max(1, "Commission must be between 0 and 1"),
-  retailer_comm: z.number().min(0).max(1, "Commission must be between 0 and 1"),
-  sales_agent_comm: z
-    .number()
-    .min(0)
-    .max(1, "Commission must be between 0 and 1"),
-  supplier_id: z.number().min(1, "Supplier is required"),
-  supplier_name: z.string().min(1, "Supplier name is required"),
-});
-
-export const useVoucherForm = (initialState?: Partial<MobileDataVoucher>) => {
-  const [voucher, setVoucher] = useState<MobileDataVoucher>({
+export const useVoucherForm = (initialState?: Partial<VoucherFormData>) => {
+  const [formData, setFormData] = useState<VoucherFormData>({
     name: "",
     vendorId: "",
     amount: 0,
+    networkProvider: "MTN",
     total_comm: 0,
     retailer_comm: 0,
     sales_agent_comm: 0,
@@ -32,9 +20,37 @@ export const useVoucherForm = (initialState?: Partial<MobileDataVoucher>) => {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isDirty, setIsDirty] = useState(false);
 
+  // Auto-save draft functionality
+  const [draftValue, setDraftValue] = useLocalStorage(
+    `voucher-draft-${Date.now()}`,
+    null,
+  );
+
+  useEffect(() => {
+    if (isDirty) {
+      setDraftValue(formData);
+    }
+  }, [formData, isDirty, setDraftValue]);
+
+  const loadDraft = () => {
+    if (draftValue) {
+      try {
+        setFormData(draftValue);
+        return true;
+      } catch (error) {
+        console.error("Error loading draft:", error);
+      }
+    }
+    return false;
+  };
+
+  const clearDraft = () => {
+    setDraftValue(null);
+  };
+
   const validate = () => {
     try {
-      voucherSchema.parse(voucher);
+      voucherFormSchema.parse(formData);
       setErrors({});
       return true;
     } catch (error) {
@@ -51,16 +67,17 @@ export const useVoucherForm = (initialState?: Partial<MobileDataVoucher>) => {
     }
   };
 
-  const handleChange = (field: keyof MobileDataVoucher, value: any) => {
-    setVoucher((prev) => ({ ...prev, [field]: value }));
+  const handleChange = (field: keyof VoucherFormData, value: any) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
     setIsDirty(true);
   };
 
-  const reset = (newState?: Partial<MobileDataVoucher>) => {
-    setVoucher({
+  const reset = (newState?: Partial<VoucherFormData>) => {
+    setFormData({
       name: "",
       vendorId: "",
       amount: 0,
+      networkProvider: "MTN",
       total_comm: 0,
       retailer_comm: 0,
       sales_agent_comm: 0,
@@ -70,15 +87,18 @@ export const useVoucherForm = (initialState?: Partial<MobileDataVoucher>) => {
     });
     setErrors({});
     setIsDirty(false);
+    clearDraft();
   };
 
   return {
-    voucher,
+    formData,
     errors,
     isDirty,
     handleChange,
     validate,
     reset,
-    setVoucher,
+    setFormData,
+    loadDraft,
+    clearDraft,
   };
 };

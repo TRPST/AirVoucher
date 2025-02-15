@@ -12,32 +12,32 @@ const VoucherTable = ({ vouchers, onDeleteVoucher }: VoucherTableProps) => {
   return (
     <table className="min-w-full border-collapse rounded-lg bg-white shadow-md dark:bg-gray-800">
       <thead>
-        <tr className="bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300">
-          <th className="whitespace-nowrap border border-gray-300 px-4 py-2 text-left text-sm font-semibold dark:border-gray-600">
+        <tr className="bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-100">
+          <th className="whitespace-nowrap border border-gray-300 px-4 py-2 text-left text-sm font-semibold dark:border-gray-600 dark:text-gray-100">
             Supplier
           </th>
-          <th className="whitespace-nowrap border border-gray-300 px-4 py-2 text-left text-sm font-semibold dark:border-gray-600">
+          <th className="whitespace-nowrap border border-gray-300 px-4 py-2 text-left text-sm font-semibold dark:border-gray-600 dark:text-gray-100">
             Voucher Name
           </th>
-          <th className="whitespace-nowrap border border-gray-300 px-4 py-2 text-left text-sm font-semibold dark:border-gray-600">
+          <th className="whitespace-nowrap border border-gray-300 px-4 py-2 text-left text-sm font-semibold dark:border-gray-600 dark:text-gray-100">
             Vendor
           </th>
-          <th className="whitespace-nowrap border border-gray-300 px-4 py-2 text-left text-sm font-semibold dark:border-gray-600">
+          <th className="whitespace-nowrap border border-gray-300 px-4 py-2 text-left text-sm font-semibold dark:border-gray-600 dark:text-gray-100">
             Amount (R)
           </th>
-          <th className="whitespace-nowrap border border-gray-300 px-4 py-2 text-left text-sm font-semibold dark:border-gray-600">
+          <th className="whitespace-nowrap border border-gray-300 px-4 py-2 text-left text-sm font-semibold dark:border-gray-600 dark:text-gray-100">
             Total Comm
           </th>
-          <th className="whitespace-nowrap border border-gray-300 px-4 py-2 text-left text-sm font-semibold dark:border-gray-600">
+          <th className="whitespace-nowrap border border-gray-300 px-4 py-2 text-left text-sm font-semibold dark:border-gray-600 dark:text-gray-100">
             Retailer Comm
           </th>
-          <th className="whitespace-nowrap border border-gray-300 px-4 py-2 text-left text-sm font-semibold dark:border-gray-600">
+          <th className="whitespace-nowrap border border-gray-300 px-4 py-2 text-left text-sm font-semibold dark:border-gray-600 dark:text-gray-100">
             Sales Agent Comm
           </th>
-          <th className="whitespace-nowrap border border-gray-300 px-4 py-2 text-left text-sm font-semibold dark:border-gray-600">
+          <th className="whitespace-nowrap border border-gray-300 px-4 py-2 text-left text-sm font-semibold dark:border-gray-600 dark:text-gray-100">
             Profit
           </th>
-          <th className="whitespace-nowrap border border-gray-300 px-4 py-2 text-left text-sm font-semibold dark:border-gray-600">
+          <th className="whitespace-nowrap border border-gray-300 px-4 py-2 text-left text-sm font-semibold dark:border-gray-600 dark:text-gray-100">
             Actions
           </th>
         </tr>
@@ -59,52 +59,46 @@ const VoucherTable = ({ vouchers, onDeleteVoucher }: VoucherTableProps) => {
           return (
             <tr
               key={index}
-              className="bg-white transition-colors duration-200 hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700"
+              className="bg-white transition-colors duration-200 hover:bg-gray-100 dark:bg-gray-800 dark:text-gray-100 dark:hover:bg-gray-700"
             >
-              <td className="whitespace-nowrap border border-gray-300 px-4 py-2 dark:border-gray-600">
+              <td className="whitespace-nowrap border border-gray-300 px-4 py-2 text-sm dark:border-gray-600 dark:text-gray-100">
                 {voucher.supplier_name}
               </td>
-              <td className="border border-gray-300 px-4 py-2 dark:border-gray-600">
+              <td className=" border border-gray-300 px-4 py-2 text-sm dark:border-gray-600 dark:text-gray-100">
                 {voucher.name}
               </td>
-              <td className="whitespace-nowrap border border-gray-300 px-4 py-2 dark:border-gray-600">
+              <td className="whitespace-nowrap border border-gray-300 px-4 py-2 text-sm dark:border-gray-600 dark:text-gray-100">
                 {voucher.vendorId}
               </td>
-              <td className="whitespace-nowrap border border-gray-300 px-4 py-2 dark:border-gray-600">
+              <td className="whitespace-nowrap border border-gray-300 px-4 py-2 text-sm dark:border-gray-600 dark:text-gray-100">
                 {voucher.name === "OTT Variable Amount" || !voucher.amount
                   ? "-"
                   : voucherAmount.toFixed(2)}
               </td>
-              <td className="whitespace-nowrap border border-gray-300 px-4 py-2 dark:border-gray-600">
+              <td className="whitespace-nowrap border border-gray-300 px-4 py-2 text-sm dark:border-gray-600 dark:text-gray-100">
                 {voucher.name === "OTT Variable Amount" || !voucher.amount
-                  ? voucher.total_comm
-                  : `${voucher.total_comm} (R ${totalCommissionAmount.toFixed(
-                      2,
-                    )})`}
+                  ? `${(voucher.total_comm * 100).toFixed(0)}%`
+                  : `${(voucher.total_comm * 100).toFixed(0)}% (R ${totalCommissionAmount.toFixed(2)})`}
               </td>
-              <td className="whitespace-nowrap border border-gray-300 px-4 py-2 dark:border-gray-600">
+              <td className="whitespace-nowrap border border-gray-300 px-4 py-2 text-sm dark:border-gray-600 dark:text-gray-100">
                 {voucher.name === "OTT Variable Amount" || !voucher.amount
-                  ? voucher.retailer_comm
-                  : `${
-                      voucher.retailer_comm
-                    } (R ${retailerCommissionAmount.toFixed(2)})`}
+                  ? `${(voucher.retailer_comm * 100).toFixed(0)}%`
+                  : `${(voucher.retailer_comm * 100).toFixed(0)}% (R ${retailerCommissionAmount.toFixed(2)})`}
               </td>
-              <td className="whitespace-nowrap border border-gray-300 px-4 py-2 dark:border-gray-600">
+              <td className="whitespace-nowrap border border-gray-300 px-4 py-2 text-sm dark:border-gray-600 dark:text-gray-100">
                 {voucher.name === "OTT Variable Amount" || !voucher.amount
-                  ? voucher.sales_agent_comm
-                  : `${
-                      voucher.sales_agent_comm
-                    } (R ${salesAgentCommissionAmount.toFixed(2)})`}
+                  ? `${(voucher.sales_agent_comm * 100).toFixed(0)}%`
+                  : `${(voucher.sales_agent_comm * 100).toFixed(0)}% (R ${salesAgentCommissionAmount.toFixed(2)})`}
               </td>
-              <td className="whitespace-nowrap border border-gray-300 px-4 py-2 dark:border-gray-600">
+              <td className="whitespace-nowrap border border-gray-300 px-4 py-2 text-sm dark:border-gray-600 dark:text-gray-100">
                 {voucher.name === "OTT Variable Amount" || !voucher.amount
                   ? "-"
                   : `R ${profitAmount.toFixed(2)}`}
               </td>
-              <td className="whitespace-nowrap border border-gray-300 px-4 py-2 dark:border-gray-600">
+              <td className="whitespace-nowrap border border-gray-300 px-4 py-2 text-sm dark:border-gray-600 dark:text-gray-100">
                 <button
                   onClick={() => onDeleteVoucher(index)}
-                  className="rounded p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-200"
+                  className="rounded p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-700 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-gray-100"
                   aria-label="Delete voucher"
                 >
                   <svg

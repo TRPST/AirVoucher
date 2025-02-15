@@ -4,10 +4,12 @@ import { Info } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { MobileDataVoucher } from "@/app/types/common";
 
+type CommissionField = "total_comm" | "retailer_comm" | "sales_agent_comm";
+
 interface CommissionInputsProps {
   currentVoucher: MobileDataVoucher;
   errors: Record<string, string>;
-  onCommissionChange: (field: string, value: number) => void;
+  onCommissionChange: (field: CommissionField, value: number) => void;
 }
 
 const CommissionInputs = ({
@@ -15,6 +17,22 @@ const CommissionInputs = ({
   errors,
   onCommissionChange,
 }: CommissionInputsProps) => {
+  // Helper function to format commission value for display
+  const getCommissionDisplayValue = (value: number | undefined | null) => {
+    if (value === undefined || value === null) return "";
+    return Math.round(value * 100).toString();
+  };
+
+  const inputClasses = cn(
+    "flex h-11 w-2/3 rounded-md bg-transparent py-3 text-sm outline-none",
+    "border border-gray-300 px-4 dark:border-gray-600 dark:bg-gray-800",
+    "placeholder:text-gray-500 dark:placeholder:text-gray-400",
+    "disabled:cursor-not-allowed disabled:opacity-50",
+    "focus:ring-2 focus:ring-blue-500 focus:border-transparent",
+    "shadow-sm",
+    "text-gray-900 dark:text-white",
+  );
+
   return (
     <div className="mb-5 mt-10 flex flex-col space-y-4">
       <div className="flex items-center space-x-4">
@@ -24,24 +42,23 @@ const CommissionInputs = ({
           </label>
           <TooltipProvider>
             <Tooltip content="Percentage of the voucher amount that will be paid as commission">
-              <Info className="h-4 w-4 text-gray-400" />
+              <Info className="h-4 w-4 text-gray-500 dark:text-gray-400" />
             </Tooltip>
           </TooltipProvider>
         </div>
         <input
           type="number"
-          step="0.01"
           min="0"
-          max="1"
-          value={currentVoucher.total_comm ?? 0}
+          max="100"
+          value={getCommissionDisplayValue(currentVoucher?.total_comm)}
           onChange={(e) =>
             onCommissionChange("total_comm", parseFloat(e.target.value) || 0)
           }
           className={cn(
-            "w-2/3 rounded-lg border px-4 py-2 dark:bg-gray-700 dark:text-white",
-            errors.total_comm && "border-red-500",
+            inputClasses,
+            errors.total_comm && "border-red-500 focus:ring-red-500",
           )}
-          placeholder="0.00"
+          placeholder="Enter value as a whole number"
         />
       </div>
       {errors.total_comm && (
@@ -54,15 +71,14 @@ const CommissionInputs = ({
         </label>
         <input
           type="number"
-          step="0.01"
           min="0"
-          max="1"
-          value={currentVoucher.retailer_comm ?? 0}
+          max="100"
+          value={getCommissionDisplayValue(currentVoucher?.retailer_comm)}
           onChange={(e) =>
             onCommissionChange("retailer_comm", parseFloat(e.target.value) || 0)
           }
-          className="w-2/3 rounded-lg border px-4 py-2 dark:bg-gray-700 dark:text-white"
-          placeholder="0.00"
+          className={inputClasses}
+          placeholder="Enter value as a whole number"
         />
       </div>
 
@@ -72,18 +88,17 @@ const CommissionInputs = ({
         </label>
         <input
           type="number"
-          step="0.01"
           min="0"
-          max="1"
-          value={currentVoucher.sales_agent_comm ?? 0}
+          max="100"
+          value={getCommissionDisplayValue(currentVoucher?.sales_agent_comm)}
           onChange={(e) =>
             onCommissionChange(
               "sales_agent_comm",
               parseFloat(e.target.value) || 0,
             )
           }
-          className="w-2/3 rounded-lg border px-4 py-2 dark:bg-gray-700 dark:text-white"
-          placeholder="0.00"
+          className={inputClasses}
+          placeholder="Enter value as a whole number"
         />
       </div>
     </div>

@@ -113,7 +113,7 @@ const CommissionManagement = () => {
     e.preventDefault();
 
     if (!newCommGroup?.name) {
-      setError("Commision group name is required.");
+      setError("Commission group name is required.");
       setSuccess("");
       return;
     }
@@ -121,14 +121,16 @@ const CommissionManagement = () => {
     try {
       setLoading(true);
       const result = await createCommGroup(newCommGroup);
-      //console.log("Result: ", result);
+
       if (result.error) {
         setError(result.error);
-      } else {
-        setSuccess(result.success || "");
+        return;
       }
+
+      setSuccess(result.success || "");
     } catch (error) {
-      console.error("Error: ", error);
+      console.error("Error:", error);
+      setError("An unexpected error occurred");
     } finally {
       setLoading(false);
     }
@@ -247,14 +249,17 @@ const CommissionManagement = () => {
     try {
       setEditLoading(true);
       const result = await editVoucherAction(updatedVoucher);
+
       if (result.error) {
         setEditError(result.error);
-      } else {
-        setEditSuccess(result.success || "");
-        fetchCommGroups(false);
+        return;
       }
+
+      setEditSuccess(result.success || "");
+      await fetchCommGroups(false);
     } catch (error) {
-      console.error("Error: ", error);
+      console.error("Error:", error);
+      setEditError("Failed to edit voucher");
     } finally {
       setEditLoading(false);
     }

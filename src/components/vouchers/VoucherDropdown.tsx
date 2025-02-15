@@ -1,11 +1,11 @@
-import React from "react";
+import React, { useState } from "react";
 import { Command } from "cmdk";
 import { Search } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface VoucherDropdownProps {
-  items: Array<{ id: number | string; [key: string]: any }>;
-  value: string;
+  items: any[];
+  value?: string;
   onChange: (value: string) => void;
   displayKey: string;
   formatDisplay?: (item: any) => string;
@@ -15,7 +15,7 @@ interface VoucherDropdownProps {
   className?: string;
 }
 
-const VoucherDropdown = ({
+const VoucherDropdown: React.FC<VoucherDropdownProps> = ({
   items,
   value,
   onChange,
@@ -25,56 +25,68 @@ const VoucherDropdown = ({
   disabled = false,
   loading = false,
   className,
-}: VoucherDropdownProps) => {
-  const [open, setOpen] = React.useState(false);
-  const [search, setSearch] = React.useState("");
+}) => {
+  const [search, setSearch] = useState("");
 
-  const filteredItems = React.useMemo(() => {
-    return items.filter((item) =>
-      item[displayKey].toLowerCase().includes(search.toLowerCase()),
-    );
-  }, [items, search, displayKey]);
+  const filteredItems = items.filter((item) =>
+    (formatDisplay ? formatDisplay(item) : item[displayKey])
+      .toLowerCase()
+      .includes(search.toLowerCase()),
+  );
 
   return (
-    <Command
-      className={cn(
-        "relative h-auto w-full rounded-lg border border-gray-300 bg-white text-gray-900 shadow-sm dark:border-gray-600 dark:bg-gray-800 dark:text-white",
-        className,
-      )}
-    >
-      <div className="flex items-center border-b border-gray-300 px-3 dark:border-gray-600">
-        <Search className="h-4 w-4 shrink-0 text-gray-500 dark:text-gray-400" />
-        <Command.Input
-          value={search}
-          onValueChange={setSearch}
-          className="flex h-11 w-full rounded-md bg-transparent py-3 text-sm outline-none placeholder:text-gray-500 disabled:cursor-not-allowed disabled:opacity-50 dark:placeholder:text-gray-400"
-          placeholder={placeholder}
-          disabled={disabled}
-        />
-      </div>
-      <Command.List className="max-h-[300px] overflow-y-auto p-1">
-        {loading ? (
-          <Command.Loading className="py-6 text-center text-sm">
-            <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-          </Command.Loading>
-        ) : filteredItems.length === 0 ? (
-          <Command.Empty className="py-6 text-center text-sm">
-            No items found.
-          </Command.Empty>
-        ) : (
-          filteredItems.map((item) => (
-            <Command.Item
-              key={item.id}
-              value={item[displayKey]}
-              onSelect={() => onChange(item[displayKey])}
-              className="relative flex cursor-pointer select-none items-center rounded-md px-2 py-1.5 text-sm outline-none aria-selected:bg-gray-100 data-[disabled]:pointer-events-none data-[disabled]:opacity-50 dark:aria-selected:bg-gray-700"
-            >
-              {formatDisplay ? formatDisplay(item) : item[displayKey]}
-            </Command.Item>
-          ))
-        )}
-      </Command.List>
-    </Command>
+    <div className={cn("relative w-full", className)}>
+      <Command
+        className="rounded-lg border border-gray-300 bg-white shadow-sm dark:border-gray-600 dark:bg-gray-800"
+        shouldFilter={false}
+      >
+        <div className="flex items-center border-b border-gray-300 px-3 dark:border-gray-600">
+          <Search className="h-4 w-4 shrink-0 text-gray-500 dark:text-gray-400" />
+          <Command.Input
+            value={search}
+            onValueChange={setSearch}
+            className="flex h-11 w-full rounded-md bg-transparent py-3 text-sm outline-none placeholder:text-gray-500 disabled:cursor-not-allowed disabled:opacity-50 dark:placeholder:text-gray-400"
+            placeholder={placeholder}
+            disabled={disabled}
+          />
+        </div>
+
+        <Command.List className="max-h-[300px] overflow-y-auto p-2">
+          {loading ? (
+            <div className="flex h-32 items-center justify-center">
+              <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-500 border-t-transparent" />
+            </div>
+          ) : (
+            filteredItems.map((item) => (
+              <Command.Item
+                key={item.id || item[displayKey]}
+                value={item[displayKey]}
+                onSelect={() => onChange(item[displayKey])}
+                className={cn(
+                  "flex cursor-pointer items-center justify-between rounded-md p-2 text-sm hover:bg-gray-100 dark:text-gray-100 dark:hover:bg-gray-700",
+                  value === item[displayKey] &&
+                    "bg-blue-50 text-blue-600 dark:bg-blue-900/50 dark:text-gray-100",
+                )}
+              >
+                <span>
+                  {formatDisplay ? formatDisplay(item) : item[displayKey]}
+                </span>
+                {item.amount && (
+                  <span className="text-sm text-gray-500 dark:text-gray-100">
+                    R {(item.amount / 100).toFixed(2)}
+                  </span>
+                )}
+              </Command.Item>
+            ))
+          )}
+          {!loading && filteredItems.length === 0 && (
+            <div className="py-6 text-center text-sm text-gray-500">
+              No results found.
+            </div>
+          )}
+        </Command.List>
+      </Command>
+    </div>
   );
 };
 

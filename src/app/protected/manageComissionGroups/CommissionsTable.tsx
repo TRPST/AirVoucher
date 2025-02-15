@@ -66,11 +66,11 @@ const CommissionTable: React.FC<CommissionTableProps> = ({
     index: number,
     voucher: MobileDataVoucher,
   ) => {
+    if (!handleEditVoucher) return;
+
     setSelectedVoucher({ voucher, groupId, index });
     setEditModalOpen(true);
-    if (handleEditVoucher) {
-      handleEditVoucher(groupId, index, voucher, true);
-    }
+    handleEditVoucher(groupId, index, voucher, true);
   };
 
   const handleEditModalClose = () => {
@@ -79,19 +79,19 @@ const CommissionTable: React.FC<CommissionTableProps> = ({
   };
 
   const handleEditVoucherSubmit = (updatedVoucher: MobileDataVoucher) => {
-    if (selectedVoucher && handleEditVoucher) {
-      handleEditVoucher(
-        selectedVoucher.groupId,
-        selectedVoucher.index,
-        updatedVoucher,
-      );
-    }
+    if (!selectedVoucher || !handleEditVoucher) return;
+
+    handleEditVoucher(
+      selectedVoucher.groupId,
+      selectedVoucher.index,
+      updatedVoucher,
+    );
   };
 
   const handleDeleteVoucherClick = () => {
-    if (selectedVoucher && handleDeleteVoucher && selectedVoucher.voucher.id) {
-      handleDeleteVoucher(selectedVoucher.voucher.id.toString());
-    }
+    if (!selectedVoucher?.voucher.id || !handleDeleteVoucher) return;
+
+    handleDeleteVoucher(selectedVoucher.voucher.id.toString());
   };
 
   // Add an effect to close the modal on success
