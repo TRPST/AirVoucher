@@ -8,6 +8,7 @@ import Loader from "@/components/common/Loader";
 import { usePathname } from "next/navigation";
 import DefaultLayout from "@/components/Layouts/DefaultLayout";
 import Loading from "./loading";
+import { TooltipProvider } from "@/components/ui/tooltip";
 
 export default function RootLayout({
   children,
@@ -29,15 +30,17 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body suppressHydrationWarning={true}>
-        <Suspense fallback={<Loading />}>
-          {loading ? (
-            <Loader />
-          ) : isProtectedRoute ? (
-            <DefaultLayout>{children}</DefaultLayout>
-          ) : (
-            children
-          )}
-        </Suspense>
+        <TooltipProvider>
+          <Suspense fallback={<Loading />}>
+            {loading ? (
+              <Loader />
+            ) : isProtectedRoute ? (
+              <DefaultLayout>{children}</DefaultLayout>
+            ) : (
+              children
+            )}
+          </Suspense>
+        </TooltipProvider>
       </body>
     </html>
   );
