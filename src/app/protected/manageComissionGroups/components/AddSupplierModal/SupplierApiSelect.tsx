@@ -26,8 +26,9 @@ const SupplierApiSelect = ({
           onApiSelect(selectedApi || null);
         }}
         displayKey="name"
-        placeholder="Search supplier API..."
+        placeholder="Select supplier API..."
         className="mb-5"
+        disableSearch
       />
     </>
   );

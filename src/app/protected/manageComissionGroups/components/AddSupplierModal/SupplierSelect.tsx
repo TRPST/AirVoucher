@@ -33,9 +33,10 @@ const SupplierSelect = ({
           }
         }}
         displayKey="supplier_name"
-        placeholder="Search supplier..."
+        placeholder="Select supplier..."
         loading={loading}
         className="mb-5"
+        disableSearch
       />
     </>
   );

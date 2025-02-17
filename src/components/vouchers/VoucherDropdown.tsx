@@ -13,6 +13,7 @@ interface VoucherDropdownProps {
   disabled?: boolean;
   loading?: boolean;
   className?: string;
+  disableSearch?: boolean;
 }
 
 const VoucherDropdown: React.FC<VoucherDropdownProps> = ({
@@ -21,18 +22,21 @@ const VoucherDropdown: React.FC<VoucherDropdownProps> = ({
   onChange,
   displayKey,
   formatDisplay,
-  placeholder = "Search...",
+  placeholder = "Select...",
   disabled = false,
   loading = false,
   className,
+  disableSearch = false,
 }) => {
   const [search, setSearch] = useState("");
 
-  const filteredItems = items.filter((item) =>
-    (formatDisplay ? formatDisplay(item) : item[displayKey])
-      .toLowerCase()
-      .includes(search.toLowerCase()),
-  );
+  const filteredItems = disableSearch
+    ? items
+    : items.filter((item) =>
+        (formatDisplay ? formatDisplay(item) : item[displayKey])
+          .toLowerCase()
+          .includes(search.toLowerCase()),
+      );
 
   return (
     <div className={cn("relative w-full", className)}>
@@ -40,16 +44,18 @@ const VoucherDropdown: React.FC<VoucherDropdownProps> = ({
         className="rounded-lg border border-gray-300 bg-white shadow-sm dark:border-gray-400 dark:bg-gray-800"
         shouldFilter={false}
       >
-        <div className="flex items-center border-b border-gray-300 px-3 dark:border-gray-500">
-          <Search className="h-4 w-4 shrink-0 text-gray-500 dark:text-gray-400" />
-          <Command.Input
-            value={search}
-            onValueChange={setSearch}
-            className="flex h-11 w-full rounded-md bg-transparent py-3 text-sm outline-none placeholder:text-gray-500 disabled:cursor-not-allowed disabled:opacity-50 dark:placeholder:text-gray-400"
-            placeholder={placeholder}
-            disabled={disabled}
-          />
-        </div>
+        {!disableSearch && (
+          <div className="flex items-center border-b border-gray-300 px-3 dark:border-gray-500">
+            <Search className="h-4 w-4 shrink-0 text-gray-500 dark:text-gray-400" />
+            <Command.Input
+              value={search}
+              onValueChange={setSearch}
+              className="flex h-11 w-full rounded-md bg-transparent py-3 text-sm outline-none placeholder:text-gray-500 disabled:cursor-not-allowed disabled:opacity-50 dark:placeholder:text-gray-400"
+              placeholder={placeholder}
+              disabled={disabled}
+            />
+          </div>
+        )}
 
         <Command.List className="max-h-[300px] overflow-y-auto p-2">
           {loading ? (

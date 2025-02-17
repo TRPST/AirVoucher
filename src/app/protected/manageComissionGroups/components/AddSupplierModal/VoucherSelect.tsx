@@ -60,7 +60,7 @@ const VoucherSelect = ({
   };
 
   return (
-    <div className="space-y-2">
+    <div className="mt-6 space-y-2">
       <h3 className="font-semibold text-gray-800 dark:text-gray-100">
         Vouchers
       </h3>
