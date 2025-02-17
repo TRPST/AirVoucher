@@ -108,34 +108,56 @@ export const getSupplierMainVoucherGroups = async (supplierId: number) => {
   }
 };
 
-export const getSupplierMobileDataVouchers = async (supplierName: string) => {
+export const getSupplierVoucherProducts = async (supplierName: string) => {
   switch (supplierName.toLowerCase()) {
     case "glocell": {
       try {
-        const response = await axios.get(
-          "https://api.qa.bltelecoms.net/v2/trade/mobile/bundle/products",
-          {
-            headers: {
-              accept: "application/json",
-              "Trade-Vend-Channel": "API",
-              apikey: process.env.GLOCEL_API_KEY,
-              authorization: "Basic YmxkOm9ybnVrM2k5dnNlZWkxMjVzOHFlYTcxa3Vi",
+        // Fetch both data and airtime products in parallel
+        const [dataResponse, airtimeResponse] = await Promise.all([
+          axios.get(
+            "https://api.qa.bltelecoms.net/v2/trade/mobile/bundle/products",
+            {
+              headers: {
+                accept: "application/json",
+                "Trade-Vend-Channel": "API",
+                apikey: process.env.GLOCEL_API_KEY,
+                authorization: "Basic YmxkOm9ybnVrM2k5dnNlZWkxMjVzOHFlYTcxa3Vi",
+              },
             },
-          },
-        );
+          ),
+          axios.get(
+            "https://api.qa.bltelecoms.net/v2/trade/mobile/airtime/products",
+            {
+              headers: {
+                accept: "application/json",
+                "Trade-Vend-Channel": "API",
+                apikey: process.env.GLOCEL_API_KEY,
+                authorization: "Basic YmxkOm9ybnVrM2k5dnNlZWkxMjVzOHFlYTcxa3Vi",
+              },
+            },
+          ),
+        ]);
 
-        if (response.status === 200) {
-          const filteredVouchers = response.data.filter(
+        if (dataResponse.status === 200 && airtimeResponse.status === 200) {
+          const mobileDataVouchers = dataResponse.data.filter(
             (voucher: { category: string }) =>
               voucher.category.toLowerCase() === "data",
           );
-          return { mobileDataVouchers: filteredVouchers };
+          const mobileAirtimeVouchers = dataResponse.data.filter(
+            (voucher: { category: string }) =>
+              voucher.category.toLowerCase() === "airtime",
+          );
+
+          return {
+            mobileDataVouchers,
+            mobileAirtimeVouchers,
+          };
         }
 
-        return { error: "Failed to fetch mobile data vouchers" };
+        return { error: "Failed to fetch voucher products" };
       } catch (error) {
         if (error instanceof Error) {
-          console.error("Error fetching mobile data vouchers:", error);
+          console.error("Error fetching voucher products:", error);
           return { error: error.message };
         }
         return { error: "An unexpected error occurred" };
@@ -143,42 +165,8 @@ export const getSupplierMobileDataVouchers = async (supplierName: string) => {
     }
     default:
       return {
-        error: "Mobile data vouchers not available for this supplier yet",
+        error: "Voucher products not available for this supplier yet",
       };
-  }
-};
-
-export const getSupplierMobileAirtimeVouchers = async (
-  supplierName: string,
-) => {
-  switch (supplierName.toLowerCase()) {
-    case "glocell": {
-      try {
-        const response = await axios.get(
-          "https://api.qa.bltelecoms.net/v2/trade/mobile/airtime/products",
-          {
-            headers: {
-              accept: "application/json",
-              "Trade-Vend-Channel": "API",
-              apikey: process.env.GLOCEL_API_KEY,
-              authorization: "Basic YmxkOm9ybnVrM2k5dnNlZWkxMjVzOHFlYTcxa3Vi",
-            },
-          },
-        );
-
-        if (response.status === 200) {
-          return { mobileAirtimeVouchers: response.data };
-        }
-
-        return { error: "Failed to fetch mobile airtime vouchers" };
-      } catch (error) {
-        if (error instanceof Error) {
-          console.error("Error fetching mobile airtime vouchers:", error);
-          return { error: error.message };
-        }
-        return { error: "An unexpected error occurred" };
-      }
-    }
   }
 };
 

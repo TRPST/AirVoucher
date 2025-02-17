@@ -11,6 +11,7 @@ interface VoucherSelectProps {
   onVoucherSelect: (voucher: MobileDataVoucher) => void;
   ottVoucher: MobileDataVoucher;
   error?: string;
+  selectedVouchers: MobileDataVoucher[];
 }
 
 const VoucherSelect = ({
@@ -22,6 +23,7 @@ const VoucherSelect = ({
   onVoucherSelect,
   ottVoucher,
   error,
+  selectedVouchers,
 }: VoucherSelectProps) => {
   const getAvailableVouchers = () => {
     const ensureId = (voucher: MobileDataVoucher) => ({
@@ -32,17 +34,26 @@ const VoucherSelect = ({
         | "TELKOM"
         | "VODACOM",
       id: voucher.id || `${voucher.name}-${voucher.vendorId}`,
+      disabled: selectedVouchers.some(
+        (selected) =>
+          selected.name === voucher.name &&
+          selected.vendorId === voucher.vendorId,
+      ),
     });
+
+    //console.log("Selected selectedSupplierApi", selectedSupplierApi);
 
     if (selectedSupplier?.supplier_name === "OTT") {
       return [ensureId(ottVoucher)];
     }
 
     if (selectedSupplierApi?.name === "Mobile Data") {
+      console.log("Selected mobile data vouchers", mobileDataVouchers);
       return mobileDataVouchers.map(ensureId);
     }
 
     if (selectedSupplierApi?.name === "Mobile Airtime") {
+      console.log("Selected mobile airtime vouchers", mobileAirtimeVouchers);
       return mobileAirtimeVouchers.map(ensureId);
     }
 

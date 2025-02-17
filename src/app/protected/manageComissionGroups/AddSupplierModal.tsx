@@ -4,10 +4,9 @@ import { Box } from "@mui/material";
 import {
   getSuppliersAction,
   getSupplierMainVoucherGroups,
-  getSupplierMobileDataVouchers,
   getSupplierApis,
   addVouchersToMobileDataVouchers,
-  getSupplierMobileAirtimeVouchers,
+  getSupplierVoucherProducts,
 } from "./actions";
 import { Supplier, MobileDataVoucher, SupplierAPI } from "@/app/types/common";
 import BulkUpload from "@/components/vouchers/BulkUpload";
@@ -149,41 +148,46 @@ const AddSupplierModal = ({
 
   const fetchSupplierApis = async (supplierName: string) => {
     setVouchersLoading(true);
-
-    const result = await getSupplierApis(supplierName);
-
-    //console.log("Supplier api results", result);
-
-    const supplierApis = result?.supplierApis || [];
-    if (supplierApis) {
-      setSupplierApis(supplierApis);
+    try {
+      const result = await getSupplierApis(supplierName);
+      if (result.supplierApis) {
+        setSupplierApis(result.supplierApis);
+      }
+    } catch (error) {
+      console.error("Error fetching supplier APIs:", error);
+    } finally {
+      setVouchersLoading(false);
     }
-    setVouchersLoading(false);
   };
 
-  const fetchSupplierMobileDataVouchers = async (supplierName: string) => {
+  const fetchSupplierVoucherProducts = async (supplierName: string) => {
     setVouchersLoading(true);
-    const result = await getSupplierMobileDataVouchers(supplierName);
-    const mobileDataVouchers = result?.mobileDataVouchers || [];
-    //console.log("Mobile data vouchers", mobileDataVouchers);
-    setMobileDataVouchers(mobileDataVouchers);
-    setVouchersLoading(false);
-  };
+    try {
+      const result = await getSupplierVoucherProducts(supplierName);
+      if ("error" in result) {
+        console.error(result.error);
+        return;
+      }
 
-  const fetchSupplierMobileAirtimeVouchers = async (supplierName: string) => {
-    setVouchersLoading(true);
-    const result = await getSupplierMobileAirtimeVouchers(supplierName);
-    const mobileAirtimeVouchers = result?.mobileAirtimeVouchers || [];
-    setMobileAirtimeVouchers(mobileAirtimeVouchers);
-    //console.log("Mobile airtime vouchers", mobileAirtimeVouchers);
-    setVouchersLoading(false);
+      console.log(
+        "result.mobileAirtimeVouchers ",
+        result.mobileAirtimeVouchers,
+      );
+      console.log("result.mobileDataVouchers ", result.mobileDataVouchers);
+
+      setMobileDataVouchers(result.mobileDataVouchers || []);
+      setMobileAirtimeVouchers(result.mobileAirtimeVouchers || []);
+    } catch (error) {
+      console.error("Error fetching voucher products:", error);
+    } finally {
+      setVouchersLoading(false);
+    }
   };
 
   useEffect(() => {
     if (selectedSupplier) {
       //fetchSupplierVoucherGroups(selectedSupplier.id);
-      fetchSupplierMobileDataVouchers(selectedSupplier.supplier_name);
-      fetchSupplierMobileAirtimeVouchers(selectedSupplier.supplier_name);
+      fetchSupplierVoucherProducts(selectedSupplier.supplier_name);
       fetchSupplierApis(selectedSupplier.supplier_name);
     }
   }, [selectedSupplier]);
@@ -212,10 +216,30 @@ const AddSupplierModal = ({
       return;
     }
 
+    // Remove this validation for OTT Variable Amount vouchers
+    if (currentVoucher.name === "OTT Variable Amount") {
+      const newVoucher: MobileDataVoucher = {
+        ...currentVoucher,
+        supplier_id: selectedSupplier.id,
+        supplier_name: selectedSupplier.supplier_name,
+        // For OTT, we don't calculate profit since amount is variable
+        profit: 0,
+        // Ensure commissions are properly set
+        total_comm: currentVoucher.total_comm || 0,
+        retailer_comm: currentVoucher.retailer_comm || 0,
+        sales_agent_comm: currentVoucher.sales_agent_comm || 0,
+      };
+
+      setSelectedVouchers((prev) => [...prev, newVoucher]);
+      resetVoucherForm();
+      setSelectedMainVoucherGroup(undefined);
+      return;
+    }
+
+    // Existing validation for non-OTT vouchers
     if (!validate()) return;
 
     const voucherAmount = currentVoucher.amount / 100;
-    // Note: currentVoucher stores values as decimals (0-1)
     const totalCommissionAmount =
       voucherAmount * (currentVoucher.total_comm || 0);
     const retailerCommissionAmount =
@@ -384,11 +408,6 @@ const AddSupplierModal = ({
                   onApiSelect={setSelectedSupplierApi}
                 />
 
-                <VoucherTable
-                  vouchers={selectedVouchers}
-                  onDeleteVoucher={handleDeleteVoucher}
-                />
-
                 {/* Add Network Selection Blocks */}
                 {selectedSupplierApi?.name &&
                   (selectedSupplierApi.name === "Mobile Data" ||
@@ -439,6 +458,7 @@ const AddSupplierModal = ({
                   onVoucherSelect={handleVoucherSelect}
                   ottVoucher={ottVoucher}
                   error={voucherError}
+                  selectedVouchers={selectedVouchers}
                 />
 
                 <CommissionInputs
@@ -453,6 +473,11 @@ const AddSupplierModal = ({
                 >
                   Add Voucher
                 </button>
+
+                <VoucherTable
+                  vouchers={selectedVouchers}
+                  onDeleteVoucher={handleDeleteVoucher}
+                />
 
                 <div className="mt-6 flex justify-end space-x-3">
                   <button

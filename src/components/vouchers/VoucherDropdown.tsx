@@ -67,18 +67,30 @@ const VoucherDropdown: React.FC<VoucherDropdownProps> = ({
               <Command.Item
                 key={item.id || item[displayKey]}
                 value={item[displayKey]}
-                onSelect={() => onChange(item[displayKey])}
+                onSelect={() => !item.disabled && onChange(item[displayKey])}
                 className={cn(
-                  "flex cursor-pointer items-center justify-between rounded-md p-2 text-sm hover:bg-gray-100 dark:text-gray-100 dark:hover:bg-gray-700",
+                  "flex cursor-pointer items-center justify-between rounded-md p-2 text-sm",
+                  item.disabled
+                    ? "cursor-not-allowed bg-gray-100 text-gray-400 dark:bg-gray-700 dark:text-gray-500"
+                    : "hover:bg-gray-100 dark:text-gray-100 dark:hover:bg-gray-700",
                   value === item[displayKey] &&
+                    !item.disabled &&
                     "bg-blue-50 text-blue-600 dark:bg-blue-900/50 dark:text-gray-100",
                 )}
+                disabled={item.disabled}
               >
                 <span>
                   {formatDisplay ? formatDisplay(item) : item[displayKey]}
                 </span>
                 {item.amount && (
-                  <span className="text-sm text-gray-500 dark:text-gray-100">
+                  <span
+                    className={cn(
+                      "text-sm",
+                      item.disabled
+                        ? "text-gray-400 opacity-50 dark:text-gray-500"
+                        : "text-gray-500 dark:text-gray-100",
+                    )}
+                  >
                     R {(item.amount / 100).toFixed(2)}
                   </span>
                 )}

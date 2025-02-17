@@ -38,7 +38,7 @@ const CommissionInputs = ({
       <div className="flex items-center space-x-4">
         <div className="flex w-1/3 items-center space-x-2">
           <label className="font-semibold text-gray-700 dark:text-gray-300">
-            Total Commission (%)
+            Supplier Commission (%)
           </label>
           <TooltipProvider>
             <Tooltip content="Percentage of the voucher amount that will be paid as commission">
