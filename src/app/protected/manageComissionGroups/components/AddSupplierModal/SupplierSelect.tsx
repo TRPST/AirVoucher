@@ -17,17 +17,23 @@ const SupplierSelect = ({
   loading,
   setSupplierName,
 }: SupplierSelectProps) => {
+  // Transform suppliers to include disabled flag for BlueLabel
+  const suppliersWithDisabled = suppliers.map((supplier) => ({
+    ...supplier,
+    disabled: supplier.supplier_name === "BlueLabel",
+  }));
+
   return (
     <>
       <h3 className="mb-2 mt-5 font-semibold text-gray-800 dark:text-gray-100">
         Supplier
       </h3>
       <VoucherDropdown
-        items={suppliers}
+        items={suppliersWithDisabled}
         value={selectedSupplier?.supplier_name || ""}
         onChange={(name) => {
           const supplier = suppliers.find((s) => s.supplier_name === name);
-          if (supplier) {
+          if (supplier && supplier.supplier_name !== "BlueLabel") {
             onSupplierSelect(supplier);
             setSupplierName(supplier.supplier_name);
           }

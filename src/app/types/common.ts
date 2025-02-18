@@ -94,3 +94,11 @@ export interface SupplierAPI {
   supplier_name?: string;
   created_at?: Date;
 }
+
+export interface Retailer {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  status: "active" | "inactive";
+}

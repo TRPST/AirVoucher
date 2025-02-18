@@ -16,7 +16,7 @@ import { Button } from "@mui/material";
 import AddCommGroupModal from "./AddCommGroupModal";
 //import EditCommGroupModal from "./EditCommGroupModal";
 import { getUserAction } from "@/app/actions";
-import CommissionTable from "./CommissionsTable";
+import CommissionGroupTable from "./CommissionGroupTable";
 import AddSupplierModal from "./AddSupplierModal";
 
 const generateSecurePassword = () => {
@@ -29,6 +29,14 @@ const generateSecurePassword = () => {
     password += charset[randomIndex];
   }
   return password;
+};
+
+// Add this type to ensure proper data structure
+type CommissionGroupData = {
+  id: string;
+  name: string;
+  vouchers: MobileDataVoucher[];
+  retailers?: Retailer[];
 };
 
 const CommissionManagement = () => {
@@ -293,50 +301,25 @@ const CommissionManagement = () => {
   };
 
   return (
-    <>
-      <div className="container mx-auto px-4 py-4 sm:py-8">
-        <div className="mb-4 flex flex-col space-y-4 sm:mb-6 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
-          <h2 className="text-2xl font-semibold text-gray-800 dark:text-white sm:text-3xl">
-            Manage Commission Groups
-          </h2>
-          {userRole === "superAdmin" && (
-            <button
-              onClick={() => setAddCommGroupModalOpen(true)}
-              className="w-full rounded border border-blue-700 px-3 py-2 font-semibold text-blue-500 shadow transition duration-300 hover:bg-blue-800 hover:text-white dark:border-blue-600 dark:hover:bg-blue-700 sm:w-auto"
-            >
-              Create Commission Group
-            </button>
-          )}
+    <div className="flex-1">
+      {loading ? (
+        <div className="mt-10 flex justify-center">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-solid border-primary border-t-transparent"></div>
         </div>
-
-        <div className=" ">
-          {commGroups.map((group) => (
-            <div key={group.id}>
-              <CommissionTable
-                data={group.id ? [group as Required<CommGroup>] : []}
-                setAddSupplierModalOpen={(open, commGroupId, commGroupName) => {
-                  setSelectedCommGroupId(commGroupId || null);
-                  setSelectedCommGroupName(commGroupName || "");
-                  setAddSupplierModalOpen(open);
-                }}
-                handleDeleteVoucher={handleDeleteVoucher}
-                handleEditVoucher={handleEditVoucher}
-                editLoading={editLoading}
-                editError={editError}
-                editSuccess={editSuccess}
-              />
-
-              <AddSupplierModal
-                isOpen={addSupplierModalOpen}
-                onClose={() => setAddSupplierModalOpen(false)}
-                commGroupId={selectedCommGroupId || ""}
-                commGroupName={selectedCommGroupName}
-                onAddVouchers={handleAddVouchers}
-              />
-            </div>
-          ))}
-        </div>
-      </div>
+      ) : (
+        <CommissionGroupTable
+          data={commGroups.filter((group): group is CommissionGroupData => {
+            // Filter out any groups without an id and ensure type safety
+            return !!group.id;
+          })}
+          setAddSupplierModalOpen={setAddSupplierModalOpen}
+          handleDeleteVoucher={handleDeleteVoucher}
+          handleEditVoucher={handleEditVoucher}
+          editLoading={editLoading}
+          editError={editError}
+          editSuccess={editSuccess}
+        />
+      )}
 
       <AddCommGroupModal
         open={addCommGroupModalOpen}
@@ -368,7 +351,15 @@ const CommissionManagement = () => {
           generateSecurePassword={generateSecurePassword}
         />
       )} */}
-    </>
+
+      <AddSupplierModal
+        isOpen={addSupplierModalOpen}
+        onClose={() => setAddSupplierModalOpen(false)}
+        commGroupId={selectedCommGroupId || ""}
+        commGroupName={selectedCommGroupName}
+        onAddVouchers={handleAddVouchers}
+      />
+    </div>
   );
 };
 

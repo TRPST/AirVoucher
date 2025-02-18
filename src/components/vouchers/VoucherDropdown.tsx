@@ -71,7 +71,7 @@ const VoucherDropdown: React.FC<VoucherDropdownProps> = ({
                 className={cn(
                   "flex cursor-pointer items-center justify-between rounded-md p-2 text-sm",
                   item.disabled
-                    ? "cursor-not-allowed bg-gray-100 text-gray-400 dark:bg-gray-700 dark:text-gray-500"
+                    ? "cursor-not-allowed text-gray-400 dark:text-gray-500"
                     : "hover:bg-gray-100 dark:text-gray-100 dark:hover:bg-gray-700",
                   value === item[displayKey] &&
                     !item.disabled &&
@@ -87,7 +87,7 @@ const VoucherDropdown: React.FC<VoucherDropdownProps> = ({
                     className={cn(
                       "text-sm",
                       item.disabled
-                        ? "text-gray-400 opacity-50 dark:text-gray-500"
+                        ? "text-gray-400 dark:text-gray-500"
                         : "text-gray-500 dark:text-gray-100",
                     )}
                   >
