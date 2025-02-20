@@ -24,7 +24,9 @@ export type Retailer = {
   terminal_access: boolean;
   assigned_terminals?: string[];
   assigned_admin: string;
+  admin_name?: string;
   created_at?: Date;
+  comm_group_id?: number;
 };
 
 export type Terminal = {
@@ -93,12 +95,4 @@ export interface SupplierAPI {
   name: string;
   supplier_name?: string;
   created_at?: Date;
-}
-
-export interface Retailer {
-  id: string;
-  name: string;
-  email: string;
-  phone: string;
-  status: "active" | "inactive";
 }

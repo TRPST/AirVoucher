@@ -293,6 +293,26 @@ export const updateVoucherCommissions = async (
 export const getCommGroupsAction = async () => {
   const supabase = await createClient();
 
+  // First, get all users (admins) data
+  const { data: admins, error: adminsError } = await supabase
+    .from("users")
+    .select("id, name");
+
+  if (adminsError) {
+    console.error("Error fetching admins:", adminsError);
+    return { error: adminsError.message };
+  }
+
+  // Create a map of admin IDs to names
+  const adminMap = admins?.reduce(
+    (acc, admin) => {
+      acc[admin.id] = `${admin.name}`;
+      return acc;
+    },
+    {} as Record<string, string>,
+  );
+
+  // Get commission groups data
   const { data: commissionGroups, error } = await supabase.from(
     "commission_groups",
   ).select(`
@@ -309,21 +329,44 @@ export const getCommGroupsAction = async () => {
         supplier_id,
         supplier_name,
         profit
+      ),
+      retailers (
+        id,
+        name,
+        email,
+        contact_number,
+        city,
+        contact_person,
+        active,
+        location,
+        terminal_access,
+        assigned_admin
       )
     `);
 
   if (error) {
+    console.error("Error fetching commission groups:", error);
     return { error: error.message };
   }
 
-  // Transform the data to match expected format
-  const formattedGroups = commissionGroups.map((group) => ({
+  // Transform the data with proper admin names
+  const formattedGroups = commissionGroups?.map((group) => ({
     id: group.id,
     name: group.name,
-    vouchers: group.mobile_data_vouchers,
+    vouchers: group.mobile_data_vouchers || [],
+    retailers:
+      group.retailers?.map((retailer) => ({
+        ...retailer,
+        admin_name: retailer.assigned_admin
+          ? adminMap[retailer.assigned_admin] || "Not Found"
+          : "Not Assigned",
+      })) || [],
   }));
 
-  return { commissionGroups: formattedGroups };
+  console.log("Admin Map:", adminMap); // Debug log
+  console.log("Formatted Groups:", formattedGroups); // Debug log
+
+  return { commissionGroups: formattedGroups || [] };
 };
 
 export const assignCommGroupToRetailer = async (
@@ -334,7 +377,7 @@ export const assignCommGroupToRetailer = async (
 
   const { error } = await supabase
     .from("retailers")
-    .update({ assigned_commGroup: `${commGroupId}` })
+    .update({ comm_group_id: `${commGroupId}` })
     .eq("id", retailerId);
 
   if (error) {

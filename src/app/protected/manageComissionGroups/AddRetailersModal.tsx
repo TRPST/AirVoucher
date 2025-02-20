@@ -28,11 +28,8 @@ const AddRetailersModal: React.FC<AddRetailersModalProps> = ({
     const fetchRetailers = async () => {
       const result = await getRetailersAction();
       if (result?.retailers) {
-        // Filter out retailers that already have a commission group assigned
-        const availableRetailers = result.retailers.filter(
-          (retailer) => !retailer.assigned_commGroup,
-        );
-        setRetailers(availableRetailers);
+        // No need to filter here anymore, we'll handle display in the MenuItem
+        setRetailers(result.retailers);
       }
     };
 
@@ -100,7 +97,16 @@ const AddRetailersModal: React.FC<AddRetailersModalProps> = ({
 
             <div className="flex flex-col space-y-4">
               <FormControl fullWidth>
-                <InputLabel id="retailer-select-label">
+                <InputLabel
+                  id="retailer-select-label"
+                  className="dark:text-white"
+                  sx={{
+                    color: "inherit",
+                    "&.Mui-focused": {
+                      color: "inherit",
+                    },
+                  }}
+                >
                   Select Retailer
                 </InputLabel>
                 <Select
@@ -109,13 +115,62 @@ const AddRetailersModal: React.FC<AddRetailersModalProps> = ({
                   value={selectedRetailerId}
                   label="Select Retailer"
                   onChange={(e) => setSelectedRetailerId(e.target.value)}
-                  className="bg-gray-50 dark:bg-gray-700"
+                  className="bg-gray-50 dark:bg-gray-700 dark:text-white"
+                  sx={{
+                    "& .MuiSelect-select": {
+                      color: "inherit",
+                    },
+                    "& .MuiInputLabel-root": {
+                      color: "inherit",
+                    },
+                    "& .MuiOutlinedInput-notchedOutline": {
+                      borderColor: "gray",
+                    },
+                    "& .MuiSelect-icon": {
+                      color: "inherit",
+                    },
+
+                    "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                      borderColor: "gray",
+                    },
+                  }}
                 >
-                  {retailers.map((retailer) => (
-                    <MenuItem key={retailer.id} value={retailer.id}>
-                      {retailer.name} - {retailer.location}
-                    </MenuItem>
-                  ))}
+                  {retailers.map((retailer) => {
+                    const isAssigned = retailer.comm_group_id === commGroupId;
+                    const isInAnotherGroup =
+                      retailer.comm_group_id && !isAssigned;
+
+                    return (
+                      <MenuItem
+                        key={retailer.id}
+                        value={retailer.id}
+                        disabled={isAssigned || isInAnotherGroup}
+                        sx={{
+                          opacity: isAssigned || isInAnotherGroup ? 0.5 : 1,
+                          "&.Mui-disabled": {
+                            color: "gray",
+                          },
+                          "&:after": isAssigned
+                            ? {
+                                content: '"(Already in this group)"',
+                                marginLeft: "8px",
+                                fontSize: "0.8em",
+                                color: "gray",
+                              }
+                            : isInAnotherGroup
+                              ? {
+                                  content: '"(In another group)"',
+                                  marginLeft: "8px",
+                                  fontSize: "0.8em",
+                                  color: "gray",
+                                }
+                              : {},
+                        }}
+                      >
+                        {retailer.name} - {retailer.location}
+                      </MenuItem>
+                    );
+                  })}
                 </Select>
               </FormControl>
 

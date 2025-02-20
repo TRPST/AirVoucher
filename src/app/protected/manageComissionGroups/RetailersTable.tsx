@@ -29,9 +29,9 @@ const RetailersTable: React.FC<RetailersTableProps> = ({ retailers }) => {
             <th className="border border-gray-300 px-4 py-2 text-left text-sm font-semibold dark:border-gray-600">
               Assigned Admin
             </th>
-            <th className="border border-gray-300 px-4 py-2 text-left text-sm font-semibold dark:border-gray-600">
+            {/* <th className="border border-gray-300 px-4 py-2 text-left text-sm font-semibold dark:border-gray-600">
               Terminal Access
-            </th>
+            </th> */}
             <th className="border border-gray-300 px-4 py-2 text-left text-sm font-semibold dark:border-gray-600">
               Active
             </th>
@@ -59,11 +59,11 @@ const RetailersTable: React.FC<RetailersTableProps> = ({ retailers }) => {
                 {retailer.contact_number}
               </td>
               <td className="border border-gray-300 px-4 py-2 dark:border-gray-600 dark:text-white">
-                {retailer.assigned_admin || (
+                {retailer.admin_name || (
                   <span className="text-red-500">N/A</span>
                 )}
               </td>
-              <td className="border border-gray-300 px-4 py-2 dark:border-gray-600 dark:text-white">
+              {/* <td className="border border-gray-300 px-4 py-2 dark:border-gray-600 dark:text-white">
                 <span
                   className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${
                     retailer.terminal_access
@@ -73,7 +73,7 @@ const RetailersTable: React.FC<RetailersTableProps> = ({ retailers }) => {
                 >
                   {retailer.terminal_access ? "Yes" : "No"}
                 </span>
-              </td>
+              </td> */}
               <td className="border border-gray-300 px-4 py-2 dark:border-gray-600 dark:text-white">
                 <span
                   className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${
