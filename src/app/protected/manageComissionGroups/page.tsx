@@ -16,7 +16,7 @@ import { Button } from "@mui/material";
 import AddCommGroupModal from "./AddCommGroupModal";
 //import EditCommGroupModal from "./EditCommGroupModal";
 import { getUserAction } from "@/app/actions";
-import CommissionTable from "./CommissionsTable";
+import CommissionGroupTable from "./CommissionGroupTable";
 import AddSupplierModal from "./AddSupplierModal";
 
 const generateSecurePassword = () => {
@@ -29,6 +29,14 @@ const generateSecurePassword = () => {
     password += charset[randomIndex];
   }
   return password;
+};
+
+// Add this type to ensure proper data structure
+type CommissionGroupData = {
+  id: string;
+  name: string;
+  vouchers: MobileDataVoucher[];
+  retailers?: Retailer[];
 };
 
 const CommissionManagement = () => {
@@ -113,7 +121,7 @@ const CommissionManagement = () => {
     e.preventDefault();
 
     if (!newCommGroup?.name) {
-      setError("Commision group name is required.");
+      setError("Commission group name is required.");
       setSuccess("");
       return;
     }
@@ -121,14 +129,16 @@ const CommissionManagement = () => {
     try {
       setLoading(true);
       const result = await createCommGroup(newCommGroup);
-      //console.log("Result: ", result);
+
       if (result.error) {
         setError(result.error);
-      } else {
-        setSuccess(result.success || "");
+        return;
       }
+
+      setSuccess(result.success || "");
     } catch (error) {
-      console.error("Error: ", error);
+      console.error("Error:", error);
+      setError("An unexpected error occurred");
     } finally {
       setLoading(false);
     }
@@ -247,14 +257,17 @@ const CommissionManagement = () => {
     try {
       setEditLoading(true);
       const result = await editVoucherAction(updatedVoucher);
+
       if (result.error) {
         setEditError(result.error);
-      } else {
-        setEditSuccess(result.success || "");
-        fetchCommGroups(false);
+        return;
       }
+
+      setEditSuccess(result.success || "");
+      await fetchCommGroups(false);
     } catch (error) {
-      console.error("Error: ", error);
+      console.error("Error:", error);
+      setEditError("Failed to edit voucher");
     } finally {
       setEditLoading(false);
     }
@@ -288,54 +301,25 @@ const CommissionManagement = () => {
   };
 
   return (
-    <>
-      <div className="container mx-auto py-8">
-        <div className="mb-6 flex items-center justify-between">
-          <h2 className="text-3xl font-semibold text-gray-800 dark:text-white">
-            Manage Commission Groups
-          </h2>
-          {/* <Button variant="outlined" onClick={() => setAddCommGroupModalOpen(true)}>
-            Add CommGroup
-          </Button> */}
-          {userRole === "superAdmin" && (
-            <button
-              onClick={() => setAddCommGroupModalOpen(true)}
-              className="rounded border border-blue-700 px-3 py-2 font-semibold text-blue-500 shadow transition duration-300 hover:bg-blue-800 hover:text-white dark:border-blue-600 dark:hover:bg-blue-700"
-            >
-              Create Commision Group
-            </button>
-          )}
+    <div className="flex-1">
+      {loading ? (
+        <div className="mt-10 flex justify-center">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-solid border-primary border-t-transparent"></div>
         </div>
-
-        <div>
-          {commGroups.map((group) => (
-            <div key={group.id}>
-              <CommissionTable
-                data={group.id ? [group as Required<CommGroup>] : []}
-                setAddSupplierModalOpen={(open, commGroupId, commGroupName) => {
-                  //console.log("commGroupName", commGroupName);
-                  setSelectedCommGroupId(commGroupId || null);
-                  setSelectedCommGroupName(commGroupName || "");
-                  setAddSupplierModalOpen(open);
-                }}
-                handleDeleteVoucher={handleDeleteVoucher}
-                handleEditVoucher={handleEditVoucher}
-                editLoading={editLoading}
-                editError={editError}
-                editSuccess={editSuccess}
-              />
-
-              <AddSupplierModal
-                isOpen={addSupplierModalOpen}
-                onClose={() => setAddSupplierModalOpen(false)}
-                commGroupId={selectedCommGroupId || ""}
-                commGroupName={selectedCommGroupName}
-                onAddVouchers={handleAddVouchers}
-              />
-            </div>
-          ))}
-        </div>
-      </div>
+      ) : (
+        <CommissionGroupTable
+          data={commGroups.filter((group): group is CommissionGroupData => {
+            // Filter out any groups without an id and ensure type safety
+            return !!group.id;
+          })}
+          setAddSupplierModalOpen={setAddSupplierModalOpen}
+          handleDeleteVoucher={handleDeleteVoucher}
+          handleEditVoucher={handleEditVoucher}
+          editLoading={editLoading}
+          editError={editError}
+          editSuccess={editSuccess}
+        />
+      )}
 
       <AddCommGroupModal
         open={addCommGroupModalOpen}
@@ -367,7 +351,15 @@ const CommissionManagement = () => {
           generateSecurePassword={generateSecurePassword}
         />
       )} */}
-    </>
+
+      <AddSupplierModal
+        isOpen={addSupplierModalOpen}
+        onClose={() => setAddSupplierModalOpen(false)}
+        commGroupId={selectedCommGroupId || ""}
+        commGroupName={selectedCommGroupName}
+        onAddVouchers={handleAddVouchers}
+      />
+    </div>
   );
 };
 

@@ -24,7 +24,9 @@ export type Retailer = {
   terminal_access: boolean;
   assigned_terminals?: string[];
   assigned_admin: string;
+  admin_name?: string;
   created_at?: Date;
+  comm_group_id?: number;
 };
 
 export type Terminal = {

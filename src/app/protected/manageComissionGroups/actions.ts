@@ -108,34 +108,56 @@ export const getSupplierMainVoucherGroups = async (supplierId: number) => {
   }
 };
 
-export const getSupplierMobileDataVouchers = async (supplierName: string) => {
+export const getSupplierVoucherProducts = async (supplierName: string) => {
   switch (supplierName.toLowerCase()) {
     case "glocell": {
       try {
-        const response = await axios.get(
-          "https://api.qa.bltelecoms.net/v2/trade/mobile/bundle/products",
-          {
-            headers: {
-              accept: "application/json",
-              "Trade-Vend-Channel": "API",
-              apikey: process.env.GLOCEL_API_KEY,
-              authorization: "Basic YmxkOm9ybnVrM2k5dnNlZWkxMjVzOHFlYTcxa3Vi",
+        // Fetch both data and airtime products in parallel
+        const [dataResponse, airtimeResponse] = await Promise.all([
+          axios.get(
+            "https://api.qa.bltelecoms.net/v2/trade/mobile/bundle/products",
+            {
+              headers: {
+                accept: "application/json",
+                "Trade-Vend-Channel": "API",
+                apikey: process.env.GLOCEL_API_KEY,
+                authorization: "Basic YmxkOm9ybnVrM2k5dnNlZWkxMjVzOHFlYTcxa3Vi",
+              },
             },
-          },
-        );
+          ),
+          axios.get(
+            "https://api.qa.bltelecoms.net/v2/trade/mobile/airtime/products",
+            {
+              headers: {
+                accept: "application/json",
+                "Trade-Vend-Channel": "API",
+                apikey: process.env.GLOCEL_API_KEY,
+                authorization: "Basic YmxkOm9ybnVrM2k5dnNlZWkxMjVzOHFlYTcxa3Vi",
+              },
+            },
+          ),
+        ]);
 
-        if (response.status === 200) {
-          const filteredVouchers = response.data.filter(
+        if (dataResponse.status === 200 && airtimeResponse.status === 200) {
+          const mobileDataVouchers = dataResponse.data.filter(
             (voucher: { category: string }) =>
               voucher.category.toLowerCase() === "data",
           );
-          return { mobileDataVouchers: filteredVouchers };
+          const mobileAirtimeVouchers = dataResponse.data.filter(
+            (voucher: { category: string }) =>
+              voucher.category.toLowerCase() === "airtime",
+          );
+
+          return {
+            mobileDataVouchers,
+            mobileAirtimeVouchers,
+          };
         }
 
-        return { error: "Failed to fetch mobile data vouchers" };
+        return { error: "Failed to fetch voucher products" };
       } catch (error) {
         if (error instanceof Error) {
-          console.error("Error fetching mobile data vouchers:", error);
+          console.error("Error fetching voucher products:", error);
           return { error: error.message };
         }
         return { error: "An unexpected error occurred" };
@@ -143,42 +165,8 @@ export const getSupplierMobileDataVouchers = async (supplierName: string) => {
     }
     default:
       return {
-        error: "Mobile data vouchers not available for this supplier yet",
+        error: "Voucher products not available for this supplier yet",
       };
-  }
-};
-
-export const getSupplierMobileAirtimeVouchers = async (
-  supplierName: string,
-) => {
-  switch (supplierName.toLowerCase()) {
-    case "glocell": {
-      try {
-        const response = await axios.get(
-          "https://api.qa.bltelecoms.net/v2/trade/mobile/airtime/products",
-          {
-            headers: {
-              accept: "application/json",
-              "Trade-Vend-Channel": "API",
-              apikey: process.env.GLOCEL_API_KEY,
-              authorization: "Basic YmxkOm9ybnVrM2k5dnNlZWkxMjVzOHFlYTcxa3Vi",
-            },
-          },
-        );
-
-        if (response.status === 200) {
-          return { mobileAirtimeVouchers: response.data };
-        }
-
-        return { error: "Failed to fetch mobile airtime vouchers" };
-      } catch (error) {
-        if (error instanceof Error) {
-          console.error("Error fetching mobile airtime vouchers:", error);
-          return { error: error.message };
-        }
-        return { error: "An unexpected error occurred" };
-      }
-    }
   }
 };
 
@@ -305,6 +293,26 @@ export const updateVoucherCommissions = async (
 export const getCommGroupsAction = async () => {
   const supabase = await createClient();
 
+  // First, get all users (admins) data
+  const { data: admins, error: adminsError } = await supabase
+    .from("users")
+    .select("id, name");
+
+  if (adminsError) {
+    console.error("Error fetching admins:", adminsError);
+    return { error: adminsError.message };
+  }
+
+  // Create a map of admin IDs to names
+  const adminMap = admins?.reduce(
+    (acc, admin) => {
+      acc[admin.id] = `${admin.name}`;
+      return acc;
+    },
+    {} as Record<string, string>,
+  );
+
+  // Get commission groups data
   const { data: commissionGroups, error } = await supabase.from(
     "commission_groups",
   ).select(`
@@ -321,21 +329,44 @@ export const getCommGroupsAction = async () => {
         supplier_id,
         supplier_name,
         profit
+      ),
+      retailers (
+        id,
+        name,
+        email,
+        contact_number,
+        city,
+        contact_person,
+        active,
+        location,
+        terminal_access,
+        assigned_admin
       )
     `);
 
   if (error) {
+    console.error("Error fetching commission groups:", error);
     return { error: error.message };
   }
 
-  // Transform the data to match expected format
-  const formattedGroups = commissionGroups.map((group) => ({
+  // Transform the data with proper admin names
+  const formattedGroups = commissionGroups?.map((group) => ({
     id: group.id,
     name: group.name,
-    vouchers: group.mobile_data_vouchers,
+    vouchers: group.mobile_data_vouchers || [],
+    retailers:
+      group.retailers?.map((retailer) => ({
+        ...retailer,
+        admin_name: retailer.assigned_admin
+          ? adminMap[retailer.assigned_admin] || "Not Found"
+          : "Not Assigned",
+      })) || [],
   }));
 
-  return { commissionGroups: formattedGroups };
+  console.log("Admin Map:", adminMap); // Debug log
+  console.log("Formatted Groups:", formattedGroups); // Debug log
+
+  return { commissionGroups: formattedGroups || [] };
 };
 
 export const assignCommGroupToRetailer = async (
@@ -346,7 +377,7 @@ export const assignCommGroupToRetailer = async (
 
   const { error } = await supabase
     .from("retailers")
-    .update({ assigned_commGroup: `${commGroupId}` })
+    .update({ comm_group_id: `${commGroupId}` })
     .eq("id", retailerId);
 
   if (error) {

@@ -211,7 +211,7 @@ const ServiceSelection = ({
 }) => {
   const [vouchers, setVouchers] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null);
 
 const fetchVouchers = async (service) => {
   setLoading(true);

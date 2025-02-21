@@ -62,7 +62,7 @@ const EditVoucherModal: React.FC<EditVoucherModalProps> = ({
           top: "50%",
           left: "50%",
           transform: "translate(-50%, -50%)",
-          width: 550,
+          width: "40%",
           maxHeight: "90vh",
           overflowY: "auto",
           bgcolor: "background.paper",
@@ -82,7 +82,7 @@ const EditVoucherModal: React.FC<EditVoucherModalProps> = ({
           <div className="mb-5 flex flex-col space-y-4">
             <div className="flex items-center space-x-4">
               <label className="w-1/3 font-semibold text-gray-700 dark:text-gray-300">
-                Total Commission (%)
+                Supplier Commission (%)
               </label>
               <input
                 type="number"
