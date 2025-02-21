@@ -20,7 +20,6 @@
 
 // export default ServiceSelection;
 
-
 import React, { useState, useEffect } from "react";
 import {
   Button,
@@ -34,10 +33,28 @@ import ProviderSelection from "./ProviderSelection";
 
 const services = ["Airtime", "Data", "SMS", "Top-up"];
 
-const ServiceSelection = ({ selectedProvider, selectedService, onSelect }) => {
-  const [vouchers, setVouchers] = useState([]);
+interface Voucher {
+  id: string;
+  name: string;
+  category: string;
+  amount: number;
+  vendorId?: string;
+}
+
+interface ServiceSelectionProps {
+  selectedProvider: string | null;
+  selectedService: string | null;
+  onSelect: (service: string) => void;
+}
+
+const ServiceSelection: React.FC<ServiceSelectionProps> = ({
+  selectedProvider,
+  selectedService,
+  onSelect,
+}) => {
+  const [vouchers, setVouchers] = useState<Voucher[]>([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null);
 
   // Log provider selection for debugging
   useEffect(() => {
@@ -45,10 +62,11 @@ const ServiceSelection = ({ selectedProvider, selectedService, onSelect }) => {
   }, [selectedProvider]);
 
   // Fetch Vouchers based on service type
-  const fetchVouchers = async (service) => {
+  const fetchVouchers = async (service: string) => {
     if (!selectedProvider) {
+      const errorMsg = "Please select a provider before choosing a service.";
       console.error("Error: No provider selected");
-      setError("Please select a provider before choosing a service.");
+      setError(errorMsg);
       return;
     }
 
@@ -119,7 +137,7 @@ const ServiceSelection = ({ selectedProvider, selectedService, onSelect }) => {
   };
 
   // Handle service selection
-  const selectService = async (service) => {
+  const selectService = async (service: string) => {
     if (!selectedProvider) {
       console.error("Cannot select service, provider not selected.");
       setError("Please select a provider before choosing a service.");

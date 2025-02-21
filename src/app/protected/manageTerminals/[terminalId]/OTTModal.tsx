@@ -14,14 +14,43 @@ import {
   TextField,
 } from "@mui/material";
 
-const OTTModal = ({ open, onClose }) => {
+interface OTTModalProps {
+  open: boolean;
+  onClose: () => void;
+  onIssueVoucher: (amount: number) => Promise<void>;
+}
+
+interface VoucherResponse {
+  success: boolean;
+  message?: string;
+  voucher?: {
+    voucherID: string;
+    pin: string;
+    serialNumber: string;
+    saleID: string;
+    amount: number;
+  };
+}
+
+interface HashParams {
+  [key: string]: string | number;
+}
+
+const OTTModal: React.FC<OTTModalProps> = ({
+  open,
+  onClose,
+  onIssueVoucher,
+}) => {
   // OTT State Management
-  const [balance, setBalance] = useState(null);
+  const [balance, setBalance] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
-  const [selectedAmount, setSelectedAmount] = useState(null);
+  const [selectedAmount, setSelectedAmount] = useState<number | null>(null);
   const [customAmount, setCustomAmount] = useState("");
-  const [voucherResponse, setVoucherResponse] = useState(null);
-  const [confirmationAction, setConfirmationAction] = useState(null);
+  const [voucherResponse, setVoucherResponse] =
+    useState<VoucherResponse | null>(null);
+  const [confirmationAction, setConfirmationAction] = useState<
+    (() => Promise<void>) | null
+  >(null);
   const amounts = [10, 20, 50, 100, 200, 1000, 2000]; // ✅ Define voucher amounts
 
   // OTT API Credentials
@@ -31,7 +60,7 @@ const OTTModal = ({ open, onClose }) => {
   const apiKey = "b39abd74-534c-44dc-a8ba-62a89dc8d31c";
 
   // Helper Functions
-  const generateHash = (params) => {
+  const generateHash = (params: HashParams) => {
     const sortedKeys = Object.keys(params).sort();
     const concatenatedString = [
       apiKey,
@@ -84,52 +113,11 @@ const OTTModal = ({ open, onClose }) => {
   };
 
   // Issue a Voucher
-  const issueVoucher = async (amount) => {
+  const handleIssueVoucher = async (amount: number) => {
     setLoading(true);
-
-    if (!amount || amount <= 0) {
-      setVoucherResponse({
-        success: false,
-        message: "Please select a valid voucher amount.",
-      });
-      setLoading(false);
-      return;
-    }
-
     try {
-      const uniqueReference = generateUniqueReference();
-      const params = {
-        branch: "DEFAULT_BRANCH",
-        cashier: "SYSTEM",
-        mobileForSMS: "",
-        till: "WEB",
-        uniqueReference,
-        value: amount,
-        vendorCode: "11",
-      };
-
-      const hash = generateHash(params);
-
-      const res = await axios.post(
-        `${BASE_URL}/reseller/v1/GetVoucher`,
-        new URLSearchParams({ ...params, hash }),
-        {
-          headers: {
-            ...getAuthHeaders(),
-            "Content-Type": "application/x-www-form-urlencoded",
-          },
-        },
-      );
-
-      console.log("Issue Voucher Response:", res.data);
-
-      if (res.data.success === "true") {
-        const voucherData = JSON.parse(res.data.voucher);
-        setVoucherResponse({ success: true, voucher: voucherData });
-        fetchBalance(); // ✅ Refresh balance after issuing a voucher
-      } else {
-        setVoucherResponse({ success: false, message: res.data.message });
-      }
+      await onIssueVoucher(amount);
+      fetchBalance(); // Refresh balance after issuing voucher
     } catch (error) {
       console.error("Error issuing voucher:", error);
       setVoucherResponse({
@@ -169,7 +157,9 @@ const OTTModal = ({ open, onClose }) => {
                       py: 2,
                     }}
                     onClick={() =>
-                      setConfirmationAction(() => () => issueVoucher(amount))
+                      setConfirmationAction(
+                        () => () => handleIssueVoucher(amount),
+                      )
                     }
                   >
                     <img
@@ -200,7 +190,7 @@ const OTTModal = ({ open, onClose }) => {
               sx={{ mt: 2 }}
               onClick={() => {
                 setConfirmationAction(
-                  () => () => issueVoucher(parseFloat(customAmount) || 0),
+                  () => () => handleIssueVoucher(parseFloat(customAmount) || 0),
                 );
                 setCustomAmount("");
               }}
