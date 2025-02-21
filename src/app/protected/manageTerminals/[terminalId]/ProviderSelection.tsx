@@ -99,7 +99,7 @@ import { Grid, Card, CardActionArea, CardMedia } from "@mui/material";
 const providers = [
   { name: "MTN", image: "/images/mtn.png" },
   { name: "Vodacom", image: "/images/vodacom.png" },
-  { name: "Cell C", image: "/images/cellc.png" },
+  { name: "CellC", image: "/images/cellc.png" },
   { name: "Telkom", image: "/images/telkom.jpeg" },
   { name: "OTT", image: "/images/ott_logo.png" },
 ];
