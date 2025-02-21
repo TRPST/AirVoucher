@@ -140,11 +140,11 @@ const TerminalDashboard = () => {
   const { terminalId } = useParams();
   const router = useRouter();
 
-  const [selectedProvider, setSelectedProvider] = useState(null);
-  const [selectedService, setSelectedService] = useState(null);
-  const [vouchers, setVouchers] = useState([]);
+  const [selectedProvider, setSelectedProvider] = useState<string | null>(null);
+  const [selectedService, setSelectedService] = useState<string | null>(null);
+  const [vouchers, setVouchers] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null);
   const [showSaleModal, setShowSaleModal] = useState(false);
   const [selectedVoucher, setSelectedVoucher] = useState(null);
   const [showOTTModal, setShowOTTModal] = useState(false);
@@ -186,7 +186,7 @@ const TerminalDashboard = () => {
   };
 
   // Handle provider selection
-  const handleProviderSelection = (provider) => {
+  const handleProviderSelection = (provider: string) => {
     setSelectedProvider(provider);
     setSelectedService(null);
     setVouchers([]);
@@ -194,7 +194,7 @@ const TerminalDashboard = () => {
   };
 
   // Handle service selection and fetch vouchers
-  const handleServiceSelection = async (service) => {
+  const handleServiceSelection = async (service: string) => {
     setSelectedService(service);
     setLoading(true);
 
@@ -223,7 +223,11 @@ const TerminalDashboard = () => {
       setVouchers(fetchedVouchers);
     } catch (err) {
       console.error(err);
-      setError(err.message);
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError(String(err));
+      }
     } finally {
       setLoading(false);
     }
@@ -268,7 +272,7 @@ const TerminalDashboard = () => {
       {selectedService && (
         <VoucherList
           vouchers={vouchers}
-          onSelect={(voucher) => {
+          onSelect={(voucher: any) => {
             setSelectedVoucher(voucher);
             setShowSaleModal(true);
           }}
@@ -281,11 +285,7 @@ const TerminalDashboard = () => {
         onClose={() => setShowSaleModal(false)}
         voucher={selectedVoucher}
       />
-      <OTTModal
-        open={showOTTModal}
-        onClose={() => setShowOTTModal(false)}
-        issueVoucher={issueVoucher}
-      />
+      <OTTModal open={showOTTModal} onClose={() => setShowOTTModal(false)} />
       <ConfirmationDialog
         open={Boolean(confirmationAction)}
         onConfirm={confirmationAction}

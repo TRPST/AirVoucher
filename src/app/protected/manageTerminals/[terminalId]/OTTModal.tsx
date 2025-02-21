@@ -14,14 +14,34 @@ import {
   TextField,
 } from "@mui/material";
 
-const OTTModal = ({ open, onClose }) => {
+interface OTTModalProps {
+  open: boolean;
+  onClose: () => void;
+}
+
+const OTTModal: React.FC<OTTModalProps> = ({ open, onClose }) => {
   // OTT State Management
-  const [balance, setBalance] = useState(null);
+  const [balance, setBalance] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [selectedAmount, setSelectedAmount] = useState(null);
   const [customAmount, setCustomAmount] = useState("");
-  const [voucherResponse, setVoucherResponse] = useState(null);
-  const [confirmationAction, setConfirmationAction] = useState(null);
+  interface VoucherResponse {
+    success: boolean;
+    message?: string;
+    voucher?: {
+      voucherID: string;
+      pin: string;
+      serialNumber: string;
+      saleID: string;
+      amount: number;
+    };
+  }
+
+  const [voucherResponse, setVoucherResponse] =
+    useState<VoucherResponse | null>(null);
+  const [confirmationAction, setConfirmationAction] = useState<
+    (() => Promise<void>) | null
+  >(null);
   const amounts = [10, 20, 50, 100, 200, 1000, 2000]; // ✅ Define voucher amounts
 
   // OTT API Credentials
@@ -31,7 +51,7 @@ const OTTModal = ({ open, onClose }) => {
   const apiKey = "b39abd74-534c-44dc-a8ba-62a89dc8d31c";
 
   // Helper Functions
-  const generateHash = (params) => {
+  const generateHash = (params: { [key: string]: any }) => {
     const sortedKeys = Object.keys(params).sort();
     const concatenatedString = [
       apiKey,
@@ -84,7 +104,7 @@ const OTTModal = ({ open, onClose }) => {
   };
 
   // Issue a Voucher
-  const issueVoucher = async (amount) => {
+  const issueVoucher = async (amount: number) => {
     setLoading(true);
 
     if (!amount || amount <= 0) {
@@ -112,7 +132,15 @@ const OTTModal = ({ open, onClose }) => {
 
       const res = await axios.post(
         `${BASE_URL}/reseller/v1/GetVoucher`,
-        new URLSearchParams({ ...params, hash }),
+        new URLSearchParams(
+          Object.entries({ ...params, hash }).reduce(
+            (acc, [key, value]) => {
+              acc[key] = String(value);
+              return acc;
+            },
+            {} as Record<string, string>,
+          ),
+        ),
         {
           headers: {
             ...getAuthHeaders(),

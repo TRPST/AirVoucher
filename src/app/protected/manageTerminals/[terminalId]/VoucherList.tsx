@@ -2,7 +2,19 @@
 import React from "react";
 import { Card, CardContent, Typography } from "@mui/material";
 
-const VoucherList = ({ vouchers, onSelect }) => (
+interface Voucher {
+  id: string;
+  name: string;
+  category: string;
+  amount: number;
+}
+
+interface VoucherListProps {
+  vouchers: Voucher[];
+  onSelect: (voucher: Voucher) => void;
+}
+
+const VoucherList: React.FC<VoucherListProps> = ({ vouchers, onSelect }) => (
   <div className="mt-6 grid grid-cols-3 gap-4">
     {vouchers.map((voucher) => (
       <Card

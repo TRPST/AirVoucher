@@ -202,84 +202,100 @@ import { supabase } from "../../../../../utils/supabase/client"; // Ensure corre
 
 const services = ["Airtime", "Data", "SMS", "Top-up"]; // Services remain hardcoded
 
-const ServiceSelection = ({
+interface ServiceSelectionProps {
+  selectedProvider: string;
+  selectedService: string;
+  onSelect: (service: string) => void;
+  terminalId: string;
+  commGroupId: string;
+}
+
+const ServiceSelection: React.FC<ServiceSelectionProps> = ({
   selectedProvider,
   selectedService,
   onSelect,
   terminalId,
   commGroupId,
 }) => {
-  const [vouchers, setVouchers] = useState([]);
+  interface Voucher {
+    id: string;
+    name: string;
+    category: string;
+    amount: number;
+    vendorId: string;
+  }
+
+  const [vouchers, setVouchers] = useState<Voucher[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-const fetchVouchers = async (service) => {
-  setLoading(true);
-  setError(null);
-  setVouchers([]);
+  const fetchVouchers = async (service: string) => {
+    setLoading(true);
+    setError(null);
+    setVouchers([]);
 
-  try {
-    console.log(
-      `🔍 Fetching vouchers for Provider: ${selectedProvider}, Service: ${service}, CommGroupId: ${commGroupId}`,
-    );
-
-    if (!commGroupId) {
-      throw new Error("Error: comm_group_id is missing!");
-    }
-
-    // 🔹 Generate `voucher_group_name` (e.g., "MTN Data", "Vodacom Airtime")
-    const voucherGroupName = `${selectedProvider} ${service}`;
-
-    // ✅ Fetch the `voucher_group_id`
-    const { data: voucherGroup, error: groupError } = await supabase
-      .from("voucher_groups")
-      .select("id")
-      .eq("voucher_group_name", voucherGroupName)
-      .single();
-
-    // 🔥 **Fix: Handle missing groups** 🔥
-    if (groupError || !voucherGroup) {
-      console.warn(
-        `⚠️ No voucher group found for "${voucherGroupName}". Skipping request.`,
+    try {
+      console.log(
+        `🔍 Fetching vouchers for Provider: ${selectedProvider}, Service: ${service}, CommGroupId: ${commGroupId}`,
       );
-      setVouchers([]); // ✅ Set empty list instead of crashing
-      return;
+
+      if (!commGroupId) {
+        throw new Error("Error: comm_group_id is missing!");
+      }
+
+      // 🔹 Generate `voucher_group_name` (e.g., "MTN Data", "Vodacom Airtime")
+      const voucherGroupName = `${selectedProvider} ${service}`;
+
+      // ✅ Fetch the `voucher_group_id`
+      const { data: voucherGroup, error: groupError } = await supabase
+        .from("voucher_groups")
+        .select("id")
+        .eq("voucher_group_name", voucherGroupName)
+        .single();
+
+      // 🔥 **Fix: Handle missing groups** 🔥
+      if (groupError || !voucherGroup) {
+        console.warn(
+          `⚠️ No voucher group found for "${voucherGroupName}". Skipping request.`,
+        );
+        setVouchers([]); // ✅ Set empty list instead of crashing
+        return;
+      }
+
+      console.log(`✅ Voucher Group ID: ${voucherGroup.id}`);
+
+      // ✅ Fetch vouchers from `mobile_data_vouchers`
+      const { data: fetchedVouchers, error: vouchersError } = await supabase
+        .from("mobile_data_vouchers")
+        .select("*")
+        .eq("comm_group_id", commGroupId)
+        .eq("vendorId", selectedProvider.toLowerCase());
+
+      if (vouchersError) {
+        console.error("❌ Error fetching vouchers:", vouchersError);
+        throw new Error("Error fetching vouchers.");
+      }
+
+      console.log("✅ Vouchers Fetched:", fetchedVouchers);
+
+      // ✅ No vouchers found → Display a message instead of crashing
+      if (!fetchedVouchers || fetchedVouchers.length === 0) {
+        console.warn(`⚠️ No vouchers available for "${voucherGroupName}".`);
+        setVouchers([]);
+      } else {
+        setVouchers(fetchedVouchers);
+      }
+    } catch (err) {
+      console.error("❌ Error:", err);
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError(String(err));
+      }
+    } finally {
+      setLoading(false);
     }
-
-    console.log(`✅ Voucher Group ID: ${voucherGroup.id}`);
-
-    // ✅ Fetch vouchers from `mobile_data_vouchers`
-    const { data: fetchedVouchers, error: vouchersError } = await supabase
-      .from("mobile_data_vouchers")
-      .select("*")
-      .eq("comm_group_id", commGroupId)
-      .eq("vendorId", selectedProvider.toLowerCase());
-
-    if (vouchersError) {
-      console.error("❌ Error fetching vouchers:", vouchersError);
-      throw new Error("Error fetching vouchers.");
-    }
-
-    console.log("✅ Vouchers Fetched:", fetchedVouchers);
-
-    // ✅ No vouchers found → Display a message instead of crashing
-    if (!fetchedVouchers || fetchedVouchers.length === 0) {
-      console.warn(`⚠️ No vouchers available for "${voucherGroupName}".`);
-      setVouchers([]);
-    } else {
-      setVouchers(fetchedVouchers);
-    }
-  } catch (err) {
-    console.error("❌ Error:", err);
-    setError(err.message);
-  } finally {
-    setLoading(false);
-  }
-};
-
-
-
-
+  };
 
   return (
     <div>

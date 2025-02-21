@@ -104,7 +104,15 @@ const providers = [
   { name: "OTT", image: "/images/ott_logo.png" },
 ];
 
-const ProviderSelection = ({ selectedProvider, onSelect }) => (
+interface ProviderSelectionProps {
+  selectedProvider: string;
+  onSelect: (providerName: string) => void;
+}
+
+const ProviderSelection: React.FC<ProviderSelectionProps> = ({
+  selectedProvider,
+  onSelect,
+}) => (
   <Grid container spacing={2} sx={{ mt: 2, justifyContent: "center" }}>
     {providers.map((provider) => (
       <Grid item xs={6} sm={2.4} key={provider.name}>
