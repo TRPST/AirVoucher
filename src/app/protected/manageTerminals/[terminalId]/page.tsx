@@ -1,4 +1,121 @@
-// app/protected/manageTerminals/[terminalID]/page.tsx
+// // app / protected / manageTerminals / [terminalID] / page.tsx;
+// ("use client");
+
+// import React, { useState } from "react";
+// import { useParams, useRouter } from "next/navigation";
+// import {
+//   IconButton,
+//   Typography,
+//   Button,
+//   CircularProgress,
+// } from "@mui/material";
+// import WestIcon from "@mui/icons-material/West";
+// import ProviderSelection from "./ProviderSelection";
+// import ServiceSelection from "./ServiceSelection";
+// import VoucherList from "./VoucherList";
+// import SaleModal from "./SaleModal";
+// import OTTModal from "./OTTModal";
+// import ConfirmationDialog from "./ConfirmationDialog";
+// // import { fetchVouchers, issueVoucher } from "./api";
+// import issueVoucher from "./OTTModal"; // ✅ Import fetchVouchers and issueVoucher from ./api
+
+// const TerminalDashboard = () => {
+//   const { terminalId } = useParams();
+//   const router = useRouter();
+
+//   const [selectedProvider, setSelectedProvider] = useState(null);
+//   const [selectedService, setSelectedService] = useState(null);
+//   const [vouchers, setVouchers] = useState([]);
+//   const [loading, setLoading] = useState(false);
+//   const [error, setError] = useState(null);
+//   const [showSaleModal, setShowSaleModal] = useState(false);
+//   const [selectedVoucher, setSelectedVoucher] = useState(null);
+//   const [showOTTModal, setShowOTTModal] = useState(false);
+//   const [confirmationAction, setConfirmationAction] = useState<
+//     (() => void) | null
+//   >(null);
+
+//   // Navigate back to Terminal Management
+//   const navigateToTerminalManagement = () => {
+//     router.push("/protected/manageTerminals");
+//   };
+
+//   const handleProviderSelection = (provider) => {
+//     setSelectedProvider(provider);
+//     setSelectedService(null);
+//     setVouchers([]);
+//     if (provider === "OTT") setShowOTTModal(true);
+//   };
+
+//   const handleServiceSelection = async (service) => {
+//     setSelectedService(service);
+//     setLoading(true);
+//     try {
+//       const fetchedVouchers = await fetchVouchers(service, selectedProvider);
+//       setVouchers(fetchedVouchers);
+//     } catch (err) {
+//       setError(err.message);
+//     } finally {
+//       setLoading(false);
+//     }
+//   };
+
+//   return (
+//     <div className="container mx-auto p-6">
+//       <div className="mb-6 flex items-center justify-between">
+//         <IconButton color="primary" onClick={navigateToTerminalManagement}>
+//           <WestIcon sx={{ fontSize: 30 }} />
+//         </IconButton>
+//         <Typography variant="h4" fontWeight="bold">
+//           Terminal Dashboard - {terminalId}
+//         </Typography>
+//         <Button variant="contained" color="primary">
+//           Sales Analytics
+//         </Button>
+//       </div>
+//       <ProviderSelection
+//         selectedProvider={selectedProvider}
+//         onSelect={handleProviderSelection}
+//       />
+//       {selectedProvider && selectedProvider !== "OTT" && (
+//         <ServiceSelection
+//           selectedService={selectedService}
+//           onSelect={handleServiceSelection}
+//         />
+//       )}
+//       {loading && <CircularProgress />}
+//       {error && <Typography color="error">{error}</Typography>}
+//       {selectedService && (
+//         <VoucherList
+//           vouchers={vouchers}
+//           onSelect={(voucher) => {
+//             setSelectedVoucher(voucher);
+//             setShowSaleModal(true);
+//           }}
+//         />
+//       )}
+//       <SaleModal
+//         open={showSaleModal}
+//         onClose={() => setShowSaleModal(false)}
+//         voucher={selectedVoucher}
+//       />
+//       <OTTModal
+//         open={showOTTModal}
+//         onClose={() => setShowOTTModal(false)}
+//         issueVoucher={issueVoucher}
+//       />
+//       <ConfirmationDialog
+//         open={Boolean(confirmationAction)}
+//         onConfirm={confirmationAction}
+//         onClose={() => setConfirmationAction(null)}
+//       />
+//     </div>
+//   );
+// };
+
+// export default TerminalDashboard;
+
+
 "use client";
 
 import React, { useState, useEffect } from "react";
@@ -10,124 +127,106 @@ import {
   CircularProgress,
 } from "@mui/material";
 import WestIcon from "@mui/icons-material/West";
-import TerminalBalances from "./components/TerminalBalances";
-import TerminalHeader from "./components/TerminalHeader";
-import TransactionHistoryButton from "./components/TransactionHistoryButton";
 import ProviderSelection from "./ProviderSelection";
 import ServiceSelection from "./ServiceSelection";
 import VoucherList from "./VoucherList";
 import SaleModal from "./SaleModal";
 import OTTModal from "./OTTModal";
 import ConfirmationDialog from "./ConfirmationDialog";
-import { getSalesAnalyticsAction } from "@/app/ott_actions";
-import SyncIndicator from "./components/SyncIndicator";
+import { supabase } from "../../../../../utils/supabase/client"; // ✅ Use shared Supabase client
+import issueVoucher from "./OTTModal"; // ✅ Import fetchVouchers and issueVoucher from ./api
 
-// Add types for vouchers and providers
-interface ServiceSelectionProps {
-  selectedProvider: string | null;
-  selectedService: string | null;
-  onSelect: (service: string) => Promise<void>;
-}
-
-interface Voucher {
-  id: string;
-  amount: number;
-  // Add other voucher properties needed
-}
-
-type Provider = string;
-type Service = string;
-
-export default function Page() {
+const TerminalDashboard = () => {
   const { terminalId } = useParams();
   const router = useRouter();
 
-  const [selectedProvider, setSelectedProvider] = useState<Provider | null>(
-    null,
-  );
-  const [selectedService, setSelectedService] = useState<Service | null>(null);
-  const [vouchers, setVouchers] = useState<Voucher[]>([]);
+  const [selectedProvider, setSelectedProvider] = useState<string | null>(null);
+  const [selectedService, setSelectedService] = useState<string | null>(null);
+  const [vouchers, setVouchers] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showSaleModal, setShowSaleModal] = useState(false);
-  const [selectedVoucher, setSelectedVoucher] = useState<Voucher | null>(null);
+  const [selectedVoucher, setSelectedVoucher] = useState(null);
   const [showOTTModal, setShowOTTModal] = useState(false);
   const [confirmationAction, setConfirmationAction] = useState<
     (() => void) | null
   >(null);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [lastSync, setLastSync] = useState(new Date());
+  const [commGroupId, setCommGroupId] = useState(null);
 
-  // New state for balances
-  const [balances, setBalances] = useState({
-    balance: 1000,
-    credit: 200,
-    balanceDue: 0,
-  });
+  // Fetch the commission group ID for the terminal
+  useEffect(() => {
+    const fetchTerminalData = async () => {
+      setLoading(true);
+      setError(null);
+
+      console.log(`Fetching terminal data for Terminal ID: ${terminalId}`);
+
+      const { data: terminal, error: terminalError } = await supabase
+        .from("terminals")
+        .select("comm_group_id")
+        .eq("id", terminalId)
+        .single();
+
+      if (terminalError) {
+        console.error("Error fetching terminal data:", terminalError);
+        setError("Error fetching terminal data.");
+      } else {
+        console.log("Fetched Terminal Data:", terminal);
+        setCommGroupId(terminal?.comm_group_id);
+      }
+      setLoading(false);
+    };
+
+    if (terminalId) fetchTerminalData();
+  }, [terminalId]);
 
   // Navigate back to Terminal Management
   const navigateToTerminalManagement = () => {
     router.push("/protected/manageTerminals");
   };
 
-  const handleRefreshBalances = async () => {
-    setLoading(true);
-    // try {
-    //   const analytics = await getSalesAnalyticsAction(terminalId as string);
-    //   setBalances({
-    //     balance: analytics.totalRevenue || 0,
-    //     credit: 1000,
-    //     balanceDue: analytics.totalRevenue * 0.1 || 0,
-    //   });
-    //   setLastSync(new Date());
-    // } catch (err: unknown) {
-    //   if (err instanceof Error) {
-    //     setError(err.message);
-    //   } else {
-    //     setError("An unknown error occurred");
-    //   }
-    // } finally {
-    //   setLoading(false);
-    // }
-    setLoading(false);
-  };
-
-  useEffect(() => {
-    handleRefreshBalances();
-  }, [terminalId]);
-
-  const handleSearch = (query: string) => {
-    setSearchQuery(query);
-    // Filter vouchers based on search query
-  };
-
-  const handleAnalytics = () => {
-    // Implement analytics view
-  };
-
-  const handleTransactionHistory = () => {
-    // Implement transaction history view
-  };
-
-  const handleProviderSelection = (provider: Provider) => {
+  // Handle provider selection
+  const handleProviderSelection = (provider: string) => {
     setSelectedProvider(provider);
     setSelectedService(null);
     setVouchers([]);
     if (provider === "OTT") setShowOTTModal(true);
   };
 
-  const handleServiceSelection = async (service: Service) => {
+  // Handle service selection and fetch vouchers
+  const handleServiceSelection = async (service: string) => {
     setSelectedService(service);
     setLoading(true);
+
     try {
-      // Implement fetchVouchers or remove if not needed
-      const fetchedVouchers = await Promise.resolve([]); // Temporary placeholder
+      console.log(
+        `Fetching vouchers for Provider: ${selectedProvider}, Service: ${service}, CommGroupId: ${commGroupId}`,
+      );
+
+      if (!commGroupId) {
+        throw new Error("Error: comm_group_id is missing!");
+      }
+
+      const { data: fetchedVouchers, error: voucherError } = await supabase
+        .from("mobile_data_vouchers")
+        .select("*")
+        .eq("comm_group_id", commGroupId)
+        .eq("supplier_name", selectedProvider)
+        .eq("category", service);
+
+      if (voucherError) {
+        console.error("Error fetching vouchers:", voucherError);
+        throw new Error("Error fetching vouchers.");
+      }
+
+      console.log("Fetched Vouchers:", fetchedVouchers);
       setVouchers(fetchedVouchers);
-    } catch (error) {
-      if (error instanceof Error) {
-        setError(error.message);
+    } catch (err) {
+      console.error(err);
+      if (err instanceof Error) {
+        setError(err.message);
       } else {
-        setError("An unknown error occurred");
+        setError(String(err));
       }
     } finally {
       setLoading(false);
@@ -137,89 +236,56 @@ export default function Page() {
   return (
     <div className="container mx-auto p-6">
       <div className="mb-6 flex items-center justify-between">
-        <div className="flex items-center space-x-4">
-          <IconButton color="primary" onClick={navigateToTerminalManagement}>
-            <WestIcon sx={{ fontSize: 30 }} />
-          </IconButton>
-          <h2 className="text-3xl font-bold text-gray-900 dark:text-white">
-            Terminal {terminalId}
-          </h2>
-          <SyncIndicator lastSync={lastSync} />
-        </div>
-        <button
-          onClick={handleAnalytics}
-          className="rounded-lg border border-blue-700 px-3 py-2 font-semibold text-blue-500 shadow transition duration-300 hover:bg-blue-800 hover:text-white dark:border-blue-600 dark:hover:bg-blue-700"
-        >
+        <IconButton color="primary" onClick={navigateToTerminalManagement}>
+          <WestIcon sx={{ fontSize: 30 }} />
+        </IconButton>
+        <Typography variant="h4" fontWeight="bold">
+          Terminal Dashboard - {terminalId}
+        </Typography>
+        <Button variant="contained" color="primary">
           Sales Analytics
-        </button>
+        </Button>
       </div>
 
-      {/* <TerminalHeader
-        terminalId={terminalId as string}
-        lastSync={lastSync}
-        onSearch={handleSearch}
-        onAnalytics={handleAnalytics}
-      /> */}
-
-      <TerminalBalances
-        {...balances}
-        lastUpdated={lastSync}
-        onRefresh={handleRefreshBalances}
-        isLoading={loading}
+      {/* Provider Selection */}
+      <ProviderSelection
+        selectedProvider={selectedProvider}
+        onSelect={handleProviderSelection}
       />
 
-      <div className="mt-8">
-        <ProviderSelection
+      {/* Service Selection */}
+      {selectedProvider && selectedProvider !== "OTT" && (
+        <ServiceSelection
           selectedProvider={selectedProvider}
-          onSelect={handleProviderSelection}
+          selectedService={selectedService}
+          onSelect={handleServiceSelection}
+          terminalId={terminalId}
+          commGroupId={commGroupId} // ✅ Pass commGroupId to ServiceSelection
         />
+      )}
 
-        {selectedProvider && selectedProvider !== "OTT" && (
-          <ServiceSelection
-            selectedProvider={selectedProvider}
-            selectedService={selectedService}
-            onSelect={handleServiceSelection}
-          />
-        )}
+      {/* Loading and Error Handling */}
+      {loading && <CircularProgress />}
+      {error && <Typography color="error">{error}</Typography>}
 
-        {loading && (
-          <div className="flex justify-center">
-            <div className="h-8 w-8 animate-spin rounded-full border-4 border-solid border-primary border-t-transparent"></div>
-          </div>
-        )}
+      {/* Display Voucher List */}
+      {selectedService && (
+        <VoucherList
+          vouchers={vouchers}
+          onSelect={(voucher: any) => {
+            setSelectedVoucher(voucher);
+            setShowSaleModal(true);
+          }}
+        />
+      )}
 
-        {error && <div className="text-red-500">{error}</div>}
-
-        {selectedService && (
-          <VoucherList
-            vouchers={vouchers}
-            onSelect={(voucher: Voucher) => {
-              setSelectedVoucher(voucher);
-              setShowSaleModal(true);
-            }}
-          />
-        )}
-      </div>
-
-      {/* <TransactionHistoryButton onClick={handleTransactionHistory} /> */}
-
+      {/* Modals */}
       <SaleModal
         open={showSaleModal}
         onClose={() => setShowSaleModal(false)}
         voucher={selectedVoucher}
       />
-
-      <OTTModal
-        open={showOTTModal}
-        onClose={() => setShowOTTModal(false)}
-        onIssueVoucher={async (amount) => {
-          // Handle OTT voucher issuance
-          console.log("Issuing OTT voucher for amount:", amount);
-          // Add your voucher issuance logic here
-          return Promise.resolve(); // Return a Promise to match the expected type
-        }}
-      />
-
+      <OTTModal open={showOTTModal} onClose={() => setShowOTTModal(false)} />
       <ConfirmationDialog
         open={Boolean(confirmationAction)}
         onConfirm={confirmationAction}
@@ -227,4 +293,6 @@ export default function Page() {
       />
     </div>
   );
-}
+};
+
+export default TerminalDashboard;

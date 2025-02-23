@@ -17,35 +17,26 @@ import {
 interface OTTModalProps {
   open: boolean;
   onClose: () => void;
-  onIssueVoucher: (amount: number) => Promise<void>;
 }
 
-interface VoucherResponse {
-  success: boolean;
-  message?: string;
-  voucher?: {
-    voucherID: string;
-    pin: string;
-    serialNumber: string;
-    saleID: string;
-    amount: number;
-  };
-}
-
-interface HashParams {
-  [key: string]: string | number;
-}
-
-const OTTModal: React.FC<OTTModalProps> = ({
-  open,
-  onClose,
-  onIssueVoucher,
-}) => {
+const OTTModal: React.FC<OTTModalProps> = ({ open, onClose }) => {
   // OTT State Management
-  const [balance, setBalance] = useState<number | null>(null);
+  const [balance, setBalance] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [selectedAmount, setSelectedAmount] = useState<number | null>(null);
+  const [selectedAmount, setSelectedAmount] = useState(null);
   const [customAmount, setCustomAmount] = useState("");
+  interface VoucherResponse {
+    success: boolean;
+    message?: string;
+    voucher?: {
+      voucherID: string;
+      pin: string;
+      serialNumber: string;
+      saleID: string;
+      amount: number;
+    };
+  }
+
   const [voucherResponse, setVoucherResponse] =
     useState<VoucherResponse | null>(null);
   const [confirmationAction, setConfirmationAction] = useState<
@@ -60,7 +51,7 @@ const OTTModal: React.FC<OTTModalProps> = ({
   const apiKey = "b39abd74-534c-44dc-a8ba-62a89dc8d31c";
 
   // Helper Functions
-  const generateHash = (params: HashParams) => {
+  const generateHash = (params: { [key: string]: any }) => {
     const sortedKeys = Object.keys(params).sort();
     const concatenatedString = [
       apiKey,
@@ -113,11 +104,60 @@ const OTTModal: React.FC<OTTModalProps> = ({
   };
 
   // Issue a Voucher
-  const handleIssueVoucher = async (amount: number) => {
+  const issueVoucher = async (amount: number) => {
     setLoading(true);
+
+    if (!amount || amount <= 0) {
+      setVoucherResponse({
+        success: false,
+        message: "Please select a valid voucher amount.",
+      });
+      setLoading(false);
+      return;
+    }
+
     try {
-      await onIssueVoucher(amount);
-      fetchBalance(); // Refresh balance after issuing voucher
+      const uniqueReference = generateUniqueReference();
+      const params = {
+        branch: "DEFAULT_BRANCH",
+        cashier: "SYSTEM",
+        mobileForSMS: "",
+        till: "WEB",
+        uniqueReference,
+        value: amount,
+        vendorCode: "11",
+      };
+
+      const hash = generateHash(params);
+
+      const res = await axios.post(
+        `${BASE_URL}/reseller/v1/GetVoucher`,
+        new URLSearchParams(
+          Object.entries({ ...params, hash }).reduce(
+            (acc, [key, value]) => {
+              acc[key] = String(value);
+              return acc;
+            },
+            {} as Record<string, string>,
+          ),
+        ),
+        {
+          headers: {
+            ...getAuthHeaders(),
+            "Content-Type": "application/x-www-form-urlencoded",
+          },
+        },
+      );
+
+      console.log("Issue Voucher Response:", res.data);
+
+      if (res.data.success === "true") {
+        const voucherData = JSON.parse(res.data.voucher);
+        setVoucherResponse({ success: true, voucher: voucherData });
+        fetchBalance(); // ✅ Refresh balance after issuing a voucher
+      } else {
+        setVoucherResponse({ success: false, message: res.data.message });
+      }
     } catch (error) {
       console.error("Error issuing voucher:", error);
       setVoucherResponse({
@@ -157,9 +197,7 @@ const OTTModal: React.FC<OTTModalProps> = ({
                       py: 2,
                     }}
                     onClick={() =>
-                      setConfirmationAction(
-                        () => () => handleIssueVoucher(amount),
-                      )
+                      setConfirmationAction(() => () => issueVoucher(amount))
                     }
                   >
                     <img
@@ -190,7 +228,7 @@ const OTTModal: React.FC<OTTModalProps> = ({
               sx={{ mt: 2 }}
               onClick={() => {
                 setConfirmationAction(
-                  () => () => handleIssueVoucher(parseFloat(customAmount) || 0),
+                  () => () => issueVoucher(parseFloat(customAmount) || 0),
                 );
                 setCustomAmount("");
               }}

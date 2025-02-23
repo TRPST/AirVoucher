@@ -9,7 +9,17 @@ import {
   Typography,
 } from "@mui/material";
 
-const ConfirmationDialog = ({ open, onConfirm, onClose }) => (
+interface ConfirmationDialogProps {
+  open: boolean;
+  onConfirm: () => void;
+  onClose: () => void;
+}
+
+const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
+  open,
+  onConfirm,
+  onClose,
+}) => (
   <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
     <DialogTitle>Confirm Action</DialogTitle>
     <DialogContent>
