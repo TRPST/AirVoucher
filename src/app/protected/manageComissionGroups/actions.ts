@@ -514,3 +514,55 @@ export const deleteVoucherAction = async (voucherId: string | number) => {
 
   return { success: "Voucher deleted successfully" };
 };
+
+export const getTerminalsAction = async (retailerId: string) => {
+  const supabase = await createClient();
+
+  interface Terminal {
+    id: string;
+    cashier_name: string | null;
+    active: boolean;
+  }
+
+  try {
+    const { data, error } = await supabase
+      .from("terminals")
+      .select("id, cashier_name, active")
+      .eq("retailer_id", retailerId);
+
+    if (error) {
+      console.error("Error fetching terminals:", error);
+      return { error: error.message, terminals: [] as Terminal[] };
+    }
+
+    return { terminals: (data || []) as Terminal[], error: null };
+  } catch (error) {
+    console.error("Unexpected error fetching terminals:", error);
+    return {
+      error:
+        error instanceof Error ? error.message : "An unexpected error occurred",
+      terminals: [] as Terminal[],
+    };
+  }
+};
+
+export const getTerminalsByRetailerAction = async (retailerId: string) => {
+  try {
+    const supabase = await createClient();
+
+    const { data: terminals, error } = await supabase
+      .from("terminals")
+      .select("*")
+      .eq("assigned_retailer", retailerId);
+
+    if (error) {
+      console.error("Error fetching terminals:", error);
+      return { error: error.message };
+    }
+
+    return { terminals };
+  } catch (error) {
+    console.error("Error in getTerminalsByRetailerAction:", error);
+    return { error: "Failed to fetch terminals" };
+  }
+};

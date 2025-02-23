@@ -16,6 +16,7 @@ interface CommissionGroupTableProps {
     commGroupId?: string,
     commGroupName?: string,
   ) => void;
+  setSelectedCommGroupId: (commGroupId: string) => void;
   handleDeleteVoucher?: (voucherId: string) => void;
   handleEditVoucher?: (
     groupId: string,
@@ -32,6 +33,7 @@ interface CommissionGroupTableProps {
 const CommissionGroupTable: React.FC<CommissionGroupTableProps> = ({
   data,
   setAddSupplierModalOpen,
+  setSelectedCommGroupId,
   handleDeleteVoucher,
   handleEditVoucher,
   editLoading,
@@ -68,7 +70,7 @@ const CommissionGroupTable: React.FC<CommissionGroupTableProps> = ({
   };
 
   return (
-    <div className="container mx-auto mb-10 px-4 py-8">
+    <div className="container mx-auto mb-10 py-8 pl-4">
       {data.map((group) => (
         <div key={group.id} className="mb-20">
           <div className="mb-6 flex flex-col space-y-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
@@ -105,6 +107,7 @@ const CommissionGroupTable: React.FC<CommissionGroupTableProps> = ({
                   setAddRetailersModalOpen(true);
                 } else {
                   setAddSupplierModalOpen(true, group.id, group.name);
+                  setSelectedCommGroupId(group.id);
                 }
               }}
             >

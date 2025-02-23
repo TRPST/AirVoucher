@@ -209,9 +209,8 @@ const CommissionTable: React.FC<CommissionTableProps> = ({
                     className={`${columnWidths.vendor} truncate border border-gray-300 px-4 py-1 dark:border-gray-600 dark:text-white`}
                     title={voucher.vendorId}
                   >
-                    {voucher.vendorId
-                      ? voucher.vendorId.charAt(0).toUpperCase() +
-                        voucher.vendorId.slice(1)
+                    {typeof voucher.vendorId === "string"
+                      ? voucher.vendorId.toUpperCase()
                       : "-"}
                   </td>
                   <td

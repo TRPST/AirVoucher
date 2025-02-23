@@ -58,7 +58,7 @@ const CommissionInputs = ({
             inputClasses,
             errors.total_comm && "border-red-500 focus:ring-red-500",
           )}
-          placeholder="Enter value as a whole number"
+          placeholder="E.g: enter 10 for 10%"
         />
       </div>
       {errors.total_comm && (
@@ -78,7 +78,7 @@ const CommissionInputs = ({
             onCommissionChange("retailer_comm", parseFloat(e.target.value) || 0)
           }
           className={inputClasses}
-          placeholder="Enter value as a whole number"
+          placeholder="E.g: enter 10 for 10%"
         />
       </div>
 
@@ -98,7 +98,7 @@ const CommissionInputs = ({
             )
           }
           className={inputClasses}
-          placeholder="Enter value as a whole number"
+          placeholder="E.g: enter 10 for 10%"
         />
       </div>
     </div>

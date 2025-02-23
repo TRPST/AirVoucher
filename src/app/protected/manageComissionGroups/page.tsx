@@ -302,6 +302,17 @@ const CommissionManagement = () => {
 
   return (
     <div className="flex-1">
+      <div className="mb-6 flex flex-row items-center justify-between">
+        <h2 className="text-3xl font-bold text-gray-800 dark:text-white">
+          Commission Groups
+        </h2>
+        <button
+          onClick={() => setAddCommGroupModalOpen(true)}
+          className="rounded border border-blue-700 px-3 py-2 font-semibold text-blue-500 shadow transition duration-300 hover:bg-blue-800 hover:text-white dark:border-blue-600 dark:hover:bg-blue-700"
+        >
+          Create Commission Group
+        </button>
+      </div>
       {loading ? (
         <div className="mt-10 flex justify-center">
           <div className="h-8 w-8 animate-spin rounded-full border-4 border-solid border-primary border-t-transparent"></div>
@@ -313,6 +324,7 @@ const CommissionManagement = () => {
             return !!group.id;
           })}
           setAddSupplierModalOpen={setAddSupplierModalOpen}
+          setSelectedCommGroupId={setSelectedCommGroupId}
           handleDeleteVoucher={handleDeleteVoucher}
           handleEditVoucher={handleEditVoucher}
           editLoading={editLoading}
@@ -351,14 +363,15 @@ const CommissionManagement = () => {
           generateSecurePassword={generateSecurePassword}
         />
       )} */}
-
-      <AddSupplierModal
-        isOpen={addSupplierModalOpen}
-        onClose={() => setAddSupplierModalOpen(false)}
-        commGroupId={selectedCommGroupId || ""}
-        commGroupName={selectedCommGroupName}
-        onAddVouchers={handleAddVouchers}
-      />
+      {selectedCommGroupId && (
+        <AddSupplierModal
+          isOpen={addSupplierModalOpen}
+          onClose={() => setAddSupplierModalOpen(false)}
+          commGroupId={selectedCommGroupId}
+          commGroupName={selectedCommGroupName}
+          onAddVouchers={handleAddVouchers}
+        />
+      )}
     </div>
   );
 };

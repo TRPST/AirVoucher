@@ -1,11 +1,28 @@
-import React from "react";
+import React, { useState } from "react";
 import { Retailer } from "@/app/types/common";
+import TerminalsModal from "./TerminalsModal";
+import { Button } from "@/components/ui/button";
 
 interface RetailersTableProps {
   retailers?: Retailer[];
 }
 
 const RetailersTable: React.FC<RetailersTableProps> = ({ retailers }) => {
+  const [selectedRetailer, setSelectedRetailer] = useState<Retailer | null>(
+    null,
+  );
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const handleOpenTerminals = (retailer: Retailer) => {
+    setSelectedRetailer(retailer);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseTerminals = () => {
+    setIsModalOpen(false);
+    setSelectedRetailer(null);
+  };
+
   return (
     <div className="min-w-full">
       <table className="w-full table-auto border-collapse bg-white shadow-md dark:bg-gray-800">
@@ -34,6 +51,9 @@ const RetailersTable: React.FC<RetailersTableProps> = ({ retailers }) => {
             </th> */}
             <th className="border border-gray-300 px-4 py-2 text-left text-sm font-semibold dark:border-gray-600">
               Active
+            </th>
+            <th className="border border-gray-300 px-4 py-2 text-left text-sm font-semibold dark:border-gray-600">
+              Terminals
             </th>
           </tr>
         </thead>
@@ -85,6 +105,20 @@ const RetailersTable: React.FC<RetailersTableProps> = ({ retailers }) => {
                   {retailer.active ? "Yes" : "No"}
                 </span>
               </td>
+              <td className="border border-gray-300 px-4 py-2 dark:border-gray-600 dark:text-white">
+                <Button
+                  onClick={() => handleOpenTerminals(retailer)}
+                  onKeyDown={(e) =>
+                    e.key === "Enter" && handleOpenTerminals(retailer)
+                  }
+                  className="w-full rounded-md bg-blue-600 px-3 py-1 text-sm text-white transition-colors hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:hover:bg-blue-800"
+                  tabIndex={0}
+                  aria-label={`View terminals for ${retailer.name}`}
+                  type="button"
+                >
+                  View Terminals
+                </Button>
+              </td>
             </tr>
           ))}
           {(!retailers || retailers.length === 0) && (
@@ -99,6 +133,14 @@ const RetailersTable: React.FC<RetailersTableProps> = ({ retailers }) => {
           )}
         </tbody>
       </table>
+
+      {selectedRetailer && (
+        <TerminalsModal
+          isOpen={isModalOpen}
+          onClose={handleCloseTerminals}
+          retailer={selectedRetailer}
+        />
+      )}
     </div>
   );
 };

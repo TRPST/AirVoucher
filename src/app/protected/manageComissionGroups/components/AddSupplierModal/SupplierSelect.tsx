@@ -26,7 +26,7 @@ const SupplierSelect = ({
   return (
     <>
       <h3 className="mb-2 mt-5 font-semibold text-gray-800 dark:text-gray-100">
-        Supplier
+        Select a Supplier
       </h3>
       <VoucherDropdown
         items={suppliersWithDisabled}

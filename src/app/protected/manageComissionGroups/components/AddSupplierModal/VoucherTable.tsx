@@ -93,25 +93,25 @@ const VoucherTable = ({ vouchers, onDeleteVoucher }: VoucherTableProps) => {
                       title={
                         voucher.name === "OTT Variable Amount" ||
                         !voucher.amount
-                          ? (voucher.total_comm * 100)?.toString()
-                          : `${(voucher.total_comm * 100).toFixed(0)} (R ${totalCommissionAmount.toFixed(2)})`
+                          ? `${(voucher.total_comm * 100).toFixed(0)}%`
+                          : `${(voucher.total_comm * 100).toFixed(0)}% (R ${totalCommissionAmount.toFixed(2)})`
                       }
                     >
                       {voucher.name === "OTT Variable Amount" || !voucher.amount
-                        ? voucher.total_comm * 100
-                        : `${voucher.total_comm * 100}% (R ${totalCommissionAmount.toFixed(2)})`}
+                        ? `${(voucher.total_comm * 100).toFixed(0)}%`
+                        : `${(voucher.total_comm * 100).toFixed(0)}% (R ${totalCommissionAmount.toFixed(2)})`}
                     </td>
                     <td
                       className="truncate border border-gray-300 px-4 py-1 dark:border-gray-600 dark:text-white"
                       title={
                         voucher.name === "OTT Variable Amount" ||
                         !voucher.amount
-                          ? (voucher.retailer_comm * 100)?.toString()
-                          : `${(voucher.retailer_comm * 100).toFixed(0)} (R ${retailerCommissionAmount.toFixed(2)})`
+                          ? `${(voucher.retailer_comm * 100).toFixed(0)}%`
+                          : `${(voucher.retailer_comm * 100).toFixed(0)}% (R ${retailerCommissionAmount.toFixed(2)})`
                       }
                     >
                       {voucher.name === "OTT Variable Amount" || !voucher.amount
-                        ? voucher.retailer_comm
+                        ? `${voucher.retailer_comm * 100}%`
                         : `${voucher.retailer_comm * 100}% (R ${retailerCommissionAmount.toFixed(2)})`}
                     </td>
                     <td
@@ -119,12 +119,12 @@ const VoucherTable = ({ vouchers, onDeleteVoucher }: VoucherTableProps) => {
                       title={
                         voucher.name === "OTT Variable Amount" ||
                         !voucher.amount
-                          ? (voucher.sales_agent_comm * 100)?.toString()
-                          : `${(voucher.sales_agent_comm * 100).toFixed(0)} (R ${salesAgentCommissionAmount.toFixed(2)})`
+                          ? `${(voucher.sales_agent_comm * 100).toFixed(0)}%`
+                          : `${(voucher.sales_agent_comm * 100).toFixed(0)}% (R ${salesAgentCommissionAmount.toFixed(2)})`
                       }
                     >
                       {voucher.name === "OTT Variable Amount" || !voucher.amount
-                        ? voucher.sales_agent_comm
+                        ? `${voucher.sales_agent_comm * 100}%`
                         : `${voucher.sales_agent_comm * 100}% (R ${salesAgentCommissionAmount.toFixed(2)})`}
                     </td>
                     <td

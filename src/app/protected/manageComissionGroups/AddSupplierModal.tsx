@@ -264,6 +264,7 @@ const AddSupplierModal = ({
   };
 
   const handleSubmit = async () => {
+    console.log("commGroupId", commGroupId);
     if (selectedVouchers.length > 0 && commGroupId) {
       setLoading(true);
 
@@ -272,16 +273,30 @@ const AddSupplierModal = ({
         comm_group_id: string;
       };
 
-      const vouchersWithCommGroupId: Omit<
-        VoucherWithNetwork,
-        "networkProvider"
-      >[] = selectedVouchers.map((voucher) => {
-        // Create a new object without the networkProvider field
-        const { networkProvider, ...voucherWithoutNetwork } =
-          voucher as VoucherWithNetwork;
+      const vouchersWithCommGroupId = selectedVouchers.map((voucher) => {
+        // Create a new object with only the fields we want to save
+        const {
+          name,
+          vendorId,
+          amount,
+          total_comm,
+          retailer_comm,
+          sales_agent_comm,
+          supplier_id,
+          supplier_name,
+          profit,
+        } = voucher;
 
         return {
-          ...voucherWithoutNetwork,
+          name,
+          vendorId,
+          amount,
+          total_comm,
+          retailer_comm,
+          sales_agent_comm,
+          supplier_id,
+          supplier_name,
+          profit,
           comm_group_id: commGroupId,
         };
       });
@@ -410,11 +425,12 @@ const AddSupplierModal = ({
 
                 {/* Add Network Selection Blocks */}
                 {selectedSupplierApi?.name &&
+                  selectedSupplier?.supplier_name !== "OTT" &&
                   (selectedSupplierApi.name === "Mobile Data" ||
                     selectedSupplierApi.name === "Mobile Airtime") && (
                     <div className="mb-6 mt-6">
                       <h3 className="mb-2 font-semibold text-gray-800 dark:text-gray-100">
-                        Select Network
+                        Filter by Network
                       </h3>
                       <div className="grid grid-cols-4 gap-4">
                         {networkOptions.map((network) => (
