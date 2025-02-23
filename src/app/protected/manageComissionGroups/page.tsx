@@ -8,7 +8,12 @@ import {
   editVoucherAction,
   deleteVoucherAction,
 } from "./actions";
-import { CommGroup, User, MobileDataVoucher } from "@/app/types/common";
+import {
+  CommGroup,
+  User,
+  MobileDataVoucher,
+  Retailer,
+} from "@/app/types/common";
 import DefaultLayout from "@/components/Layouts/DefaultLayout";
 import React, { useEffect, useState } from "react";
 import TableCell from "../../../components/Tables/TableCell";
@@ -37,6 +42,12 @@ type CommissionGroupData = {
   name: string;
   vouchers: MobileDataVoucher[];
   retailers?: Retailer[];
+  email: string;
+  contact_number: string;
+  active: boolean;
+  terminal_access: boolean;
+  role: string;
+  assigned_retailers: Retailer[];
 };
 
 const CommissionManagement = () => {
@@ -89,12 +100,11 @@ const CommissionManagement = () => {
   const fetchCommGroups = async (doLoad: boolean) => {
     if (doLoad) setLoading(true);
     const { commissionGroups, error } = await getCommGroupsAction();
-    //console.log("Commission Groups: ", commissionGroups);
     if (error) {
       console.error(error);
     } else {
       if (commissionGroups) {
-        setCommGroups(commissionGroups as CommGroup[]);
+        setCommGroups(commissionGroups as unknown as CommGroup[]);
       }
     }
     setLoading(false);
@@ -320,8 +330,11 @@ const CommissionManagement = () => {
       ) : (
         <CommissionGroupTable
           data={commGroups.filter((group): group is CommissionGroupData => {
-            // Filter out any groups without an id and ensure type safety
-            return !!group.id;
+            return (
+              !!group.id &&
+              typeof group.name === "string" &&
+              Array.isArray(group.vouchers)
+            );
           })}
           setAddSupplierModalOpen={setAddSupplierModalOpen}
           setSelectedCommGroupId={setSelectedCommGroupId}
@@ -330,6 +343,7 @@ const CommissionManagement = () => {
           editLoading={editLoading}
           editError={editError}
           editSuccess={editSuccess}
+          onRetailerAssigned={() => fetchCommGroups(false)}
         />
       )}
 
@@ -370,6 +384,10 @@ const CommissionManagement = () => {
           commGroupId={selectedCommGroupId}
           commGroupName={selectedCommGroupName}
           onAddVouchers={handleAddVouchers}
+          existingVouchers={
+            commGroups.find((group) => group.id === selectedCommGroupId)
+              ?.vouchers
+          }
         />
       )}
     </div>

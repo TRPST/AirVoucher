@@ -81,6 +81,11 @@ const VoucherDropdown: React.FC<VoucherDropdownProps> = ({
               >
                 <span>
                   {formatDisplay ? formatDisplay(item) : item[displayKey]}
+                  {item.disabled && (
+                    <span className="ml-2 text-gray-400">
+                      (already selected)
+                    </span>
+                  )}
                 </span>
                 {typeof item.amount !== "undefined" && (
                   <span

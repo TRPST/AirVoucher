@@ -28,12 +28,14 @@ const AddSupplierModal = ({
   onAddVouchers,
   commGroupId,
   commGroupName,
+  existingVouchers,
 }: {
   isOpen: boolean;
   onClose: () => void;
   onAddVouchers: (vouchers: MobileDataVoucher[]) => void;
   commGroupId: string;
   commGroupName: string;
+  existingVouchers?: MobileDataVoucher[];
 }) => {
   const [supplierName, setSupplierName] = useState("");
   const [mobileDataVouchers, setMobileDataVouchers] = useState<
@@ -475,6 +477,7 @@ const AddSupplierModal = ({
                   ottVoucher={ottVoucher}
                   error={voucherError}
                   selectedVouchers={selectedVouchers}
+                  existingVouchers={existingVouchers}
                 />
 
                 <CommissionInputs

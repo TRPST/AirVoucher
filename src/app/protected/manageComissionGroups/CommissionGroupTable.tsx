@@ -142,12 +142,10 @@ const CommissionGroupTable: React.FC<CommissionGroupTableProps> = ({
           handleClose={() => {
             setAddRetailersModalOpen(false);
             setSelectedCommGroup(null);
-            if (onRetailerAssigned) {
-              onRetailerAssigned();
-            }
           }}
           commGroupId={selectedCommGroup.id}
           commGroupName={selectedCommGroup.name}
+          onRetailerAssigned={onRetailerAssigned}
         />
       )}
     </div>

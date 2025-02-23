@@ -12,6 +12,7 @@ interface VoucherSelectProps {
   ottVoucher: MobileDataVoucher;
   error?: string;
   selectedVouchers: MobileDataVoucher[];
+  existingVouchers?: MobileDataVoucher[];
 }
 
 const VoucherSelect = ({
@@ -24,6 +25,7 @@ const VoucherSelect = ({
   ottVoucher,
   error,
   selectedVouchers,
+  existingVouchers,
 }: VoucherSelectProps) => {
   const getAvailableVouchers = () => {
     const ensureId = (voucher: MobileDataVoucher) => ({
@@ -34,11 +36,18 @@ const VoucherSelect = ({
         | "TELKOM"
         | "VODACOM",
       id: voucher.id || `${voucher.name}-${voucher.vendorId}`,
-      disabled: selectedVouchers.some(
-        (selected) =>
-          selected.name === voucher.name &&
-          selected.vendorId === voucher.vendorId,
-      ),
+      disabled:
+        selectedVouchers.some(
+          (selected) =>
+            selected.name === voucher.name &&
+            selected.vendorId === voucher.vendorId,
+        ) ||
+        existingVouchers.some(
+          (existing) =>
+            existing.name === voucher.name &&
+            existing.vendorId === voucher.vendorId &&
+            existing.supplier_name === selectedSupplier?.supplier_name,
+        ),
     });
 
     //console.log("Selected selectedSupplierApi", selectedSupplierApi);
