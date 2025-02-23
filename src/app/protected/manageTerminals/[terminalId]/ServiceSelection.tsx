@@ -20,7 +20,6 @@
 
 // export default ServiceSelection;
 
-
 // import React, { useState } from "react";
 // import {
 //   Button,
@@ -301,7 +300,7 @@ const ServiceSelection: React.FC<ServiceSelectionProps> = ({
     <div>
       {selectedProvider ? (
         <>
-          <Typography variant="h5">
+          <Typography variant="h5" style={{ marginTop: 30 }}>
             Select a Service for {selectedProvider}
           </Typography>
 
