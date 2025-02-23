@@ -3,10 +3,12 @@ import "jsvectormap/dist/jsvectormap.css";
 import "flatpickr/dist/flatpickr.min.css";
 import "@/css/satoshi.css";
 import "@/css/style.css";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, Suspense } from "react";
 import Loader from "@/components/common/Loader";
 import { usePathname } from "next/navigation";
 import DefaultLayout from "@/components/Layouts/DefaultLayout";
+import Loading from "./loading";
+import { TooltipProvider } from "@/components/ui/tooltip";
 
 export default function RootLayout({
   children,
@@ -28,13 +30,17 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body suppressHydrationWarning={true}>
-        {loading ? (
-          <Loader />
-        ) : isProtectedRoute ? (
-          <DefaultLayout>{children}</DefaultLayout>
-        ) : (
-          children
-        )}
+        <TooltipProvider>
+          <Suspense fallback={<Loading />}>
+            {loading ? (
+              <Loader />
+            ) : isProtectedRoute ? (
+              <DefaultLayout>{children}</DefaultLayout>
+            ) : (
+              children
+            )}
+          </Suspense>
+        </TooltipProvider>
       </body>
     </html>
   );

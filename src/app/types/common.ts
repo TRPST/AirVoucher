@@ -12,7 +12,7 @@ export type User = {
   assigned_retailers?: any[];
 };
 
-export type Retailer = {
+export interface Retailer {
   id: string;
   name: string;
   email: string;
@@ -24,8 +24,10 @@ export type Retailer = {
   terminal_access: boolean;
   assigned_terminals?: string[];
   assigned_admin: string;
+  admin_name?: string;
   created_at?: Date;
-};
+  comm_group_id?: string | number;
+}
 
 export type Terminal = {
   id: string;
