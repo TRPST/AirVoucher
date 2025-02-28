@@ -344,6 +344,7 @@ const CommissionManagement = () => {
           editError={editError}
           editSuccess={editSuccess}
           onRetailerAssigned={() => fetchCommGroups(false)}
+          onCommGroupEdited={() => fetchCommGroups(false)}
         />
       )}
 

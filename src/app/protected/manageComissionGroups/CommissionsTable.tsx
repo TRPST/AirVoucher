@@ -224,36 +224,36 @@ const CommissionTable: React.FC<CommissionTableProps> = ({
                     className={`${columnWidths.totalComm} truncate border border-gray-300 px-4 py-1 dark:border-gray-600 dark:text-white`}
                     title={
                       voucher.name === "OTT Variable Amount" || !voucher.amount
-                        ? (voucher.total_comm * 100).toFixed(0)?.toString()
+                        ? `${(voucher.total_comm * 100).toFixed(0)}%`
                         : `${(voucher.total_comm * 100).toFixed(0)}% (R ${totalCommissionAmount.toFixed(2)})`
                     }
                   >
                     {voucher.name === "OTT Variable Amount" || !voucher.amount
-                      ? voucher.total_comm
+                      ? `${(voucher.total_comm * 100).toFixed(0)}%`
                       : `${(voucher.total_comm * 100).toFixed(0)}% (R ${totalCommissionAmount.toFixed(2)})`}
                   </td>
                   <td
                     className={`${columnWidths.retailerComm} truncate border border-gray-300 px-4 py-1 dark:border-gray-600 dark:text-white`}
                     title={
                       voucher.name === "OTT Variable Amount" || !voucher.amount
-                        ? voucher.retailer_comm?.toString()
+                        ? `${(voucher.retailer_comm * 100).toFixed(0)}%`
                         : `${(voucher.retailer_comm * 100).toFixed(0)}% (R ${retailerCommissionAmount.toFixed(2)})`
                     }
                   >
                     {voucher.name === "OTT Variable Amount" || !voucher.amount
-                      ? voucher.retailer_comm
+                      ? `${(voucher.retailer_comm * 100).toFixed(0)}%`
                       : `${(voucher.retailer_comm * 100).toFixed(0)}% (R ${retailerCommissionAmount.toFixed(2)})`}
                   </td>
                   <td
                     className={`${columnWidths.salesAgentComm} truncate border border-gray-300 px-4 py-1 dark:border-gray-600 dark:text-white`}
                     title={
                       voucher.name === "OTT Variable Amount" || !voucher.amount
-                        ? voucher.sales_agent_comm?.toString()
+                        ? `${(voucher.sales_agent_comm * 100).toFixed(0)}%`
                         : `${(voucher.sales_agent_comm * 100).toFixed(0)}% (R ${salesAgentCommissionAmount.toFixed(2)})`
                     }
                   >
                     {voucher.name === "OTT Variable Amount" || !voucher.amount
-                      ? voucher.sales_agent_comm
+                      ? `${(voucher.sales_agent_comm * 100).toFixed(0)}%`
                       : `${(voucher.sales_agent_comm * 100).toFixed(0)}% (R ${salesAgentCommissionAmount.toFixed(2)})`}
                   </td>
                   <td

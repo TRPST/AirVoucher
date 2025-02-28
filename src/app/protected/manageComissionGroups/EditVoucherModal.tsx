@@ -35,8 +35,30 @@ const EditVoucherModal: React.FC<EditVoucherModalProps> = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    handleEditVoucher(currentVoucher);
+    const submissionVoucher = {
+      ...currentVoucher,
+      total_comm: currentVoucher.total_comm / 100,
+      retailer_comm: currentVoucher.retailer_comm / 100,
+      sales_agent_comm: currentVoucher.sales_agent_comm / 100,
+    };
+    handleEditVoucher(submissionVoucher);
   };
+
+  const getCommissionDisplayValue = (value: number | undefined | null) => {
+    if (value === undefined || value === null) return 0;
+    return Math.round(value * 100);
+  };
+
+  React.useEffect(() => {
+    if (voucher) {
+      setCurrentVoucher({
+        ...voucher,
+        total_comm: getCommissionDisplayValue(voucher.total_comm),
+        retailer_comm: getCommissionDisplayValue(voucher.retailer_comm),
+        sales_agent_comm: getCommissionDisplayValue(voucher.sales_agent_comm),
+      });
+    }
+  }, [voucher]);
 
   const handleVoucherChange = (field: string, value: number) => {
     setCurrentVoucher((prev) => ({
@@ -86,15 +108,15 @@ const EditVoucherModal: React.FC<EditVoucherModalProps> = ({
               </label>
               <input
                 type="number"
-                step="0.01"
+                step="1"
                 min="0"
-                max="1"
+                max="100"
                 value={currentVoucher.total_comm}
                 onChange={(e) =>
                   handleVoucherChange("total_comm", parseFloat(e.target.value))
                 }
                 className="w-2/3 rounded-lg border px-4 py-2 dark:bg-gray-700 dark:text-white"
-                placeholder="0.00"
+                placeholder="0"
               />
             </div>
 
@@ -104,9 +126,9 @@ const EditVoucherModal: React.FC<EditVoucherModalProps> = ({
               </label>
               <input
                 type="number"
-                step="0.01"
+                step="1"
                 min="0"
-                max="1"
+                max="100"
                 value={currentVoucher.retailer_comm}
                 onChange={(e) =>
                   handleVoucherChange(
@@ -115,7 +137,7 @@ const EditVoucherModal: React.FC<EditVoucherModalProps> = ({
                   )
                 }
                 className="w-2/3 rounded-lg border px-4 py-2 dark:bg-gray-700 dark:text-white"
-                placeholder="0.00"
+                placeholder="0"
               />
             </div>
 
@@ -125,9 +147,9 @@ const EditVoucherModal: React.FC<EditVoucherModalProps> = ({
               </label>
               <input
                 type="number"
-                step="0.01"
+                step="1"
                 min="0"
-                max="1"
+                max="100"
                 value={currentVoucher.sales_agent_comm}
                 onChange={(e) =>
                   handleVoucherChange(
@@ -136,7 +158,7 @@ const EditVoucherModal: React.FC<EditVoucherModalProps> = ({
                   )
                 }
                 className="w-2/3 rounded-lg border px-4 py-2 dark:bg-gray-700 dark:text-white"
-                placeholder="0.00"
+                placeholder="0"
               />
             </div>
           </div>

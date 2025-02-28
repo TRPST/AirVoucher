@@ -2,25 +2,47 @@ import React, { useState } from "react";
 import { Retailer } from "@/app/types/common";
 import TerminalsModal from "./TerminalsModal";
 import { Button } from "@/components/ui/button";
+import DeleteIcon from "@mui/icons-material/Delete";
+import RemoveRetailerModal from "./RemoveRetailerModal";
 
 interface RetailersTableProps {
   retailers?: Retailer[];
+  onRemoveRetailer?: () => void;
+  commGroupName: string;
 }
 
-const RetailersTable: React.FC<RetailersTableProps> = ({ retailers }) => {
+const RetailersTable: React.FC<RetailersTableProps> = ({
+  retailers = [],
+  onRemoveRetailer,
+  commGroupName,
+}) => {
   const [selectedRetailer, setSelectedRetailer] = useState<Retailer | null>(
     null,
   );
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isTerminalsModalOpen, setIsTerminalsModalOpen] = useState(false);
+  const [isRemoveModalOpen, setIsRemoveModalOpen] = useState(false);
+  const [retailerToRemove, setRetailerToRemove] = useState<Retailer | null>(
+    null,
+  );
 
   const handleOpenTerminals = (retailer: Retailer) => {
     setSelectedRetailer(retailer);
-    setIsModalOpen(true);
+    setIsTerminalsModalOpen(true);
   };
 
   const handleCloseTerminals = () => {
-    setIsModalOpen(false);
+    setIsTerminalsModalOpen(false);
     setSelectedRetailer(null);
+  };
+
+  const handleOpenRemoveModal = (retailer: Retailer) => {
+    setRetailerToRemove(retailer);
+    setIsRemoveModalOpen(true);
+  };
+
+  const handleCloseRemoveModal = () => {
+    setIsRemoveModalOpen(false);
+    setRetailerToRemove(null);
   };
 
   return (
@@ -55,6 +77,11 @@ const RetailersTable: React.FC<RetailersTableProps> = ({ retailers }) => {
             <th className="border border-gray-300 px-4 py-2 text-left text-sm font-semibold dark:border-gray-600">
               Terminals
             </th>
+            {onRemoveRetailer && (
+              <th className="border border-gray-300 px-4 py-2 text-left text-sm font-semibold dark:border-gray-600">
+                Actions
+              </th>
+            )}
           </tr>
         </thead>
         <tbody>
@@ -119,12 +146,23 @@ const RetailersTable: React.FC<RetailersTableProps> = ({ retailers }) => {
                   View Terminals
                 </Button>
               </td>
+              {onRemoveRetailer && (
+                <td className="border border-gray-300 px-4 py-2 dark:border-gray-600 dark:text-white">
+                  <button
+                    onClick={() => handleOpenRemoveModal(retailer)}
+                    className="rounded p-1 text-red-500 transition-colors hover:bg-red-100 hover:text-red-700 dark:hover:bg-gray-700"
+                    aria-label="Remove retailer from commission group"
+                  >
+                    <DeleteIcon className="h-5 w-5" />
+                  </button>
+                </td>
+              )}
             </tr>
           ))}
           {(!retailers || retailers.length === 0) && (
             <tr>
               <td
-                colSpan={8}
+                colSpan={onRemoveRetailer ? 9 : 8}
                 className="border border-gray-300 px-4 py-4 text-center text-gray-500 dark:border-gray-600 dark:text-gray-400"
               >
                 No retailers assigned to this group
@@ -136,9 +174,20 @@ const RetailersTable: React.FC<RetailersTableProps> = ({ retailers }) => {
 
       {selectedRetailer && (
         <TerminalsModal
-          isOpen={isModalOpen}
+          isOpen={isTerminalsModalOpen}
           onClose={handleCloseTerminals}
           retailer={selectedRetailer}
+        />
+      )}
+
+      {retailerToRemove && (
+        <RemoveRetailerModal
+          open={isRemoveModalOpen}
+          handleClose={handleCloseRemoveModal}
+          retailerId={retailerToRemove.id}
+          retailerName={retailerToRemove.name}
+          commGroupName={commGroupName}
+          onRetailerRemoved={onRemoveRetailer}
         />
       )}
     </div>

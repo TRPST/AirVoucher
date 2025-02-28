@@ -429,25 +429,23 @@ export const editCommGroupAction = async (updatedCommGroup: CommGroup) => {
 export const deleteCommGroupAction = async (commGroupId: string) => {
   const supabase = await createClient();
 
-  // Fetch the retailers assigned to the commGroup
+  // First, check if there are any retailers assigned to this commission group
   const { data: retailers, error: fetchError } = await supabase
     .from("retailers")
     .select("id")
-    .eq("assigned_commGroup", `${commGroupId}`);
+    .eq("comm_group_id", commGroupId);
 
   if (fetchError) {
-    console.error("Error fetching retailers:", fetchError);
+    console.error("Error checking retailers:", fetchError);
     return { error: fetchError.message };
   }
 
-  // Update the assigned_commGroup column of the affected retailers to null
+  // If retailers are assigned, update their comm_group_id to null
   if (retailers && retailers.length > 0) {
-    const retailerIds = retailers.map((retailer) => retailer.id);
-
     const { error: updateError } = await supabase
       .from("retailers")
-      .update({ assigned_commGroup: null })
-      .in("id", retailerIds);
+      .update({ comm_group_id: null })
+      .eq("comm_group_id", commGroupId);
 
     if (updateError) {
       console.error("Error updating retailers:", updateError);
@@ -455,18 +453,29 @@ export const deleteCommGroupAction = async (commGroupId: string) => {
     }
   }
 
-  // Delete the commGroup
-  const { error: deleteError } = await supabase
-    .from("users")
+  // Delete any mobile_data_vouchers associated with this commission group
+  const { error: deleteVouchersError } = await supabase
+    .from("mobile_data_vouchers")
+    .delete()
+    .eq("comm_group_id", commGroupId);
+
+  if (deleteVouchersError) {
+    console.error("Error deleting vouchers:", deleteVouchersError);
+    return { error: deleteVouchersError.message };
+  }
+
+  // Finally, delete the commission group
+  const { error: deleteGroupError } = await supabase
+    .from("commission_groups")
     .delete()
     .eq("id", commGroupId);
 
-  if (deleteError) {
-    console.error("Error deleting commGroup:", deleteError);
-    return { error: deleteError.message };
+  if (deleteGroupError) {
+    console.error("Error deleting commission group:", deleteGroupError);
+    return { error: deleteGroupError.message };
   }
 
-  return { success: "CommGroup deleted successfully" };
+  return { success: "Commission group deleted successfully" };
 };
 
 // export const checkCommGroupSignedIn = async () => {
@@ -565,4 +574,43 @@ export const getTerminalsByRetailerAction = async (retailerId: string) => {
     console.error("Error in getTerminalsByRetailerAction:", error);
     return { error: "Failed to fetch terminals" };
   }
+};
+
+export const editCommGroupNameAction = async (
+  commGroupId: string,
+  name: string,
+) => {
+  const supabase = await createClient();
+
+  if (!name.trim()) {
+    return { error: "Commission group name is required" };
+  }
+
+  const { error } = await supabase
+    .from("commission_groups")
+    .update({ name })
+    .eq("id", commGroupId);
+
+  if (error) {
+    console.error("Error updating commission group:", error);
+    return { error: error.message };
+  }
+
+  return { success: "Commission group updated successfully" };
+};
+
+export const removeRetailerFromCommGroupAction = async (retailerId: string) => {
+  const supabase = await createClient();
+
+  const { error } = await supabase
+    .from("retailers")
+    .update({ comm_group_id: null })
+    .eq("id", retailerId);
+
+  if (error) {
+    console.error("Error removing retailer from commission group:", error);
+    return { error: error.message };
+  }
+
+  return { success: "Retailer removed from commission group successfully" };
 };
