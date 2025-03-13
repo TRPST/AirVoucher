@@ -77,17 +77,20 @@ export type MainVoucherGroup = {
 };
 
 export interface MobileDataVoucher {
-  id?: string | number;
+  id?: number;
   name: string;
-  supplier_id: number;
-  supplier_name: string;
   vendorId: string;
   amount: number;
+  supplier_id: number;
+  supplier_name: string;
   total_comm: number;
   retailer_comm: number;
   sales_agent_comm: number;
-  category?: string;
   profit?: number;
+  metadata?: {
+    voucherCount: number;
+    serialNumbers: string[];
+  };
 }
 
 export interface SupplierAPI {

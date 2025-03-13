@@ -19,6 +19,14 @@ type SupplierToApiMap = {
   [key: string]: SupplierAPI[];
 };
 
+// Add this type near the top of the file
+type RingaVoucherBatch = {
+  voucherType: string;
+  amount: number;
+  count: number;
+  serialNumbers: string[];
+};
+
 const AddSupplierModal = ({
   isOpen,
   onClose,
@@ -69,60 +77,32 @@ const AddSupplierModal = ({
   };
 
   const handleAddVoucher = () => {
-    if (!selectedSupplier) return;
+    if (!currentVoucher) return;
 
-    // Clear previous errors
-    setVoucherError("");
-
-    // Check if a voucher is selected
-    if (!currentVoucher?.name) {
-      setVoucherError("Please select a voucher first");
+    // Validate commission values
+    if (currentVoucher.total_comm <= 0) {
+      setVoucherError("Please specify commission values");
       return;
     }
 
-    // Remove this validation for OTT Variable Amount vouchers
-    if (currentVoucher.name === "OTT Variable Amount") {
-      const newVoucher: MobileDataVoucher = {
-        ...currentVoucher,
-        supplier_id: selectedSupplier.id,
-        supplier_name: selectedSupplier.supplier_name,
-        // For OTT, we don't calculate profit since amount is variable
-        profit: 0,
-        // Ensure commissions are properly set
-        total_comm: currentVoucher.total_comm || 0,
-        retailer_comm: currentVoucher.retailer_comm || 0,
-        sales_agent_comm: currentVoucher.sales_agent_comm || 0,
-      };
-
-      setSelectedVouchers((prev) => [...prev, newVoucher]);
-      resetVoucherForm();
-      return;
+    // For Ringa vouchers, use the metadata from the uploaded file
+    if (currentVoucher.metadata?.voucherCount) {
+      setSelectedVouchers((prev) => [
+        ...prev,
+        {
+          ...currentVoucher,
+          // Keep the metadata for the table display
+          metadata: currentVoucher.metadata,
+        },
+      ]);
+    } else {
+      // Handle non-Ringa vouchers as before
+      setSelectedVouchers((prev) => [...prev, currentVoucher]);
     }
 
-    // Existing validation for non-OTT vouchers
-    if (!validate()) return;
-
-    const voucherAmount = currentVoucher.amount / 100;
-    const totalCommissionAmount =
-      voucherAmount * (currentVoucher.total_comm || 0);
-    const retailerCommissionAmount =
-      totalCommissionAmount * (currentVoucher.retailer_comm || 0);
-    const salesAgentCommissionAmount =
-      totalCommissionAmount * (currentVoucher.sales_agent_comm || 0);
-    const profitAmount =
-      totalCommissionAmount -
-      retailerCommissionAmount -
-      salesAgentCommissionAmount;
-
-    const newVoucher: MobileDataVoucher = {
-      ...currentVoucher,
-      supplier_id: selectedSupplier.id,
-      supplier_name: selectedSupplier.supplier_name,
-      profit: Number(profitAmount.toFixed(2)),
-    };
-
-    setSelectedVouchers((prev) => [...prev, newVoucher]);
+    // Reset the form
     resetVoucherForm();
+    setVoucherError("");
   };
 
   const handleDeleteVoucher = (index: number) => {
@@ -163,8 +143,7 @@ const AddSupplierModal = ({
       setSelectedSupplierApi(null);
     }
 
-    setSelectedVouchers([]); // Clear selected vouchers
-    resetVoucherForm(); // Reset the voucher form
+    resetVoucherForm(); // Keep this to reset the form for new voucher entries
   };
 
   const handleSubmit = async () => {
@@ -231,6 +210,89 @@ const AddSupplierModal = ({
     onClose();
   };
 
+  const handleRingaFileUpload = async (file: File) => {
+    if (!selectedSupplier) {
+      alert("Please select a supplier first");
+      return;
+    }
+
+    try {
+      const text = await file.text();
+      const lines = text.split("\n");
+
+      const voucherLines = lines.filter((line) => line.startsWith("D"));
+
+      if (voucherLines.length === 0) {
+        alert("No valid voucher entries found in file");
+        return;
+      }
+
+      const [_, voucherType, amount] = voucherLines[0].split("|");
+
+      const serialNumbers = voucherLines.map((line) => {
+        const columns = line.split("|");
+        return columns[columns.length - 1].trim();
+      });
+
+      // Create consolidated voucher entry but don't add it to selectedVouchers yet
+      const uploadedVoucher = {
+        name: voucherType,
+        vendorId: "-",
+        amount: parseFloat(amount),
+        supplier_id: selectedSupplier.id,
+        supplier_name: selectedSupplier.supplier_name,
+        total_comm: 0,
+        retailer_comm: 0,
+        sales_agent_comm: 0,
+        profit: 0,
+        networkProvider: "CELLC" as const,
+        metadata: {
+          voucherCount: voucherLines.length,
+          serialNumbers: serialNumbers,
+        },
+      };
+
+      // Update the current voucher to show in the form
+      setCurrentVoucher(uploadedVoucher);
+    } catch (error) {
+      console.error("Error processing Ringa file:", error);
+      alert("Error processing file. Please check the file format.");
+    }
+  };
+
+  const handleFileUpload = async (file: File) => {
+    if (selectedSupplier?.supplier_name.toLowerCase() === "ringa") {
+      await handleRingaFileUpload(file);
+    } else {
+      // Existing file upload logic for other suppliers
+      try {
+        const text = await file.text();
+        const vouchers = text
+          .split("\n")
+          .filter((line) => line.trim())
+          .map((line) => {
+            const [name, vendorId, amount] = line.split(",");
+            return {
+              name: name.trim(),
+              vendorId: vendorId.trim(),
+              amount: parseFloat(amount.trim()),
+              supplier_id: selectedSupplier?.id || 0,
+              supplier_name: selectedSupplier?.supplier_name || "",
+              total_comm: 0,
+              retailer_comm: 0,
+              sales_agent_comm: 0,
+              profit: 0,
+            };
+          });
+
+        setSelectedVouchers((prev) => [...prev, ...vouchers]);
+      } catch (error) {
+        console.error("Error processing file:", error);
+        alert("Error processing file. Please check the file format.");
+      }
+    }
+  };
+
   return (
     <Modal
       open={isOpen}
@@ -293,6 +355,7 @@ const AddSupplierModal = ({
               onVoucherChange={handleVoucherChange}
               onAddVoucher={handleAddVoucher}
               onDeleteVoucher={handleDeleteVoucher}
+              onFileUpload={handleFileUpload}
             />
 
             <ActionButtons

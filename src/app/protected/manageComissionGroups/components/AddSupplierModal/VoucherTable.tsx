@@ -8,6 +8,24 @@ interface VoucherTableProps {
 }
 
 const VoucherTable = ({ vouchers, onDeleteVoucher }: VoucherTableProps) => {
+  // Helper function to format amount based on supplier
+  const formatAmount = (voucher: MobileDataVoucher) => {
+    // For these suppliers, the amount is already in Rands
+    const noConversionSuppliers = ["Ringa", "Hollywoodbets", "Easyload"];
+
+    if (voucher.name === "OTT Variable Amount" || !voucher.amount) {
+      return "-";
+    }
+
+    if (noConversionSuppliers.includes(voucher.supplier_name)) {
+      return `R ${voucher.amount.toFixed(2)}`;
+    }
+
+    // For other suppliers, divide by 100 (convert cents to Rands)
+    const voucherAmount = voucher.amount / 100;
+    return `R ${voucherAmount.toFixed(2)}`;
+  };
+
   if (vouchers.length === 0) return null;
 
   return (
@@ -76,6 +94,11 @@ const VoucherTable = ({ vouchers, onDeleteVoucher }: VoucherTableProps) => {
                     </td>
                     <td className="border border-gray-300 px-4 py-1 dark:border-gray-600 dark:text-white">
                       {voucher.name}
+                      {voucher.metadata?.voucherCount && (
+                        <span className="ml-2 text-sm text-gray-500">
+                          ({voucher.metadata.voucherCount} vouchers)
+                        </span>
+                      )}
                     </td>
                     <td
                       className="truncate border border-gray-300 px-4 py-1 dark:border-gray-600 dark:text-white"
@@ -84,9 +107,7 @@ const VoucherTable = ({ vouchers, onDeleteVoucher }: VoucherTableProps) => {
                       {voucher.vendorId ? voucher.vendorId.toUpperCase() : "-"}
                     </td>
                     <td className="truncate border border-gray-300 px-4 py-1 dark:border-gray-600 dark:text-white">
-                      {voucher.name === "OTT Variable Amount" || !voucher.amount
-                        ? "-"
-                        : `R ${voucherAmount.toFixed(2)}`}
+                      {formatAmount(voucher)}
                     </td>
                     <td
                       className="truncate border border-gray-300 px-4 py-1 dark:border-gray-600 dark:text-white"
@@ -111,8 +132,8 @@ const VoucherTable = ({ vouchers, onDeleteVoucher }: VoucherTableProps) => {
                       }
                     >
                       {voucher.name === "OTT Variable Amount" || !voucher.amount
-                        ? `${voucher.retailer_comm * 100}%`
-                        : `${voucher.retailer_comm * 100}% (R ${retailerCommissionAmount.toFixed(2)})`}
+                        ? `${(voucher.retailer_comm * 100).toFixed(2)}%`
+                        : `${(voucher.retailer_comm * 100).toFixed(2)}% (R ${retailerCommissionAmount.toFixed(2)})`}
                     </td>
                     <td
                       className="truncate border border-gray-300 px-4 py-1 dark:border-gray-600 dark:text-white"
@@ -124,8 +145,8 @@ const VoucherTable = ({ vouchers, onDeleteVoucher }: VoucherTableProps) => {
                       }
                     >
                       {voucher.name === "OTT Variable Amount" || !voucher.amount
-                        ? `${voucher.sales_agent_comm * 100}%`
-                        : `${voucher.sales_agent_comm * 100}% (R ${salesAgentCommissionAmount.toFixed(2)})`}
+                        ? `${(voucher.sales_agent_comm * 100).toFixed(2)}%`
+                        : `${(voucher.sales_agent_comm * 100).toFixed(2)}% (R ${salesAgentCommissionAmount.toFixed(2)})`}
                     </td>
                     <td
                       className="truncate border border-gray-300 px-4 py-1 dark:border-gray-600 dark:text-white"

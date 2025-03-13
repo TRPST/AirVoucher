@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { MobileDataVoucher, Supplier, SupplierAPI } from "@/app/types/common";
 import { getSupplierVoucherProducts } from "../../actions";
 import VoucherSelect from "./VoucherSelect";
@@ -18,6 +18,7 @@ interface VoucherSectionProps {
   onVoucherChange: (field: string, value: number) => void;
   onAddVoucher: () => void;
   onDeleteVoucher: (index: number) => void;
+  onFileUpload: (file: File) => void;
 }
 
 const VoucherSection: React.FC<VoucherSectionProps> = ({
@@ -33,6 +34,7 @@ const VoucherSection: React.FC<VoucherSectionProps> = ({
   onVoucherChange,
   onAddVoucher,
   onDeleteVoucher,
+  onFileUpload,
 }) => {
   const [mobileDataVouchers, setMobileDataVouchers] = useState<
     MobileDataVoucher[]
@@ -41,6 +43,7 @@ const VoucherSection: React.FC<VoucherSectionProps> = ({
     MobileDataVoucher[]
   >([]);
   const [vouchersLoading, setVouchersLoading] = useState<boolean>(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (selectedSupplier && selectedSupplierApi) {
@@ -77,6 +80,24 @@ const VoucherSection: React.FC<VoucherSectionProps> = ({
     supplier_name: "",
   };
 
+  const showUploadButton =
+    selectedSupplier?.supplier_name === "Ringa" ||
+    selectedSupplier?.supplier_name === "Hollywoodbets" ||
+    selectedSupplier?.supplier_name === "Easyload";
+
+  const handleUploadClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      onFileUpload(file);
+      // Reset the input so the same file can be selected again
+      event.target.value = "";
+    }
+  };
+
   if (vouchersLoading) {
     return (
       <div className="flex h-64 items-center justify-center">
@@ -86,7 +107,7 @@ const VoucherSection: React.FC<VoucherSectionProps> = ({
   }
 
   return (
-    <>
+    <div className="mt-6">
       <VoucherSelect
         currentVoucher={currentVoucher}
         selectedSupplier={selectedSupplier}
@@ -106,6 +127,7 @@ const VoucherSection: React.FC<VoucherSectionProps> = ({
         error={voucherError}
         selectedVouchers={selectedVouchers}
         existingVouchers={existingVouchers}
+        onFileUpload={onFileUpload}
       />
 
       <CommissionInputs
@@ -125,7 +147,7 @@ const VoucherSection: React.FC<VoucherSectionProps> = ({
         vouchers={selectedVouchers}
         onDeleteVoucher={onDeleteVoucher}
       />
-    </>
+    </div>
   );
 };
 

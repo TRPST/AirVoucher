@@ -98,7 +98,9 @@ const VoucherDropdown: React.FC<VoucherDropdownProps> = ({
                   >
                     {item.amount === 0
                       ? "-"
-                      : `R ${(item.amount / 100).toFixed(2)}`}
+                      : item.metadata?.voucherCount
+                        ? `R ${item.amount.toFixed(2)}`
+                        : `R ${(item.amount / 100).toFixed(2)}`}
                   </span>
                 )}
               </Command.Item>
