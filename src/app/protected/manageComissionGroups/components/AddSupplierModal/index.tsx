@@ -3,13 +3,21 @@ import Modal from "@mui/material/Modal";
 import { Box } from "@mui/material";
 import { MobileDataVoucher, Supplier, SupplierAPI } from "@/app/types/common";
 import { useVoucherForm } from "@/hooks/useVoucherForm";
-import { addVouchersToMobileDataVouchers } from "../../actions";
+import {
+  addVouchersToMobileDataVouchers,
+  getSupplierApis,
+} from "../../actions";
 
 // Import components
 import SupplierSection from "./SupplierSection";
 import NetworkSelector from "./NetworkSelector";
 import VoucherSection from "./VoucherSection";
 import ActionButtons from "./ActionButtons";
+
+// Add this type at the top of the file
+type SupplierToApiMap = {
+  [key: string]: SupplierAPI[];
+};
 
 const AddSupplierModal = ({
   isOpen,
@@ -123,13 +131,40 @@ const AddSupplierModal = ({
     );
   };
 
-  const handleVoucherChange = (field: string, value: number) => {
+  const handleVoucherChange = (
+    field: keyof typeof currentVoucher,
+    value: number,
+  ) => {
     if (handleVoucherFieldChange) {
-      // We're now receiving the percentage value directly (e.g., 10.5)
       // Convert to decimal (e.g., 0.105) for internal storage
       const decimalValue = value ? value / 100 : null;
       handleVoucherFieldChange(field, decimalValue);
     }
+  };
+
+  const handleSupplierSelect = async (supplier: Supplier | undefined) => {
+    setSelectedSupplier(supplier);
+
+    if (supplier) {
+      try {
+        const result = await getSupplierApis(supplier.supplier_name);
+        if (result.supplierApis && result.supplierApis.length === 1) {
+          // If supplier has exactly one API, select it automatically
+          setSelectedSupplierApi(result.supplierApis[0]);
+        } else {
+          // If supplier has multiple APIs or no APIs, clear the selection
+          setSelectedSupplierApi(null);
+        }
+      } catch (error) {
+        console.error("Error fetching supplier APIs:", error);
+        setSelectedSupplierApi(null);
+      }
+    } else {
+      setSelectedSupplierApi(null);
+    }
+
+    setSelectedVouchers([]); // Clear selected vouchers
+    resetVoucherForm(); // Reset the voucher form
   };
 
   const handleSubmit = async () => {
@@ -230,7 +265,7 @@ const AddSupplierModal = ({
 
             <SupplierSection
               selectedSupplier={selectedSupplier}
-              setSelectedSupplier={setSelectedSupplier}
+              setSelectedSupplier={handleSupplierSelect}
               selectedSupplierApi={selectedSupplierApi}
               setSelectedSupplierApi={setSelectedSupplierApi}
             />

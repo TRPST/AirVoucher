@@ -65,7 +65,7 @@ const SupplierSection: React.FC<SupplierSectionProps> = ({
         setSupplierName={setSupplierName}
       />
 
-      {selectedSupplier && (
+      {selectedSupplier && supplierApis.length > 1 && (
         <SupplierApiSelect
           supplierApis={supplierApis}
           selectedSupplierApi={selectedSupplierApi}
