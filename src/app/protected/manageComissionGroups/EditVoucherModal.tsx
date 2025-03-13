@@ -46,7 +46,7 @@ const EditVoucherModal: React.FC<EditVoucherModalProps> = ({
 
   const getCommissionDisplayValue = (value: number | undefined | null) => {
     if (value === undefined || value === null) return 0;
-    return Math.round(value * 100);
+    return value * 100;
   };
 
   React.useEffect(() => {
@@ -60,15 +60,34 @@ const EditVoucherModal: React.FC<EditVoucherModalProps> = ({
     }
   }, [voucher]);
 
-  const handleVoucherChange = (field: string, value: number) => {
-    setCurrentVoucher((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
+  const handleVoucherChange = (field: string, value: string) => {
+    const numericValue = parseFloat(value);
+
+    if (!isNaN(numericValue)) {
+      const roundedValue = Math.round(numericValue * 100) / 100;
+
+      setCurrentVoucher((prev) => ({
+        ...prev,
+        [field]: roundedValue,
+      }));
+    } else if (value === "") {
+      setCurrentVoucher((prev) => ({
+        ...prev,
+        [field]: 0,
+      }));
+    }
   };
+
   const handleConfirmDelete = () => {
     if (!currentVoucher.id) return;
     handleDeleteVoucher(currentVoucher.id.toString());
+  };
+
+  const formatNumberDisplay = (value: number) => {
+    if (value % 1 === 0) {
+      return value.toString();
+    }
+    return value.toFixed(2);
   };
 
   return (
@@ -108,13 +127,19 @@ const EditVoucherModal: React.FC<EditVoucherModalProps> = ({
               </label>
               <input
                 type="number"
-                step="1"
+                step="0.01"
                 min="0"
                 max="100"
-                value={currentVoucher.total_comm}
+                value={formatNumberDisplay(currentVoucher.total_comm)}
                 onChange={(e) =>
-                  handleVoucherChange("total_comm", parseFloat(e.target.value))
+                  handleVoucherChange("total_comm", e.target.value)
                 }
+                onBlur={(e) => {
+                  const value = parseFloat(e.target.value);
+                  if (!isNaN(value)) {
+                    e.target.value = value.toFixed(2);
+                  }
+                }}
                 className="w-2/3 rounded-lg border px-4 py-2 dark:bg-gray-700 dark:text-white"
                 placeholder="0"
               />
@@ -126,16 +151,19 @@ const EditVoucherModal: React.FC<EditVoucherModalProps> = ({
               </label>
               <input
                 type="number"
-                step="1"
+                step="0.01"
                 min="0"
                 max="100"
-                value={currentVoucher.retailer_comm}
+                value={formatNumberDisplay(currentVoucher.retailer_comm)}
                 onChange={(e) =>
-                  handleVoucherChange(
-                    "retailer_comm",
-                    parseFloat(e.target.value),
-                  )
+                  handleVoucherChange("retailer_comm", e.target.value)
                 }
+                onBlur={(e) => {
+                  const value = parseFloat(e.target.value);
+                  if (!isNaN(value)) {
+                    e.target.value = value.toFixed(2);
+                  }
+                }}
                 className="w-2/3 rounded-lg border px-4 py-2 dark:bg-gray-700 dark:text-white"
                 placeholder="0"
               />
@@ -147,16 +175,19 @@ const EditVoucherModal: React.FC<EditVoucherModalProps> = ({
               </label>
               <input
                 type="number"
-                step="1"
+                step="0.01"
                 min="0"
                 max="100"
-                value={currentVoucher.sales_agent_comm}
+                value={formatNumberDisplay(currentVoucher.sales_agent_comm)}
                 onChange={(e) =>
-                  handleVoucherChange(
-                    "sales_agent_comm",
-                    parseFloat(e.target.value),
-                  )
+                  handleVoucherChange("sales_agent_comm", e.target.value)
                 }
+                onBlur={(e) => {
+                  const value = parseFloat(e.target.value);
+                  if (!isNaN(value)) {
+                    e.target.value = value.toFixed(2);
+                  }
+                }}
                 className="w-2/3 rounded-lg border px-4 py-2 dark:bg-gray-700 dark:text-white"
                 placeholder="0"
               />
