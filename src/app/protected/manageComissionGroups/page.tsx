@@ -8,7 +8,12 @@ import {
   editVoucherAction,
   deleteVoucherAction,
 } from "./actions";
-import { CommGroup, User, MobileDataVoucher } from "@/app/types/common";
+import {
+  CommGroup,
+  User,
+  MobileDataVoucher,
+  Retailer,
+} from "@/app/types/common";
 import DefaultLayout from "@/components/Layouts/DefaultLayout";
 import React, { useEffect, useState } from "react";
 import TableCell from "../../../components/Tables/TableCell";
@@ -37,6 +42,12 @@ type CommissionGroupData = {
   name: string;
   vouchers: MobileDataVoucher[];
   retailers?: Retailer[];
+  email: string;
+  contact_number: string;
+  active: boolean;
+  terminal_access: boolean;
+  role: string;
+  assigned_retailers: Retailer[];
 };
 
 const CommissionManagement = () => {
@@ -89,12 +100,11 @@ const CommissionManagement = () => {
   const fetchCommGroups = async (doLoad: boolean) => {
     if (doLoad) setLoading(true);
     const { commissionGroups, error } = await getCommGroupsAction();
-    //console.log("Commission Groups: ", commissionGroups);
     if (error) {
       console.error(error);
     } else {
       if (commissionGroups) {
-        setCommGroups(commissionGroups as CommGroup[]);
+        setCommGroups(commissionGroups as unknown as CommGroup[]);
       }
     }
     setLoading(false);
@@ -302,6 +312,17 @@ const CommissionManagement = () => {
 
   return (
     <div className="flex-1">
+      <div className="mb-6 flex flex-row items-center justify-between">
+        <h2 className="text-3xl font-bold text-gray-800 dark:text-white">
+          Commission Groups
+        </h2>
+        <button
+          onClick={() => setAddCommGroupModalOpen(true)}
+          className="rounded border border-blue-700 px-3 py-2 font-semibold text-blue-500 shadow transition duration-300 hover:bg-blue-800 hover:text-white dark:border-blue-600 dark:hover:bg-blue-700"
+        >
+          Create Commission Group
+        </button>
+      </div>
       {loading ? (
         <div className="mt-10 flex justify-center">
           <div className="h-8 w-8 animate-spin rounded-full border-4 border-solid border-primary border-t-transparent"></div>
@@ -309,15 +330,21 @@ const CommissionManagement = () => {
       ) : (
         <CommissionGroupTable
           data={commGroups.filter((group): group is CommissionGroupData => {
-            // Filter out any groups without an id and ensure type safety
-            return !!group.id;
+            return (
+              !!group.id &&
+              typeof group.name === "string" &&
+              Array.isArray(group.vouchers)
+            );
           })}
           setAddSupplierModalOpen={setAddSupplierModalOpen}
+          setSelectedCommGroupId={setSelectedCommGroupId}
           handleDeleteVoucher={handleDeleteVoucher}
           handleEditVoucher={handleEditVoucher}
           editLoading={editLoading}
           editError={editError}
           editSuccess={editSuccess}
+          onRetailerAssigned={() => fetchCommGroups(false)}
+          onCommGroupEdited={() => fetchCommGroups(false)}
         />
       )}
 
@@ -351,14 +378,19 @@ const CommissionManagement = () => {
           generateSecurePassword={generateSecurePassword}
         />
       )} */}
-
-      <AddSupplierModal
-        isOpen={addSupplierModalOpen}
-        onClose={() => setAddSupplierModalOpen(false)}
-        commGroupId={selectedCommGroupId || ""}
-        commGroupName={selectedCommGroupName}
-        onAddVouchers={handleAddVouchers}
-      />
+      {selectedCommGroupId && (
+        <AddSupplierModal
+          isOpen={addSupplierModalOpen}
+          onClose={() => setAddSupplierModalOpen(false)}
+          commGroupId={selectedCommGroupId}
+          commGroupName={selectedCommGroupName}
+          onAddVouchers={handleAddVouchers}
+          existingVouchers={
+            commGroups.find((group) => group.id === selectedCommGroupId)
+              ?.vouchers
+          }
+        />
+      )}
     </div>
   );
 };

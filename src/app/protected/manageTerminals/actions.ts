@@ -104,11 +104,10 @@ export const getTerminalsAction = async () => {
   const { data: terminals, error } = await supabase
     .from("terminals")
     .select("*")
-    .order("created_at", { ascending: false }); // Order by created_at in descending order
+    .order("id");
 
   if (error) {
-    console.error("Error fetching retailers:", error);
-    return;
+    return { error: error.message };
   }
 
   return { terminals };
@@ -241,4 +240,3 @@ export const getCashierByIdAction = async (cashierId: string) => {
 
   return { cashier };
 };
-

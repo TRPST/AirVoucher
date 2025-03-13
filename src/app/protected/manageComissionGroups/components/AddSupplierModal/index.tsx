@@ -1,0 +1,373 @@
+import React, { useState } from "react";
+import Modal from "@mui/material/Modal";
+import { Box } from "@mui/material";
+import { MobileDataVoucher, Supplier, SupplierAPI } from "@/app/types/common";
+import { useVoucherForm } from "@/hooks/useVoucherForm";
+import {
+  addVouchersToMobileDataVouchers,
+  getSupplierApis,
+} from "../../actions";
+
+// Import components
+import SupplierSection from "./SupplierSection";
+import NetworkSelector from "./NetworkSelector";
+import VoucherSection from "./VoucherSection";
+import ActionButtons from "./ActionButtons";
+
+// Add this type at the top of the file
+type SupplierToApiMap = {
+  [key: string]: SupplierAPI[];
+};
+
+// Add this type near the top of the file
+type RingaVoucherBatch = {
+  voucherType: string;
+  amount: number;
+  count: number;
+  serialNumbers: string[];
+};
+
+const AddSupplierModal = ({
+  isOpen,
+  onClose,
+  onAddVouchers,
+  commGroupId,
+  commGroupName,
+  existingVouchers,
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+  onAddVouchers: (vouchers: MobileDataVoucher[]) => void;
+  commGroupId: string;
+  commGroupName: string;
+  existingVouchers?: MobileDataVoucher[];
+}) => {
+  // Core state
+  const [selectedSupplier, setSelectedSupplier] = useState<Supplier>();
+  const [selectedSupplierApi, setSelectedSupplierApi] =
+    useState<SupplierAPI | null>(null);
+  const [selectedVouchers, setSelectedVouchers] = useState<MobileDataVoucher[]>(
+    [],
+  );
+  const [loading, setLoading] = useState<boolean>(false);
+  const [selectedNetwork, setSelectedNetwork] = useState<string>("CELLC");
+  const [voucherError, setVoucherError] = useState<string>("");
+
+  // Form handling
+  const {
+    formData: currentVoucher,
+    errors,
+    handleChange: handleVoucherFieldChange,
+    validate,
+    reset: resetVoucherForm,
+    setFormData: setCurrentVoucher,
+  } = useVoucherForm();
+
+  const handleVoucherSelect = (selectedVoucher: MobileDataVoucher) => {
+    setCurrentVoucher({
+      ...selectedVoucher,
+      supplier_id: selectedSupplier?.id || 0,
+      supplier_name: selectedSupplier?.supplier_name || "",
+      networkProvider: (selectedVoucher.vendorId?.toUpperCase() || "MTN") as
+        | "CELLC"
+        | "MTN"
+        | "TELKOM"
+        | "VODACOM",
+    });
+  };
+
+  const handleAddVoucher = () => {
+    if (!currentVoucher) return;
+
+    // Validate commission values
+    if (currentVoucher.total_comm <= 0) {
+      setVoucherError("Please specify commission values");
+      return;
+    }
+
+    // For Ringa vouchers, use the metadata from the uploaded file
+    if (currentVoucher.metadata?.voucherCount) {
+      setSelectedVouchers((prev) => [
+        ...prev,
+        {
+          ...currentVoucher,
+          // Keep the metadata for the table display
+          metadata: currentVoucher.metadata,
+        },
+      ]);
+    } else {
+      // Handle non-Ringa vouchers as before
+      setSelectedVouchers((prev) => [...prev, currentVoucher]);
+    }
+
+    // Reset the form
+    resetVoucherForm();
+    setVoucherError("");
+  };
+
+  const handleDeleteVoucher = (index: number) => {
+    setSelectedVouchers((prevVouchers) =>
+      prevVouchers.filter((_, i) => i !== index),
+    );
+  };
+
+  const handleVoucherChange = (
+    field: keyof typeof currentVoucher,
+    value: number,
+  ) => {
+    if (handleVoucherFieldChange) {
+      // Convert to decimal (e.g., 0.105) for internal storage
+      const decimalValue = value ? value / 100 : null;
+      handleVoucherFieldChange(field, decimalValue);
+    }
+  };
+
+  const handleSupplierSelect = async (supplier: Supplier | undefined) => {
+    setSelectedSupplier(supplier);
+
+    if (supplier) {
+      try {
+        const result = await getSupplierApis(supplier.supplier_name);
+        if (result.supplierApis && result.supplierApis.length === 1) {
+          // If supplier has exactly one API, select it automatically
+          setSelectedSupplierApi(result.supplierApis[0]);
+        } else {
+          // If supplier has multiple APIs or no APIs, clear the selection
+          setSelectedSupplierApi(null);
+        }
+      } catch (error) {
+        console.error("Error fetching supplier APIs:", error);
+        setSelectedSupplierApi(null);
+      }
+    } else {
+      setSelectedSupplierApi(null);
+    }
+
+    resetVoucherForm(); // Keep this to reset the form for new voucher entries
+  };
+
+  const handleSubmit = async () => {
+    if (selectedVouchers.length > 0 && commGroupId) {
+      setLoading(true);
+
+      const vouchersWithCommGroupId = selectedVouchers.map((voucher) => {
+        // Create a new object with only the fields we want to save
+        const {
+          name,
+          vendorId,
+          amount,
+          total_comm,
+          retailer_comm,
+          sales_agent_comm,
+          supplier_id,
+          supplier_name,
+          profit,
+        } = voucher;
+
+        return {
+          name,
+          vendorId,
+          amount,
+          total_comm,
+          retailer_comm,
+          sales_agent_comm,
+          supplier_id,
+          supplier_name,
+          profit,
+          comm_group_id: commGroupId,
+        };
+      });
+
+      try {
+        const result = await addVouchersToMobileDataVouchers(
+          vouchersWithCommGroupId,
+        );
+
+        if ("error" in result) {
+          console.error("Error adding vouchers:", result.error);
+        } else {
+          // Reset all form values on successful submission
+          setSelectedSupplier(undefined);
+          setSelectedSupplierApi(null);
+          setSelectedVouchers([]);
+          resetVoucherForm();
+          onAddVouchers(selectedVouchers);
+          onClose();
+        }
+      } catch (error) {
+        console.error("Error adding vouchers:", error);
+      } finally {
+        setLoading(false);
+      }
+    }
+  };
+
+  const handleModalClose = () => {
+    setSelectedSupplier(undefined);
+    setSelectedSupplierApi(null);
+    setSelectedVouchers([]);
+    resetVoucherForm();
+    onClose();
+  };
+
+  const handleRingaFileUpload = async (file: File) => {
+    if (!selectedSupplier) {
+      alert("Please select a supplier first");
+      return;
+    }
+
+    try {
+      const text = await file.text();
+      const lines = text.split("\n");
+
+      const voucherLines = lines.filter((line) => line.startsWith("D"));
+
+      if (voucherLines.length === 0) {
+        alert("No valid voucher entries found in file");
+        return;
+      }
+
+      const [_, voucherType, amount] = voucherLines[0].split("|");
+
+      const serialNumbers = voucherLines.map((line) => {
+        const columns = line.split("|");
+        return columns[columns.length - 1].trim();
+      });
+
+      // Create consolidated voucher entry but don't add it to selectedVouchers yet
+      const uploadedVoucher = {
+        name: voucherType,
+        vendorId: "-",
+        amount: parseFloat(amount),
+        supplier_id: selectedSupplier.id,
+        supplier_name: selectedSupplier.supplier_name,
+        total_comm: 0,
+        retailer_comm: 0,
+        sales_agent_comm: 0,
+        profit: 0,
+        networkProvider: "CELLC" as const,
+        metadata: {
+          voucherCount: voucherLines.length,
+          serialNumbers: serialNumbers,
+        },
+      };
+
+      // Update the current voucher to show in the form
+      setCurrentVoucher(uploadedVoucher);
+    } catch (error) {
+      console.error("Error processing Ringa file:", error);
+      alert("Error processing file. Please check the file format.");
+    }
+  };
+
+  const handleFileUpload = async (file: File) => {
+    if (selectedSupplier?.supplier_name.toLowerCase() === "ringa") {
+      await handleRingaFileUpload(file);
+    } else {
+      // Existing file upload logic for other suppliers
+      try {
+        const text = await file.text();
+        const vouchers = text
+          .split("\n")
+          .filter((line) => line.trim())
+          .map((line) => {
+            const [name, vendorId, amount] = line.split(",");
+            return {
+              name: name.trim(),
+              vendorId: vendorId.trim(),
+              amount: parseFloat(amount.trim()),
+              supplier_id: selectedSupplier?.id || 0,
+              supplier_name: selectedSupplier?.supplier_name || "",
+              total_comm: 0,
+              retailer_comm: 0,
+              sales_agent_comm: 0,
+              profit: 0,
+            };
+          });
+
+        setSelectedVouchers((prev) => [...prev, ...vouchers]);
+      } catch (error) {
+        console.error("Error processing file:", error);
+        alert("Error processing file. Please check the file format.");
+      }
+    }
+  };
+
+  return (
+    <Modal
+      open={isOpen}
+      onClose={handleModalClose}
+      aria-labelledby="modal-modal-title"
+      aria-describedby="modal-modal-description"
+    >
+      <Box
+        sx={{
+          position: "absolute",
+          top: "50%",
+          left: "50%",
+          transform: "translate(-50%, -50%)",
+          width: "60%",
+          maxHeight: "90vh",
+          overflowY: "auto",
+          bgcolor: "background.paper",
+          border: "2px solid #000",
+          boxShadow: 24,
+          p: 4,
+        }}
+        className="bg-white p-8 shadow-lg dark:bg-gray-800"
+      >
+        <div className="flex justify-center">
+          <div className="w-full rounded-lg bg-white dark:bg-gray-800">
+            <h2 className="mb-6 text-center text-3xl font-semibold text-gray-800 dark:text-white">
+              Add Vouchers
+            </h2>
+            <h4 className="mb-6 text-center text-2xl font-semibold text-gray-800 dark:text-white">
+              {commGroupName}
+            </h4>
+
+            <SupplierSection
+              selectedSupplier={selectedSupplier}
+              setSelectedSupplier={handleSupplierSelect}
+              selectedSupplierApi={selectedSupplierApi}
+              setSelectedSupplierApi={setSelectedSupplierApi}
+            />
+
+            {selectedSupplierApi?.name &&
+              selectedSupplier?.supplier_name !== "OTT" &&
+              (selectedSupplierApi.name === "Mobile Data" ||
+                selectedSupplierApi.name === "Mobile Airtime") && (
+                <NetworkSelector
+                  selectedNetwork={selectedNetwork}
+                  setSelectedNetwork={setSelectedNetwork}
+                />
+              )}
+
+            <VoucherSection
+              currentVoucher={currentVoucher}
+              selectedSupplier={selectedSupplier}
+              selectedSupplierApi={selectedSupplierApi}
+              selectedNetwork={selectedNetwork}
+              voucherError={voucherError}
+              errors={errors}
+              selectedVouchers={selectedVouchers}
+              existingVouchers={existingVouchers}
+              onVoucherSelect={handleVoucherSelect}
+              onVoucherChange={handleVoucherChange}
+              onAddVoucher={handleAddVoucher}
+              onDeleteVoucher={handleDeleteVoucher}
+              onFileUpload={handleFileUpload}
+            />
+
+            <ActionButtons
+              loading={loading}
+              onCancel={handleModalClose}
+              onSubmit={handleSubmit}
+            />
+          </div>
+        </div>
+      </Box>
+    </Modal>
+  );
+};
+
+export default AddSupplierModal;

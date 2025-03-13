@@ -3,6 +3,22 @@ import { z } from "zod";
 import { VoucherFormData, voucherFormSchema } from "@/app/types/vouchers";
 import useLocalStorage from "@/hooks/useLocalStorage";
 
+interface VoucherFormData {
+  name: string;
+  vendorId: string;
+  amount: number;
+  networkProvider: "CELLC" | "MTN" | "TELKOM" | "VODACOM";
+  total_comm: number;
+  retailer_comm: number;
+  sales_agent_comm: number;
+  supplier_id: number;
+  supplier_name: string;
+  metadata?: {
+    voucherCount: number;
+    serialNumbers: string[];
+  };
+}
+
 export const useVoucherForm = (initialState?: Partial<VoucherFormData>) => {
   const [formData, setFormData] = useState<VoucherFormData>({
     name: "",

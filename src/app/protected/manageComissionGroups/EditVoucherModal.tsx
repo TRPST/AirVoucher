@@ -35,18 +35,59 @@ const EditVoucherModal: React.FC<EditVoucherModalProps> = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    handleEditVoucher(currentVoucher);
+    const submissionVoucher = {
+      ...currentVoucher,
+      total_comm: currentVoucher.total_comm / 100,
+      retailer_comm: currentVoucher.retailer_comm / 100,
+      sales_agent_comm: currentVoucher.sales_agent_comm / 100,
+    };
+    handleEditVoucher(submissionVoucher);
   };
 
-  const handleVoucherChange = (field: string, value: number) => {
-    setCurrentVoucher((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
+  const getCommissionDisplayValue = (value: number | undefined | null) => {
+    if (value === undefined || value === null) return 0;
+    return value * 100;
   };
+
+  React.useEffect(() => {
+    if (voucher) {
+      setCurrentVoucher({
+        ...voucher,
+        total_comm: getCommissionDisplayValue(voucher.total_comm),
+        retailer_comm: getCommissionDisplayValue(voucher.retailer_comm),
+        sales_agent_comm: getCommissionDisplayValue(voucher.sales_agent_comm),
+      });
+    }
+  }, [voucher]);
+
+  const handleVoucherChange = (field: string, value: string) => {
+    const numericValue = parseFloat(value);
+
+    if (!isNaN(numericValue)) {
+      const roundedValue = Math.round(numericValue * 100) / 100;
+
+      setCurrentVoucher((prev) => ({
+        ...prev,
+        [field]: roundedValue,
+      }));
+    } else if (value === "") {
+      setCurrentVoucher((prev) => ({
+        ...prev,
+        [field]: 0,
+      }));
+    }
+  };
+
   const handleConfirmDelete = () => {
     if (!currentVoucher.id) return;
     handleDeleteVoucher(currentVoucher.id.toString());
+  };
+
+  const formatNumberDisplay = (value: number) => {
+    if (value % 1 === 0) {
+      return value.toString();
+    }
+    return value.toFixed(2);
   };
 
   return (
@@ -88,13 +129,19 @@ const EditVoucherModal: React.FC<EditVoucherModalProps> = ({
                 type="number"
                 step="0.01"
                 min="0"
-                max="1"
-                value={currentVoucher.total_comm}
+                max="100"
+                value={formatNumberDisplay(currentVoucher.total_comm)}
                 onChange={(e) =>
-                  handleVoucherChange("total_comm", parseFloat(e.target.value))
+                  handleVoucherChange("total_comm", e.target.value)
                 }
+                onBlur={(e) => {
+                  const value = parseFloat(e.target.value);
+                  if (!isNaN(value)) {
+                    e.target.value = value.toFixed(2);
+                  }
+                }}
                 className="w-2/3 rounded-lg border px-4 py-2 dark:bg-gray-700 dark:text-white"
-                placeholder="0.00"
+                placeholder="0"
               />
             </div>
 
@@ -106,16 +153,19 @@ const EditVoucherModal: React.FC<EditVoucherModalProps> = ({
                 type="number"
                 step="0.01"
                 min="0"
-                max="1"
-                value={currentVoucher.retailer_comm}
+                max="100"
+                value={formatNumberDisplay(currentVoucher.retailer_comm)}
                 onChange={(e) =>
-                  handleVoucherChange(
-                    "retailer_comm",
-                    parseFloat(e.target.value),
-                  )
+                  handleVoucherChange("retailer_comm", e.target.value)
                 }
+                onBlur={(e) => {
+                  const value = parseFloat(e.target.value);
+                  if (!isNaN(value)) {
+                    e.target.value = value.toFixed(2);
+                  }
+                }}
                 className="w-2/3 rounded-lg border px-4 py-2 dark:bg-gray-700 dark:text-white"
-                placeholder="0.00"
+                placeholder="0"
               />
             </div>
 
@@ -127,16 +177,19 @@ const EditVoucherModal: React.FC<EditVoucherModalProps> = ({
                 type="number"
                 step="0.01"
                 min="0"
-                max="1"
-                value={currentVoucher.sales_agent_comm}
+                max="100"
+                value={formatNumberDisplay(currentVoucher.sales_agent_comm)}
                 onChange={(e) =>
-                  handleVoucherChange(
-                    "sales_agent_comm",
-                    parseFloat(e.target.value),
-                  )
+                  handleVoucherChange("sales_agent_comm", e.target.value)
                 }
+                onBlur={(e) => {
+                  const value = parseFloat(e.target.value);
+                  if (!isNaN(value)) {
+                    e.target.value = value.toFixed(2);
+                  }
+                }}
                 className="w-2/3 rounded-lg border px-4 py-2 dark:bg-gray-700 dark:text-white"
-                placeholder="0.00"
+                placeholder="0"
               />
             </div>
           </div>

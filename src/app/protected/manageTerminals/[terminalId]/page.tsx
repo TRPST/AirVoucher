@@ -1,121 +1,3 @@
-// // app / protected / manageTerminals / [terminalID] / page.tsx;
-// ("use client");
-
-// import React, { useState } from "react";
-// import { useParams, useRouter } from "next/navigation";
-// import {
-//   IconButton,
-//   Typography,
-//   Button,
-//   CircularProgress,
-// } from "@mui/material";
-// import WestIcon from "@mui/icons-material/West";
-// import ProviderSelection from "./ProviderSelection";
-// import ServiceSelection from "./ServiceSelection";
-// import VoucherList from "./VoucherList";
-// import SaleModal from "./SaleModal";
-// import OTTModal from "./OTTModal";
-// import ConfirmationDialog from "./ConfirmationDialog";
-// // import { fetchVouchers, issueVoucher } from "./api";
-// import issueVoucher from "./OTTModal"; // ✅ Import fetchVouchers and issueVoucher from ./api
-
-// const TerminalDashboard = () => {
-//   const { terminalId } = useParams();
-//   const router = useRouter();
-
-//   const [selectedProvider, setSelectedProvider] = useState(null);
-//   const [selectedService, setSelectedService] = useState(null);
-//   const [vouchers, setVouchers] = useState([]);
-//   const [loading, setLoading] = useState(false);
-//   const [error, setError] = useState(null);
-//   const [showSaleModal, setShowSaleModal] = useState(false);
-//   const [selectedVoucher, setSelectedVoucher] = useState(null);
-//   const [showOTTModal, setShowOTTModal] = useState(false);
-//   const [confirmationAction, setConfirmationAction] = useState<
-//     (() => void) | null
-//   >(null);
-
-//   // Navigate back to Terminal Management
-//   const navigateToTerminalManagement = () => {
-//     router.push("/protected/manageTerminals");
-//   };
-
-//   const handleProviderSelection = (provider) => {
-//     setSelectedProvider(provider);
-//     setSelectedService(null);
-//     setVouchers([]);
-//     if (provider === "OTT") setShowOTTModal(true);
-//   };
-
-//   const handleServiceSelection = async (service) => {
-//     setSelectedService(service);
-//     setLoading(true);
-//     try {
-//       const fetchedVouchers = await fetchVouchers(service, selectedProvider);
-//       setVouchers(fetchedVouchers);
-//     } catch (err) {
-//       setError(err.message);
-//     } finally {
-//       setLoading(false);
-//     }
-//   };
-
-//   return (
-//     <div className="container mx-auto p-6">
-//       <div className="mb-6 flex items-center justify-between">
-//         <IconButton color="primary" onClick={navigateToTerminalManagement}>
-//           <WestIcon sx={{ fontSize: 30 }} />
-//         </IconButton>
-//         <Typography variant="h4" fontWeight="bold">
-//           Terminal Dashboard - {terminalId}
-//         </Typography>
-//         <Button variant="contained" color="primary">
-//           Sales Analytics
-//         </Button>
-//       </div>
-//       <ProviderSelection
-//         selectedProvider={selectedProvider}
-//         onSelect={handleProviderSelection}
-//       />
-//       {selectedProvider && selectedProvider !== "OTT" && (
-//         <ServiceSelection
-//           selectedService={selectedService}
-//           onSelect={handleServiceSelection}
-//         />
-//       )}
-//       {loading && <CircularProgress />}
-//       {error && <Typography color="error">{error}</Typography>}
-//       {selectedService && (
-//         <VoucherList
-//           vouchers={vouchers}
-//           onSelect={(voucher) => {
-//             setSelectedVoucher(voucher);
-//             setShowSaleModal(true);
-//           }}
-//         />
-//       )}
-//       <SaleModal
-//         open={showSaleModal}
-//         onClose={() => setShowSaleModal(false)}
-//         voucher={selectedVoucher}
-//       />
-//       <OTTModal
-//         open={showOTTModal}
-//         onClose={() => setShowOTTModal(false)}
-//         issueVoucher={issueVoucher}
-//       />
-//       <ConfirmationDialog
-//         open={Boolean(confirmationAction)}
-//         onConfirm={confirmationAction}
-//         onClose={() => setConfirmationAction(null)}
-//       />
-//     </div>
-//   );
-// };
-
-// export default TerminalDashboard;
-
-
 "use client";
 
 import React, { useState, useEffect } from "react";
@@ -135,6 +17,7 @@ import OTTModal from "./OTTModal";
 import ConfirmationDialog from "./ConfirmationDialog";
 import { supabase } from "../../../../../utils/supabase/client"; // ✅ Use shared Supabase client
 import issueVoucher from "./OTTModal"; // ✅ Import fetchVouchers and issueVoucher from ./api
+import TerminalBalances from "./components/TerminalBalances";
 
 const TerminalDashboard = () => {
   const { terminalId } = useParams();
@@ -152,6 +35,7 @@ const TerminalDashboard = () => {
     (() => void) | null
   >(null);
   const [commGroupId, setCommGroupId] = useState(null);
+  const [lastSync, setLastSync] = useState(new Date());
 
   // Fetch the commission group ID for the terminal
   useEffect(() => {
@@ -233,19 +117,61 @@ const TerminalDashboard = () => {
     }
   };
 
+  // New state for balances
+  const [balances, setBalances] = useState({
+    balance: 1000,
+    credit: 200,
+    balanceDue: 0,
+  });
+
+  const handleRefreshBalances = async () => {
+    setLoading(true);
+    // try {
+    //   const analytics = await getSalesAnalyticsAction(terminalId as string);
+    //   setBalances({
+    //     balance: analytics.totalRevenue || 0,
+    //     credit: 1000,
+    //     balanceDue: analytics.totalRevenue * 0.1 || 0,
+    //   });
+    //   setLastSync(new Date());
+    // } catch (err: unknown) {
+    //   if (err instanceof Error) {
+    //     setError(err.message);
+    //   } else {
+    //     setError("An unknown error occurred");
+    //   }
+    // } finally {
+    //   setLoading(false);
+    // }
+    setLoading(false);
+  };
+
   return (
     <div className="container mx-auto p-6">
       <div className="mb-6 flex items-center justify-between">
-        <IconButton color="primary" onClick={navigateToTerminalManagement}>
-          <WestIcon sx={{ fontSize: 30 }} />
-        </IconButton>
-        <Typography variant="h4" fontWeight="bold">
-          Terminal Dashboard - {terminalId}
-        </Typography>
-        <Button variant="contained" color="primary">
+        <div className="flex items-center space-x-4">
+          <IconButton color="primary" onClick={navigateToTerminalManagement}>
+            <WestIcon sx={{ fontSize: 30 }} />
+          </IconButton>
+          <h2 className="text-3xl font-bold text-gray-900 dark:text-white">
+            Terminal {terminalId}
+          </h2>
+          {/* <SyncIndicator lastSync={lastSync} /> */}
+        </div>
+        <button
+          // onClick={handleAnalytics}
+          className="rounded-lg border border-blue-700 px-3 py-2 font-semibold text-blue-500 shadow transition duration-300 hover:bg-blue-800 hover:text-white dark:border-blue-600 dark:hover:bg-blue-700"
+        >
           Sales Analytics
-        </Button>
+        </button>
       </div>
+
+      <TerminalBalances
+        {...balances}
+        lastUpdated={lastSync}
+        onRefresh={handleRefreshBalances}
+        isLoading={loading}
+      />
 
       {/* Provider Selection */}
       <ProviderSelection

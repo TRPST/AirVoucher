@@ -46,7 +46,7 @@ const VoucherDropdown: React.FC<VoucherDropdownProps> = ({
       >
         {!disableSearch && (
           <div className="flex items-center border-b border-gray-300 px-3 dark:border-gray-500">
-            <Search className="h-4 w-4 shrink-0 text-gray-500 dark:text-gray-400" />
+            <Search className="mr-2 h-4 w-4 shrink-0 text-gray-500 dark:text-gray-400" />
             <Command.Input
               value={search}
               onValueChange={setSearch}
@@ -81,8 +81,13 @@ const VoucherDropdown: React.FC<VoucherDropdownProps> = ({
               >
                 <span>
                   {formatDisplay ? formatDisplay(item) : item[displayKey]}
+                  {item.disabled && (
+                    <span className="ml-2 text-gray-400">
+                      (already selected)
+                    </span>
+                  )}
                 </span>
-                {item.amount && (
+                {typeof item.amount !== "undefined" && (
                   <span
                     className={cn(
                       "text-sm",
@@ -91,7 +96,11 @@ const VoucherDropdown: React.FC<VoucherDropdownProps> = ({
                         : "text-gray-500 dark:text-gray-100",
                     )}
                   >
-                    R {(item.amount / 100).toFixed(2)}
+                    {item.amount === 0
+                      ? "-"
+                      : item.metadata?.voucherCount
+                        ? `R ${item.amount.toFixed(2)}`
+                        : `R ${(item.amount / 100).toFixed(2)}`}
                   </span>
                 )}
               </Command.Item>

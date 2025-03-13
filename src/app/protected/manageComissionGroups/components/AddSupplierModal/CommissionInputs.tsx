@@ -9,18 +9,37 @@ type CommissionField = "total_comm" | "retailer_comm" | "sales_agent_comm";
 interface CommissionInputsProps {
   currentVoucher: MobileDataVoucher;
   errors: Record<string, string>;
-  onCommissionChange: (field: CommissionField, value: number) => void;
+  onCommissionChange: (field: string, value: number) => void;
 }
 
-const CommissionInputs = ({
+const CommissionInputs: React.FC<CommissionInputsProps> = ({
   currentVoucher,
   errors,
   onCommissionChange,
-}: CommissionInputsProps) => {
-  // Helper function to format commission value for display
-  const getCommissionDisplayValue = (value: number | undefined | null) => {
-    if (value === undefined || value === null) return "";
-    return Math.round(value * 100).toString();
+}) => {
+  // Convert decimal value to percentage for display with 2 decimal places max
+  const getPercentageValue = (value: number | null) => {
+    if (value === null || value === undefined) return "";
+    // Format to 2 decimal places maximum
+    const percentage = value * 100;
+    return percentage.toString();
+  };
+
+  // Handle input change with decimal support
+  const handleInputChange = (field: string, value: string) => {
+    // Allow empty input
+    if (!value) {
+      onCommissionChange(field, 0);
+      return;
+    }
+
+    // Parse the percentage value to a decimal (e.g., 10.5 to 0.105)
+    const numericValue = parseFloat(value);
+    if (!isNaN(numericValue)) {
+      // Round to 2 decimal places for better precision
+      const roundedValue = Math.round(numericValue * 100) / 100;
+      onCommissionChange(field, roundedValue);
+    }
   };
 
   const inputClasses = cn(
@@ -48,17 +67,23 @@ const CommissionInputs = ({
         </div>
         <input
           type="number"
+          step="0.01"
           min="0"
           max="100"
-          value={getCommissionDisplayValue(currentVoucher?.total_comm)}
-          onChange={(e) =>
-            onCommissionChange("total_comm", parseFloat(e.target.value) || 0)
-          }
+          value={getPercentageValue(currentVoucher?.total_comm)}
+          onChange={(e) => handleInputChange("total_comm", e.target.value)}
+          onBlur={(e) => {
+            // Format on blur to ensure consistent display
+            const value = parseFloat(e.target.value);
+            if (!isNaN(value)) {
+              e.target.value = value.toFixed(2);
+            }
+          }}
           className={cn(
             inputClasses,
             errors.total_comm && "border-red-500 focus:ring-red-500",
           )}
-          placeholder="Enter value as a whole number"
+          placeholder="e.g., 10%"
         />
       </div>
       {errors.total_comm && (
@@ -71,14 +96,20 @@ const CommissionInputs = ({
         </label>
         <input
           type="number"
+          step="0.01"
           min="0"
           max="100"
-          value={getCommissionDisplayValue(currentVoucher?.retailer_comm)}
-          onChange={(e) =>
-            onCommissionChange("retailer_comm", parseFloat(e.target.value) || 0)
-          }
+          value={getPercentageValue(currentVoucher?.retailer_comm)}
+          onChange={(e) => handleInputChange("retailer_comm", e.target.value)}
+          onBlur={(e) => {
+            // Format on blur to ensure consistent display
+            const value = parseFloat(e.target.value);
+            if (!isNaN(value)) {
+              e.target.value = value.toFixed(2);
+            }
+          }}
           className={inputClasses}
-          placeholder="Enter value as a whole number"
+          placeholder="e.g., 5%"
         />
       </div>
 
@@ -88,17 +119,22 @@ const CommissionInputs = ({
         </label>
         <input
           type="number"
+          step="0.01"
           min="0"
           max="100"
-          value={getCommissionDisplayValue(currentVoucher?.sales_agent_comm)}
+          value={getPercentageValue(currentVoucher?.sales_agent_comm)}
           onChange={(e) =>
-            onCommissionChange(
-              "sales_agent_comm",
-              parseFloat(e.target.value) || 0,
-            )
+            handleInputChange("sales_agent_comm", e.target.value)
           }
+          onBlur={(e) => {
+            // Format on blur to ensure consistent display
+            const value = parseFloat(e.target.value);
+            if (!isNaN(value)) {
+              e.target.value = value.toFixed(2);
+            }
+          }}
           className={inputClasses}
-          placeholder="Enter value as a whole number"
+          placeholder="e.g., 2%"
         />
       </div>
     </div>

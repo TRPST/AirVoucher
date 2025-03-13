@@ -10,6 +10,7 @@ interface AddRetailersModalProps {
   handleClose: () => void;
   commGroupId: string;
   commGroupName: string;
+  onRetailerAssigned?: () => void;
 }
 
 const AddRetailersModal: React.FC<AddRetailersModalProps> = ({
@@ -17,6 +18,7 @@ const AddRetailersModal: React.FC<AddRetailersModalProps> = ({
   handleClose,
   commGroupId,
   commGroupName,
+  onRetailerAssigned,
 }) => {
   const [retailers, setRetailers] = useState<Retailer[]>([]);
   const [selectedRetailerId, setSelectedRetailerId] = useState<string>("");
@@ -53,11 +55,10 @@ const AddRetailersModal: React.FC<AddRetailersModalProps> = ({
     if (result.error) {
       setError(result.error);
     } else {
+      if (onRetailerAssigned) {
+        onRetailerAssigned();
+      }
       setSuccess("Retailer assigned successfully");
-      setTimeout(() => {
-        handleClose();
-        setSelectedRetailerId("");
-      }, 1500);
     }
 
     setLoading(false);
@@ -136,7 +137,8 @@ const AddRetailersModal: React.FC<AddRetailersModalProps> = ({
                   }}
                 >
                   {retailers.map((retailer) => {
-                    const isAssigned = retailer.comm_group_id === commGroupId;
+                    const isAssigned =
+                      String(retailer.comm_group_id) === commGroupId;
                     const isInAnotherGroup =
                       retailer.comm_group_id && !isAssigned;
 
@@ -144,7 +146,7 @@ const AddRetailersModal: React.FC<AddRetailersModalProps> = ({
                       <MenuItem
                         key={retailer.id}
                         value={retailer.id}
-                        disabled={isAssigned || isInAnotherGroup}
+                        disabled={Boolean(isAssigned || isInAnotherGroup)}
                         sx={{
                           opacity: isAssigned || isInAnotherGroup ? 0.5 : 1,
                           "&.Mui-disabled": {
@@ -196,7 +198,10 @@ const AddRetailersModal: React.FC<AddRetailersModalProps> = ({
                     {success}
                   </p>
                   <button
-                    onClick={handleClose}
+                    onClick={() => {
+                      handleClose();
+                      setSelectedRetailerId("");
+                    }}
                     className="w-full rounded-lg bg-blue-700 py-3 font-semibold text-white shadow transition duration-300 hover:bg-blue-800 dark:bg-blue-600 dark:hover:bg-blue-700"
                   >
                     Done

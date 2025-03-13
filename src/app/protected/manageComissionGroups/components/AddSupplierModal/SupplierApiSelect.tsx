@@ -16,7 +16,7 @@ const SupplierApiSelect = ({
   return (
     <>
       <h3 className="mb-2 mt-5 font-semibold text-gray-800 dark:text-gray-100">
-        Supplier API
+        Select their API
       </h3>
       <VoucherDropdown
         items={supplierApis}

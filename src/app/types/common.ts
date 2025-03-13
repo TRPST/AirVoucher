@@ -12,7 +12,7 @@ export type User = {
   assigned_retailers?: any[];
 };
 
-export type Retailer = {
+export interface Retailer {
   id: string;
   name: string;
   email: string;
@@ -26,8 +26,8 @@ export type Retailer = {
   assigned_admin: string;
   admin_name?: string;
   created_at?: Date;
-  comm_group_id?: number;
-};
+  comm_group_id?: string | number;
+}
 
 export type Terminal = {
   id: string;
@@ -77,17 +77,20 @@ export type MainVoucherGroup = {
 };
 
 export interface MobileDataVoucher {
-  id?: string | number;
+  id?: number;
   name: string;
-  supplier_id: number;
-  supplier_name: string;
   vendorId: string;
   amount: number;
+  supplier_id: number;
+  supplier_name: string;
   total_comm: number;
   retailer_comm: number;
   sales_agent_comm: number;
-  category?: string;
   profit?: number;
+  metadata?: {
+    voucherCount: number;
+    serialNumbers: string[];
+  };
 }
 
 export interface SupplierAPI {
