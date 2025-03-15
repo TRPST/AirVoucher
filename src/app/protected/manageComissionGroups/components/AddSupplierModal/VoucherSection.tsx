@@ -98,6 +98,9 @@ const VoucherSection: React.FC<VoucherSectionProps> = ({
     }
   };
 
+  console.log("Current voucher in VoucherSection:", currentVoucher);
+  console.log("Selected supplier API:", selectedSupplierApi);
+
   if (vouchersLoading) {
     return (
       <div className="flex h-64 items-center justify-center">

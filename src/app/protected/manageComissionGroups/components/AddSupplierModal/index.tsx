@@ -111,14 +111,14 @@ const AddSupplierModal = ({
     );
   };
 
-  const handleVoucherChange = (
-    field: keyof typeof currentVoucher,
-    value: number,
-  ) => {
+  const handleVoucherChange = (field: string, value: number) => {
     if (handleVoucherFieldChange) {
       // Convert to decimal (e.g., 0.105) for internal storage
       const decimalValue = value ? value / 100 : null;
-      handleVoucherFieldChange(field, decimalValue);
+      handleVoucherFieldChange(
+        field as keyof typeof currentVoucher,
+        decimalValue,
+      );
     }
   };
 
@@ -227,7 +227,16 @@ const AddSupplierModal = ({
         return;
       }
 
-      const [_, voucherType, amount] = voucherLines[0].split("|");
+      // Validate that this is a Ringa file
+      const firstLine = voucherLines[0].split("|");
+      if (!firstLine[1] || !firstLine[1].includes("RINGA")) {
+        alert(
+          "This doesn't seem to be a Ringa file. Please upload the correct file for Ringa supplier.",
+        );
+        return;
+      }
+
+      const [_, voucherType, amount] = firstLine;
 
       const serialNumbers = voucherLines.map((line) => {
         const columns = line.split("|");
@@ -237,7 +246,7 @@ const AddSupplierModal = ({
       // Create consolidated voucher entry but don't add it to selectedVouchers yet
       const uploadedVoucher = {
         name: voucherType,
-        vendorId: "-",
+        vendorId: "RINGA",
         amount: parseFloat(amount),
         supplier_id: selectedSupplier.id,
         supplier_name: selectedSupplier.supplier_name,
@@ -260,9 +269,120 @@ const AddSupplierModal = ({
     }
   };
 
+  const handleHollywoodbetsFileUpload = async (file: File) => {
+    if (!selectedSupplier) {
+      alert("Please select a supplier first");
+      return;
+    }
+
+    try {
+      const text = await file.text();
+
+      // Handle different line endings (Windows, Unix, Mac)
+      const lines = text
+        .replace(/\r\n/g, "\n")
+        .replace(/\r/g, "\n")
+        .split("\n");
+
+      // Filter for data lines that start with "D" and have content
+      const voucherLines = lines.filter((line) => {
+        const trimmed = line.trim();
+        return trimmed.length > 0 && trimmed.startsWith("D");
+      });
+
+      if (voucherLines.length === 0) {
+        console.error(
+          "No voucher lines found. File content:",
+          text.substring(0, 500),
+        );
+        alert("No valid voucher entries found in file");
+        return;
+      }
+
+      // Parse the first line to get voucher type and amount
+      const firstLine = voucherLines[0].split("|");
+
+      if (firstLine.length < 3) {
+        console.error("Invalid line format:", voucherLines[0]);
+        alert("Invalid file format. Expected pipe-delimited data.");
+        return;
+      }
+
+      // Validate that this is a Hollywoodbets file
+      if (!firstLine[1] || !firstLine[1].includes("HWB")) {
+        alert(
+          "This doesn't seem to be a Hollywoodbets file. Please upload the correct file for Hollywoodbets supplier.",
+        );
+        return;
+      }
+
+      const voucherType = firstLine[1]; // Second column is voucher type
+      const amount = parseFloat(firstLine[2]); // Third column is amount
+
+      if (isNaN(amount)) {
+        console.error("Invalid amount:", firstLine[2]);
+        alert("Invalid amount value in file");
+        return;
+      }
+
+      // Extract serial numbers and pins from all lines
+      const serialNumbers = [];
+      const pins = [];
+
+      for (const line of voucherLines) {
+        const columns = line.split("|");
+        if (columns.length >= 3) {
+          // Make sure we have enough columns
+          serialNumbers.push(columns[columns.length - 2]?.trim() || "");
+          pins.push(columns[columns.length - 1]?.trim() || "");
+        }
+      }
+
+      // Create consolidated voucher entry
+      const uploadedVoucher = {
+        id: `hwb-${Date.now()}`, // Add a unique ID for the dropdown
+        name: voucherType,
+        vendorId: "HWB",
+        amount: amount,
+        supplier_id: selectedSupplier.id,
+        supplier_name: selectedSupplier.supplier_name,
+        total_comm: 0,
+        retailer_comm: 0,
+        sales_agent_comm: 0,
+        profit: 0,
+        networkProvider: "CELLC" as const,
+        metadata: {
+          voucherCount: voucherLines.length,
+          serialNumbers: serialNumbers,
+          pins: pins,
+          batchNumber: file.name.split("_")[3]?.replace(".txt", "") || "",
+          date: file.name.split("_")[4]?.split(".")[0] || "",
+        },
+      };
+
+      console.log("Created Hollywoodbets voucher:", uploadedVoucher);
+
+      // Update the current voucher to show in the form
+      setCurrentVoucher(uploadedVoucher);
+    } catch (error) {
+      console.error("Error processing Hollywoodbets file:", error);
+      alert("Error processing file. Please check the file format.");
+    }
+  };
+
+  // Update the handleFileUpload function to use the appropriate handler based on supplier
   const handleFileUpload = async (file: File) => {
-    if (selectedSupplier?.supplier_name.toLowerCase() === "ringa") {
+    if (!selectedSupplier) {
+      alert("Please select a supplier first");
+      return;
+    }
+
+    const supplierName = selectedSupplier.supplier_name.toLowerCase();
+
+    if (supplierName === "ringa") {
       await handleRingaFileUpload(file);
+    } else if (supplierName === "hollywoodbets") {
+      await handleHollywoodbetsFileUpload(file);
     } else {
       // Existing file upload logic for other suppliers
       try {
