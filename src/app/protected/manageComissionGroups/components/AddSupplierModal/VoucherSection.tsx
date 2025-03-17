@@ -19,6 +19,7 @@ interface VoucherSectionProps {
   onAddVoucher: () => void;
   onDeleteVoucher: (index: number) => void;
   onFileUpload: (file: File) => void;
+  easyloadVouchers: MobileDataVoucher[];
 }
 
 const VoucherSection: React.FC<VoucherSectionProps> = ({
@@ -35,6 +36,7 @@ const VoucherSection: React.FC<VoucherSectionProps> = ({
   onAddVoucher,
   onDeleteVoucher,
   onFileUpload,
+  easyloadVouchers,
 }) => {
   const [mobileDataVouchers, setMobileDataVouchers] = useState<
     MobileDataVoucher[]
@@ -100,6 +102,7 @@ const VoucherSection: React.FC<VoucherSectionProps> = ({
 
   console.log("Current voucher in VoucherSection:", currentVoucher);
   console.log("Selected supplier API:", selectedSupplierApi);
+  console.log("Easyload vouchers in VoucherSection:", easyloadVouchers);
 
   if (vouchersLoading) {
     return (
@@ -129,8 +132,9 @@ const VoucherSection: React.FC<VoucherSectionProps> = ({
         ottVoucher={ottVoucher}
         error={voucherError}
         selectedVouchers={selectedVouchers}
-        existingVouchers={existingVouchers}
+        existingVouchers={existingVouchers || []}
         onFileUpload={onFileUpload}
+        easyloadVouchers={easyloadVouchers}
       />
 
       <CommissionInputs
@@ -142,6 +146,7 @@ const VoucherSection: React.FC<VoucherSectionProps> = ({
       <button
         className="mb-3 w-full rounded-lg bg-blue-700 py-3 font-semibold text-white shadow transition duration-300 hover:bg-blue-800 dark:text-white"
         onClick={onAddVoucher}
+        disabled={!currentVoucher?.name}
       >
         Add Voucher
       </button>

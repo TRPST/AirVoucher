@@ -15,6 +15,7 @@ interface VoucherSelectProps {
   selectedVouchers: MobileDataVoucher[];
   existingVouchers?: MobileDataVoucher[];
   onFileUpload: (file: File) => void;
+  easyloadVouchers: MobileDataVoucher[];
 }
 
 const VoucherSelect = ({
@@ -29,6 +30,7 @@ const VoucherSelect = ({
   selectedVouchers,
   existingVouchers,
   onFileUpload,
+  easyloadVouchers,
 }: VoucherSelectProps) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -79,7 +81,7 @@ const VoucherSelect = ({
       return mobileAirtimeVouchers.map(ensureId);
     }
 
-    // Handle both Ringa and Hollywoodbets vouchers
+    // Handle Ringa, Hollywoodbets, and Easyload vouchers
     if (
       selectedSupplier?.supplier_name === "Ringa" ||
       selectedSupplier?.supplier_name === "Hollywoodbets"
@@ -99,6 +101,37 @@ const VoucherSelect = ({
             disabled: false,
             networkProvider: "CELLC" as const,
             amount: currentVoucher.amount,
+          },
+        ];
+      }
+    }
+
+    // Handle Easyload vouchers
+    if (selectedSupplier?.supplier_name === "Easyload") {
+      console.log("Processing Easyload vouchers:", easyloadVouchers);
+
+      if (easyloadVouchers && easyloadVouchers.length > 0) {
+        return easyloadVouchers.map((voucher) => ({
+          ...voucher,
+          id: voucher.id || `easyload-${voucher.amount}-${Date.now()}`,
+          networkProvider: "CELLC" as const,
+          disabled: selectedVouchers.some(
+            (selected) =>
+              selected.name === voucher.name &&
+              selected.amount === voucher.amount,
+          ),
+        }));
+      }
+
+      // Show the current voucher if it's an Easyload batch
+      if (currentVoucher?.metadata?.voucherCount) {
+        return [
+          {
+            ...currentVoucher,
+            id: `easyload-${currentVoucher.amount}-${Date.now()}`,
+            displayName: `Easyload R${currentVoucher.amount.toFixed(2)} (${currentVoucher.metadata.voucherCount} vouchers)`,
+            disabled: false,
+            networkProvider: "CELLC" as const,
           },
         ];
       }

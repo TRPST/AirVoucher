@@ -52,6 +52,9 @@ const AddSupplierModal = ({
   const [loading, setLoading] = useState<boolean>(false);
   const [selectedNetwork, setSelectedNetwork] = useState<string>("CELLC");
   const [voucherError, setVoucherError] = useState<string>("");
+  const [easyloadVouchers, setEasyloadVouchers] = useState<MobileDataVoucher[]>(
+    [],
+  );
 
   // Form handling
   const {
@@ -370,7 +373,90 @@ const AddSupplierModal = ({
     }
   };
 
-  // Update the handleFileUpload function to use the appropriate handler based on supplier
+  const handleEasyloadFileUpload = async (file: File) => {
+    if (!selectedSupplier) {
+      alert("Please select a supplier first");
+      return;
+    }
+
+    try {
+      const text = await file.text();
+      const lines = text.split("\n");
+
+      // Filter for valid voucher lines (must start with "Easyload")
+      const voucherLines = lines.filter(
+        (line) => line.trim().length > 0 && line.trim().startsWith("Easyload"),
+      );
+
+      if (voucherLines.length === 0) {
+        alert("No valid Easyload voucher entries found in file");
+        return;
+      }
+
+      // Validate that this is an Easyload file
+      const firstLine = voucherLines[0].split(",");
+      if (!firstLine[0] || !firstLine[0].includes("Easyload")) {
+        alert(
+          "This doesn't seem to be an Easyload file. Please upload the correct file for Easyload supplier.",
+        );
+        return;
+      }
+
+      // Group vouchers by amount
+      const vouchersByAmount = new Map<number, string[]>();
+
+      for (const line of voucherLines) {
+        const columns = line.split(",");
+        if (columns.length >= 4) {
+          const amount = parseFloat(columns[1]);
+          const serialNumber = columns[2]?.trim() || "";
+
+          if (!isNaN(amount) && serialNumber) {
+            if (!vouchersByAmount.has(amount)) {
+              vouchersByAmount.set(amount, []);
+            }
+            vouchersByAmount.get(amount)?.push(serialNumber);
+          }
+        }
+      }
+
+      // Convert grouped vouchers to array of voucher objects
+      const groupedVouchers = Array.from(vouchersByAmount.entries()).map(
+        ([amount, serialNumbers]) => ({
+          id: `easyload-${amount}-${Date.now()}`,
+          name: `Easyload R${amount.toFixed(2)}`,
+          vendorId: "EASYLOAD",
+          amount: amount,
+          supplier_id: selectedSupplier.id,
+          supplier_name: selectedSupplier.supplier_name,
+          total_comm: 0,
+          retailer_comm: 0,
+          sales_agent_comm: 0,
+          profit: 0,
+          networkProvider: "CELLC" as const,
+          metadata: {
+            voucherCount: serialNumbers.length,
+            serialNumbers: serialNumbers,
+            date: new Date().toISOString().split("T")[0],
+          },
+          displayName: `Easyload R${amount.toFixed(2)} (${serialNumbers.length} vouchers)`,
+        }),
+      );
+
+      // Set all vouchers to be available for selection
+      setEasyloadVouchers(groupedVouchers);
+
+      // If there's only one voucher type, select it automatically
+      if (groupedVouchers.length === 1) {
+        setCurrentVoucher(groupedVouchers[0]);
+      }
+    } catch (error) {
+      console.error("Error processing Easyload file:", error);
+      alert("Error processing file. Please check the file format.");
+    }
+  };
+
+  // Update the handleFileUpload function to include Easyload
   const handleFileUpload = async (file: File) => {
     if (!selectedSupplier) {
       alert("Please select a supplier first");
@@ -383,6 +469,8 @@ const AddSupplierModal = ({
       await handleRingaFileUpload(file);
     } else if (supplierName === "hollywoodbets") {
       await handleHollywoodbetsFileUpload(file);
+    } else if (supplierName === "easyload") {
+      await handleEasyloadFileUpload(file);
     } else {
       // Existing file upload logic for other suppliers
       try {
@@ -476,6 +564,7 @@ const AddSupplierModal = ({
               onAddVoucher={handleAddVoucher}
               onDeleteVoucher={handleDeleteVoucher}
               onFileUpload={handleFileUpload}
+              easyloadVouchers={easyloadVouchers}
             />
 
             <ActionButtons
