@@ -52,9 +52,7 @@ const AddSupplierModal = ({
   const [loading, setLoading] = useState<boolean>(false);
   const [selectedNetwork, setSelectedNetwork] = useState<string>("CELLC");
   const [voucherError, setVoucherError] = useState<string>("");
-  const [easyloadVouchers, setEasyloadVouchers] = useState<MobileDataVoucher[]>(
-    [],
-  );
+  const [easyloadVouchers, setEasyloadVouchers] = useState<any[]>([]);
 
   // Form handling
   const {

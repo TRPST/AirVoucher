@@ -17,12 +17,17 @@ const CommissionInputs: React.FC<CommissionInputsProps> = ({
   errors,
   onCommissionChange,
 }) => {
-  // Convert decimal value to percentage for display with 2 decimal places max
+  // Convert decimal value to percentage for display with up to 2 decimal places
   const getPercentageValue = (value: number | null) => {
     if (value === null || value === undefined) return "";
-    // Format to 2 decimal places maximum
+
+    // Convert to percentage (multiply by 100)
     const percentage = value * 100;
-    return percentage.toString();
+
+    // Format to remove trailing zeros but keep up to 2 decimal places
+    return percentage % 1 === 0
+      ? percentage.toString()
+      : percentage.toFixed(2).replace(/\.?0+$/, "");
   };
 
   // Handle input change with decimal support
@@ -73,10 +78,13 @@ const CommissionInputs: React.FC<CommissionInputsProps> = ({
           value={getPercentageValue(currentVoucher?.total_comm)}
           onChange={(e) => handleInputChange("total_comm", e.target.value)}
           onBlur={(e) => {
-            // Format on blur to ensure consistent display
+            // Format on blur to ensure consistent display without trailing zeros
             const value = parseFloat(e.target.value);
             if (!isNaN(value)) {
-              e.target.value = value.toFixed(2);
+              e.target.value =
+                value % 1 === 0
+                  ? value.toString()
+                  : value.toFixed(2).replace(/\.?0+$/, "");
             }
           }}
           className={cn(
@@ -102,10 +110,13 @@ const CommissionInputs: React.FC<CommissionInputsProps> = ({
           value={getPercentageValue(currentVoucher?.retailer_comm)}
           onChange={(e) => handleInputChange("retailer_comm", e.target.value)}
           onBlur={(e) => {
-            // Format on blur to ensure consistent display
+            // Format on blur to ensure consistent display without trailing zeros
             const value = parseFloat(e.target.value);
             if (!isNaN(value)) {
-              e.target.value = value.toFixed(2);
+              e.target.value =
+                value % 1 === 0
+                  ? value.toString()
+                  : value.toFixed(2).replace(/\.?0+$/, "");
             }
           }}
           className={inputClasses}
@@ -127,10 +138,13 @@ const CommissionInputs: React.FC<CommissionInputsProps> = ({
             handleInputChange("sales_agent_comm", e.target.value)
           }
           onBlur={(e) => {
-            // Format on blur to ensure consistent display
+            // Format on blur to ensure consistent display without trailing zeros
             const value = parseFloat(e.target.value);
             if (!isNaN(value)) {
-              e.target.value = value.toFixed(2);
+              e.target.value =
+                value % 1 === 0
+                  ? value.toString()
+                  : value.toFixed(2).replace(/\.?0+$/, "");
             }
           }}
           className={inputClasses}

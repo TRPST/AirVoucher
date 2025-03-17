@@ -84,10 +84,12 @@ const EditVoucherModal: React.FC<EditVoucherModalProps> = ({
   };
 
   const formatNumberDisplay = (value: number) => {
+    // If the value is a whole number, return it as an integer
     if (value % 1 === 0) {
       return value.toString();
     }
-    return value.toFixed(2);
+    // Otherwise format with up to 2 decimal places, removing trailing zeros
+    return value.toFixed(2).replace(/\.?0+$/, "");
   };
 
   return (
@@ -135,9 +137,13 @@ const EditVoucherModal: React.FC<EditVoucherModalProps> = ({
                   handleVoucherChange("total_comm", e.target.value)
                 }
                 onBlur={(e) => {
+                  // Format on blur to ensure consistent display without trailing zeros
                   const value = parseFloat(e.target.value);
                   if (!isNaN(value)) {
-                    e.target.value = value.toFixed(2);
+                    e.target.value =
+                      value % 1 === 0
+                        ? value.toString()
+                        : value.toFixed(2).replace(/\.?0+$/, "");
                   }
                 }}
                 className="w-2/3 rounded-lg border px-4 py-2 dark:bg-gray-700 dark:text-white"
@@ -159,9 +165,13 @@ const EditVoucherModal: React.FC<EditVoucherModalProps> = ({
                   handleVoucherChange("retailer_comm", e.target.value)
                 }
                 onBlur={(e) => {
+                  // Format on blur to ensure consistent display without trailing zeros
                   const value = parseFloat(e.target.value);
                   if (!isNaN(value)) {
-                    e.target.value = value.toFixed(2);
+                    e.target.value =
+                      value % 1 === 0
+                        ? value.toString()
+                        : value.toFixed(2).replace(/\.?0+$/, "");
                   }
                 }}
                 className="w-2/3 rounded-lg border px-4 py-2 dark:bg-gray-700 dark:text-white"
@@ -183,9 +193,13 @@ const EditVoucherModal: React.FC<EditVoucherModalProps> = ({
                   handleVoucherChange("sales_agent_comm", e.target.value)
                 }
                 onBlur={(e) => {
+                  // Format on blur to ensure consistent display without trailing zeros
                   const value = parseFloat(e.target.value);
                   if (!isNaN(value)) {
-                    e.target.value = value.toFixed(2);
+                    e.target.value =
+                      value % 1 === 0
+                        ? value.toString()
+                        : value.toFixed(2).replace(/\.?0+$/, "");
                   }
                 }}
                 className="w-2/3 rounded-lg border px-4 py-2 dark:bg-gray-700 dark:text-white"
