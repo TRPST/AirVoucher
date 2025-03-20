@@ -152,6 +152,24 @@ const AddSupplierModal = ({
       setLoading(true);
 
       const vouchersWithCommGroupId = selectedVouchers.map((voucher) => {
+        // Calculate profit based on commission values
+        let voucherAmount = voucher.amount;
+
+        // For Glocell vouchers, divide by 100 for calculation (since they're in cents)
+        if (voucher.supplier_name?.toLowerCase() === "glocell") {
+          voucherAmount = voucherAmount / 100;
+        }
+
+        const totalCommissionAmount = voucherAmount * (voucher.total_comm || 0);
+        const retailerCommissionAmount =
+          totalCommissionAmount * (voucher.retailer_comm || 0);
+        const salesAgentCommissionAmount =
+          totalCommissionAmount * (voucher.sales_agent_comm || 0);
+        const calculatedProfit =
+          totalCommissionAmount -
+          retailerCommissionAmount -
+          salesAgentCommissionAmount;
+
         // Create a new object with only the fields we want to save
         const {
           name,
@@ -162,7 +180,6 @@ const AddSupplierModal = ({
           sales_agent_comm,
           supplier_id,
           supplier_name,
-          profit,
         } = voucher;
 
         return {
@@ -174,10 +191,12 @@ const AddSupplierModal = ({
           sales_agent_comm,
           supplier_id,
           supplier_name,
-          profit,
+          profit: Number(calculatedProfit.toFixed(2)),
           comm_group_id: commGroupId,
         };
       });
+
+      console.log("VOUCHERS WITH COMM GROUP ID", vouchersWithCommGroupId);
 
       try {
         const result = await addVouchersToMobileDataVouchers(

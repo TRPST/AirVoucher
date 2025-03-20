@@ -184,10 +184,7 @@ const CommissionTable: React.FC<CommissionTableProps> = ({
           <tbody>
             {sortVouchers(group.vouchers).map((voucher, index) => {
               // Update the amount calculation logic
-              const voucherAmount = shouldDivideAmount(voucher.supplier_name)
-                ? voucher.amount / 100
-                : voucher.amount;
-
+              const voucherAmount = voucher.amount;
               const totalCommissionAmount =
                 voucherAmount * (voucher.total_comm || 0);
               const retailerCommissionAmount =
