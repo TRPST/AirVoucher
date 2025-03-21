@@ -19,8 +19,8 @@ import {
   ReportPeriod,
   ReportFormat,
   SalesReportData,
-} from "../../../../types/supplier";
-import { useVoucherManagement } from "../../../../../../hooks/useVoucherManagement";
+} from "../../../types/supplier";
+import { useVoucherManagement } from "../../../../../hooks/useVoucherManagement";
 
 interface SalesReportModalProps {
   isOpen: boolean;

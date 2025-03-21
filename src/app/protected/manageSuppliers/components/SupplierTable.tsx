@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Supplier } from "../../../../types/supplier";
+import { Supplier } from "../../../types/supplier";
 import VoucherUploadModal from "./VoucherUploadModal";
 import SalesReportModal from "./SalesReportModal";
 import SupplierRow from "./SupplierRow";
@@ -22,7 +22,7 @@ const SupplierTable: React.FC<SupplierTableProps> = ({
   // Check if supplier supports manual voucher upload
   const supportsVoucherUpload = (supplier: Supplier) => {
     const supportedSuppliers = ["Ringa", "Hollywoodbets", "Easyload"];
-    return supportedSuppliers.includes(supplier.name);
+    return supportedSuppliers.includes(supplier.supplier_name);
   };
 
   // Handle upload button click
@@ -61,9 +61,6 @@ const SupplierTable: React.FC<SupplierTableProps> = ({
             </th>
             <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
               VOUCHER INVENTORY
-            </th>
-            <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
-              CREATED AT
             </th>
             <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
               UPDATED AT

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { Supplier } from "../../../../types/supplier";
-import { getSupplierVouchersAction } from "../../actions";
+import { Supplier } from "../../../types/supplier";
+import { getSupplierVouchersAction } from "../actions";
 import VoucherListModal from "./VoucherListModal";
 
 interface SupplierRowProps {
@@ -84,10 +84,7 @@ const SupplierRow: React.FC<SupplierRowProps> = ({
           </button>
         </td>
         <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-900 dark:text-white">
-          {new Date(supplier.createdAt).toLocaleDateString()}
-        </td>
-        <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-900 dark:text-white">
-          {new Date(supplier.updatedAt).toLocaleDateString()}
+          {new Date(supplier.created_at).toLocaleDateString()}
         </td>
         <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-900 dark:text-white">
           <div className="flex space-x-2">

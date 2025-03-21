@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import SupplierTable from "./components/suppliers/SupplierTable";
+import SupplierTable from "./components/SupplierTable";
 import { Supplier } from "../../types/supplier";
 import { getSuppliersAction } from "../manageComissionGroups/actions";
 
