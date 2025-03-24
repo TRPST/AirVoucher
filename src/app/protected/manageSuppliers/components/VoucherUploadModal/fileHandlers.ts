@@ -57,9 +57,9 @@ export const handleRingaFileUpload = async (
 
     setVoucherEntries(entries);
 
-    // Create consolidated voucher entry
-    const uploadedVoucher: UploadedVoucher = {
-      id: `ringa-${Date.now()}`,
+    // Create individual voucher entries for each serial number/pin
+    const uploadedVouchers: UploadedVoucher[] = entries.map((entry, index) => ({
+      id: `ringa-${index}-${Date.now()}`,
       name: voucherType,
       vendorId: "RINGA",
       amount: parseFloat(amount),
@@ -70,17 +70,17 @@ export const handleRingaFileUpload = async (
       sales_agent_comm: 0,
       profit: 0,
       networkProvider: "CELLC",
-      metadata: {
-        voucherCount: entries.length,
-        serialNumbers: entries.map((e) => e.serialNumber),
-        pins: entries.map((e) => e.pin || ""),
-        date: new Date().toISOString().split("T")[0],
-      },
-      displayName: `${voucherType} (${entries.length} vouchers)`,
-    };
+      voucher_serial_number: entry.serialNumber,
+      voucher_pin: entry.pin || "",
+      expiry_date: entry.expiryDate || "",
+      category: "data",
+      status: "active",
+      source: "manual_upload",
+    }));
 
-    setUploadedVouchers([uploadedVoucher]);
-    setCurrentVoucher(uploadedVoucher);
+    setUploadedVouchers(uploadedVouchers);
+    // Just set the first voucher as current for display purposes
+    setCurrentVoucher(uploadedVouchers[0]);
     setUploadStatus(`Successfully processed ${entries.length} Ringa vouchers`);
   } catch (error) {
     console.error("Error processing Ringa file:", error);
@@ -113,10 +113,7 @@ export const handleHollywoodbetsFileUpload = async (
 
     // Extract individual voucher entries
     const entries: VoucherEntry[] = [];
-    const vouchersByAmount = new Map<
-      number,
-      { serials: string[]; pins: string[] }
-    >();
+    const uploadedVouchers: UploadedVoucher[] = [];
 
     for (const line of voucherLines) {
       const parts = line.split(/\s+/);
@@ -137,52 +134,39 @@ export const handleHollywoodbetsFileUpload = async (
             pin,
           });
 
-          // Group by amount
-          if (!vouchersByAmount.has(amount)) {
-            vouchersByAmount.set(amount, { serials: [], pins: [] });
-          }
-          const group = vouchersByAmount.get(amount)!;
-          group.serials.push(serialNumber);
-          group.pins.push(pin);
+          // Create individual voucher entry
+          uploadedVouchers.push({
+            id: `hwb-${entries.length}-${Date.now()}`,
+            name: `Hollywoodbets R${amount.toFixed(2)}`,
+            vendorId: "HOLLYWOODBETS",
+            amount,
+            supplier_id: supplier.id,
+            supplier_name: supplier.supplier_name,
+            total_comm: 0,
+            retailer_comm: 0,
+            sales_agent_comm: 0,
+            profit: 0,
+            networkProvider: "CELLC",
+            voucher_serial_number: serialNumber,
+            voucher_pin: pin,
+            category: "data",
+            status: "active",
+            source: "manual_upload",
+          });
         }
       }
     }
 
     setVoucherEntries(entries);
+    setUploadedVouchers(uploadedVouchers);
 
-    // Convert grouped vouchers to array of voucher objects
-    const groupedVouchers: UploadedVoucher[] = Array.from(
-      vouchersByAmount.entries(),
-    ).map(([amount, { serials, pins }]) => ({
-      id: `hwb-${amount}-${Date.now()}`,
-      name: `Hollywoodbets R${amount.toFixed(2)}`,
-      vendorId: "HOLLYWOODBETS",
-      amount,
-      supplier_id: supplier.id,
-      supplier_name: supplier.supplier_name,
-      total_comm: 0,
-      retailer_comm: 0,
-      sales_agent_comm: 0,
-      profit: 0,
-      networkProvider: "CELLC",
-      metadata: {
-        voucherCount: serials.length,
-        serialNumbers: serials,
-        pins,
-        date: new Date().toISOString().split("T")[0],
-      },
-      displayName: `Hollywoodbets R${amount.toFixed(2)} (${serials.length} vouchers)`,
-    }));
-
-    setUploadedVouchers(groupedVouchers);
-
-    // If there's only one voucher type, select it automatically
-    if (groupedVouchers.length === 1) {
-      setCurrentVoucher(groupedVouchers[0]);
+    // Set the first voucher as current for display purposes
+    if (uploadedVouchers.length > 0) {
+      setCurrentVoucher(uploadedVouchers[0]);
     }
 
     setUploadStatus(
-      `Successfully processed ${entries.length} Hollywoodbets vouchers in ${groupedVouchers.length} groups`,
+      `Successfully processed ${entries.length} Hollywoodbets vouchers`,
     );
   } catch (error) {
     console.error("Error processing Hollywoodbets file:", error);
@@ -213,9 +197,8 @@ export const handleEasyloadFileUpload = async (
       return;
     }
 
-    // Group vouchers by amount
-    const vouchersByAmount = new Map<number, string[]>();
     const allEntries: VoucherEntry[] = [];
+    const uploadedVouchers: UploadedVoucher[] = [];
 
     for (const line of voucherLines) {
       const columns = line.split(",");
@@ -225,11 +208,6 @@ export const handleEasyloadFileUpload = async (
         const pin = columns[3]?.trim() || "";
 
         if (!isNaN(amount) && serialNumber) {
-          if (!vouchersByAmount.has(amount)) {
-            vouchersByAmount.set(amount, []);
-          }
-          vouchersByAmount.get(amount)?.push(serialNumber);
-
           // Add to individual entries
           allEntries.push({
             id: `easyload-entry-${allEntries.length}-${Date.now()}`,
@@ -238,44 +216,40 @@ export const handleEasyloadFileUpload = async (
             serialNumber,
             pin,
           });
+
+          // Create individual voucher entry
+          uploadedVouchers.push({
+            id: `easyload-${allEntries.length}-${Date.now()}`,
+            name: `Easyload R${amount.toFixed(2)}`,
+            vendorId: "EASYLOAD",
+            amount: amount,
+            supplier_id: supplier.id,
+            supplier_name: supplier.supplier_name,
+            total_comm: 0,
+            retailer_comm: 0,
+            sales_agent_comm: 0,
+            profit: 0,
+            networkProvider: "CELLC",
+            voucher_serial_number: serialNumber,
+            voucher_pin: pin || "",
+            category: "data",
+            status: "active",
+            source: "manual_upload",
+          });
         }
       }
     }
 
     setVoucherEntries(allEntries);
+    setUploadedVouchers(uploadedVouchers);
 
-    // Convert grouped vouchers to array of voucher objects
-    const groupedVouchers: UploadedVoucher[] = Array.from(
-      vouchersByAmount.entries(),
-    ).map(([amount, serialNumbers]) => ({
-      id: `easyload-${amount}-${Date.now()}`,
-      name: `Easyload R${amount.toFixed(2)}`,
-      vendorId: "EASYLOAD",
-      amount: amount,
-      supplier_id: supplier.id,
-      supplier_name: supplier.supplier_name,
-      total_comm: 0,
-      retailer_comm: 0,
-      sales_agent_comm: 0,
-      profit: 0,
-      networkProvider: "CELLC",
-      metadata: {
-        voucherCount: serialNumbers.length,
-        serialNumbers: serialNumbers,
-        date: new Date().toISOString().split("T")[0],
-      },
-      displayName: `Easyload R${amount.toFixed(2)} (${serialNumbers.length} vouchers)`,
-    }));
-
-    setUploadedVouchers(groupedVouchers);
-
-    // If there's only one voucher type, select it automatically
-    if (groupedVouchers.length === 1) {
-      setCurrentVoucher(groupedVouchers[0]);
+    // Set the first voucher as current for display purposes
+    if (uploadedVouchers.length > 0) {
+      setCurrentVoucher(uploadedVouchers[0]);
     }
 
     setUploadStatus(
-      `Successfully processed ${voucherLines.length} Easyload vouchers in ${groupedVouchers.length} groups`,
+      `Successfully processed ${voucherLines.length} Easyload vouchers`,
     );
   } catch (error) {
     console.error("Error processing Easyload file:", error);

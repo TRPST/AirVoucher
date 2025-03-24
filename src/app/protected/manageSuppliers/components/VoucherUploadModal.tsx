@@ -13,17 +13,19 @@ import {
   handleHollywoodbetsFileUpload,
   handleEasyloadFileUpload,
 } from "./VoucherUploadModal/fileHandlers";
+import { uploadBulkVouchersAction } from "../actions";
 
-interface VoucherMetadata {
-  voucherCount: number;
-  serialNumbers: string[];
-  pins?: string[];
-  batchNumber?: string;
-  date?: string;
+export interface VoucherEntry {
+  id: string;
+  type: string;
+  amount: number;
+  serialNumber: string;
+  pin?: string;
+  expiryDate?: string;
 }
 
 export interface UploadedVoucher {
-  id?: string | number;
+  id: string;
   name: string;
   vendorId: string;
   amount: number;
@@ -33,19 +35,14 @@ export interface UploadedVoucher {
   retailer_comm: number;
   sales_agent_comm: number;
   profit: number;
-  networkProvider: "CELLC" | "MTN" | "TELKOM" | "VODACOM";
-  metadata?: VoucherMetadata;
+  networkProvider: string;
+  voucher_serial_number: string;
+  voucher_pin: string;
+  expiry_date?: string;
+  category: string;
+  status: string;
+  source: string;
   displayName?: string;
-}
-
-// Interface for individual voucher entries
-export interface VoucherEntry {
-  id: string;
-  type: string;
-  amount: number;
-  serialNumber: string;
-  pin?: string;
-  expiryDate?: string;
 }
 
 interface VoucherUploadModalProps {
@@ -120,14 +117,20 @@ const VoucherUploadModal: React.FC<VoucherUploadModalProps> = ({
 
   // Handle save vouchers
   const handleSaveVouchers = async () => {
-    if (!currentVoucher) return;
+    if (uploadedVouchers.length === 0) return;
 
     try {
-      // Call the API to save the vouchers
-      await uploadVouchers([currentVoucher]);
+      setUploadStatus("Saving vouchers...");
 
-      // Close the modal and refresh the parent component
-      onClose(true);
+      // Call the server action to save the vouchers
+      const result = await uploadBulkVouchersAction(uploadedVouchers);
+
+      if (result.error) {
+        setUploadStatus(`Error saving vouchers: ${result.error}`);
+      } else {
+        // Close the modal and refresh the parent component
+        onClose(true);
+      }
     } catch (error) {
       console.error("Error saving vouchers:", error);
       setUploadStatus("Error saving vouchers. Please try again.");
@@ -153,7 +156,7 @@ const VoucherUploadModal: React.FC<VoucherUploadModalProps> = ({
     >
       <ModalHeader
         supplierName={supplier.supplier_name}
-        onClose={() => onClose()}
+        onClose={() => onClose(false)}
       />
 
       {/* Content Area */}
@@ -174,9 +177,9 @@ const VoucherUploadModal: React.FC<VoucherUploadModalProps> = ({
       </div>
 
       <ModalFooter
-        onClose={() => onClose()}
+        onClose={() => onClose(false)}
         handleSaveVouchers={handleSaveVouchers}
-        isDisabled={!currentVoucher}
+        isDisabled={uploadedVouchers.length === 0}
       />
     </Dialog>
   );
