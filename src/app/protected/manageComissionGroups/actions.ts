@@ -93,7 +93,7 @@ export const getSupplierMainVoucherGroups = async (supplierId: number) => {
       return { error: error.message };
     }
 
-    console.log("Voucher Groups", mainVoucherGroups);
+    //console.log("Voucher Groups", mainVoucherGroups);
 
     return { mainVoucherGroups };
   } catch (error) {
@@ -199,10 +199,48 @@ export const addVouchersToMobileDataVouchers = async (
 ) => {
   const supabase = await createClient();
 
-  // Remove any id properties from the vouchers before insertion
-  const vouchersToInsert = mobileDataVouchers.map(
-    ({ id, ...voucher }) => voucher,
-  );
+  // Process vouchers before insertion
+  const vouchersToInsert = mobileDataVouchers.map(({ id, ...voucher }) => {
+    // Create a new voucher object with processed values
+    const processedVoucher = { ...voucher };
+
+    console.log("mobileDataVouchers", mobileDataVouchers);
+
+    // Convert Glocell voucher amounts from cents to Rand
+    if (voucher.supplier_name?.toLowerCase() === "glocell" && voucher.amount) {
+      processedVoucher.amount = Number(
+        (Number(voucher.amount) / 100).toFixed(2),
+      );
+    } else if (voucher.amount) {
+      // For other suppliers, just round to 2 decimal places
+      processedVoucher.amount = Number(Number(voucher.amount).toFixed(2));
+    }
+
+    // Round commission and profit values to 2 decimal places
+    if (voucher.total_comm !== undefined) {
+      processedVoucher.total_comm = Number(
+        Number(voucher.total_comm).toFixed(2),
+      );
+    }
+
+    if (voucher.retailer_comm !== undefined) {
+      processedVoucher.retailer_comm = Number(
+        Number(voucher.retailer_comm).toFixed(2),
+      );
+    }
+
+    if (voucher.sales_agent_comm !== undefined) {
+      processedVoucher.sales_agent_comm = Number(
+        Number(voucher.sales_agent_comm).toFixed(2),
+      );
+    }
+
+    if (voucher.profit !== undefined) {
+      processedVoucher.profit = Number(Number(voucher.profit).toFixed(2));
+    }
+
+    return processedVoucher;
+  });
 
   const { data, error } = await supabase
     .from("mobile_data_vouchers")
@@ -262,32 +300,6 @@ export const getCommGroupsWithSuppliersAndVouchers = async () => {
       })),
     })),
   }));
-};
-
-// Update Voucher Commissions
-export const updateVoucherCommissions = async (
-  voucherId: any,
-  totalCommission: any,
-  retailerCommission: any,
-  agentCommission: any,
-) => {
-  const supabase = await createClient();
-
-  const { error } = await supabase
-    .from("vouchers")
-    .update({
-      total_commission: totalCommission,
-      retailer_commission: retailerCommission,
-      agent_commission: agentCommission,
-    })
-    .eq("id", voucherId);
-
-  if (error) {
-    console.error("Error updating voucher commissions:", error);
-    return { error: error.message };
-  }
-
-  return { success: true };
 };
 
 export const getCommGroupsAction = async () => {

@@ -38,6 +38,9 @@ const VoucherDropdown: React.FC<VoucherDropdownProps> = ({
           .includes(search.toLowerCase()),
       );
 
+  console.log("Items in VoucherDropdown:", items);
+  console.log("Filtered items in VoucherDropdown:", filteredItems);
+
   return (
     <div className={cn("relative w-full", className)}>
       <Command

@@ -111,6 +111,12 @@ const CommissionTable: React.FC<CommissionTableProps> = ({
     });
   };
 
+  // Add a helper function to determine if amount should be divided by 100
+  const shouldDivideAmount = (supplierName: string): boolean => {
+    const noConversionSuppliers = ["Ringa", "Hollywoodbets", "Easyload"];
+    return !noConversionSuppliers.includes(supplierName);
+  };
+
   return (
     <>
       <div className="min-w-full">
@@ -177,7 +183,8 @@ const CommissionTable: React.FC<CommissionTableProps> = ({
           </thead>
           <tbody>
             {sortVouchers(group.vouchers).map((voucher, index) => {
-              const voucherAmount = voucher.amount / 100;
+              // Update the amount calculation logic
+              const voucherAmount = voucher.amount;
               const totalCommissionAmount =
                 voucherAmount * (voucher.total_comm || 0);
               const retailerCommissionAmount =
