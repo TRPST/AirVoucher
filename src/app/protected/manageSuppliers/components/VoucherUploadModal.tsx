@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { Dialog } from "@mui/material";
 import { Supplier, Voucher } from "../../../types/supplier";
 import { useVoucherManagement } from "../../../../../hooks/useVoucherManagement";
-import { Upload } from "lucide-react";
+import { Upload, Loader } from "lucide-react";
 import ModalHeader from "./VoucherUploadModal/ModalHeader";
 import FileUploadSection from "./VoucherUploadModal/FileUploadSection";
 import StatusMessage from "./VoucherUploadModal/StatusMessage";
@@ -70,6 +70,9 @@ const VoucherUploadModal: React.FC<VoucherUploadModalProps> = ({
   const [voucherEntries, setVoucherEntries] = useState<VoucherEntry[]>([]);
   const [uploadStatus, setUploadStatus] = useState<string | null>(null);
   const [isCheckingDuplicates, setIsCheckingDuplicates] = useState(false);
+  const [isProcessingFile, setIsProcessingFile] = useState(false);
+  const [isSavingVouchers, setIsSavingVouchers] = useState(false);
+  const [isStatusError, setIsStatusError] = useState<boolean>(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const {
@@ -152,44 +155,114 @@ const VoucherUploadModal: React.FC<VoucherUploadModalProps> = ({
   }, [uploadedVouchers.length, supplier.supplier_name]);
 
   // Handle file change
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
-    // Reset states
+    setIsProcessingFile(true);
+    setUploadStatus(null);
+    setIsStatusError(false);
     setVoucherEntries([]);
     setUploadedVouchers([]);
     setCurrentVoucher(null);
-    setUploadStatus(null);
 
-    // Determine which handler to use based on supplier name
-    if (supplier.supplier_name === "Ringa") {
-      handleRingaFileUpload(
-        file,
-        supplier,
-        setVoucherEntries,
-        setCurrentVoucher,
-        setUploadedVouchers,
-        setUploadStatus,
+    try {
+      // Get supplier name and normalize it for case-insensitive comparison
+      const supplierName = supplier.supplier_name.toLowerCase();
+
+      console.log("Processing file for supplier:", supplierName);
+      console.log("File name:", file.name);
+      console.log("File type:", file.type);
+      console.log("File size:", file.size);
+
+      // Check which supplier handler to use
+      if (supplierName === "ringa") {
+        await handleRingaFileUpload(
+          file,
+          supplier,
+          setVoucherEntries,
+          setCurrentVoucher,
+          setUploadedVouchers,
+          (message: string | null) => {
+            setUploadStatus(message);
+            // Set error status based on message content
+            if (
+              message &&
+              (message.includes("No valid") ||
+                message.includes("doesn't seem") ||
+                message.includes("Could not parse"))
+            ) {
+              setIsStatusError(true);
+            } else {
+              setIsStatusError(false);
+            }
+          },
+        );
+      } else if (supplierName === "hollywoodbets") {
+        await handleHollywoodbetsFileUpload(
+          file,
+          supplier,
+          setVoucherEntries,
+          setCurrentVoucher,
+          setUploadedVouchers,
+          (message: string | null) => {
+            setUploadStatus(message);
+            // Set error status based on message content
+            if (
+              message &&
+              (message.includes("No valid") ||
+                message.includes("doesn't seem") ||
+                message.includes("Could not parse"))
+            ) {
+              setIsStatusError(true);
+            } else {
+              setIsStatusError(false);
+            }
+          },
+        );
+      } else if (supplierName === "easyload") {
+        await handleEasyloadFileUpload(
+          file,
+          supplier,
+          setVoucherEntries,
+          setCurrentVoucher,
+          setUploadedVouchers,
+          (message: string | null) => {
+            setUploadStatus(message);
+            // Set error status based on message content
+            if (
+              message &&
+              (message.includes("No valid") ||
+                message.includes("doesn't seem") ||
+                message.includes("Could not parse"))
+            ) {
+              setIsStatusError(true);
+            } else {
+              setIsStatusError(false);
+            }
+          },
+        );
+      } else {
+        setUploadStatus(
+          `File upload for ${supplier.supplier_name} is not supported yet.`,
+        );
+      }
+    } catch (error) {
+      console.error("Error processing file:", error);
+      setUploadStatus(
+        `Error processing file: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
       );
-    } else if (supplier.supplier_name === "Hollywoodbets") {
-      handleHollywoodbetsFileUpload(
-        file,
-        supplier,
-        setVoucherEntries,
-        setCurrentVoucher,
-        setUploadedVouchers,
-        setUploadStatus,
-      );
-    } else if (supplier.supplier_name === "Easyload") {
-      handleEasyloadFileUpload(
-        file,
-        supplier,
-        setVoucherEntries,
-        setCurrentVoucher,
-        setUploadedVouchers,
-        setUploadStatus,
-      );
+      setIsStatusError(true);
+    } finally {
+      setIsProcessingFile(false);
+      // Reset the file input so the same file can be selected again
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
     }
   };
 
@@ -218,17 +291,19 @@ const VoucherUploadModal: React.FC<VoucherUploadModalProps> = ({
   const handleSaveVouchers = async () => {
     if (uploadedVouchers.length === 0) return;
 
-    // Filter out vouchers that already exist
-    const newVouchers = uploadedVouchers.filter((v) => !v.exists);
-
-    if (newVouchers.length === 0) {
-      setUploadStatus(
-        "No new vouchers to upload. All vouchers already exist in the database.",
-      );
-      return;
-    }
-
+    setIsSavingVouchers(true);
     try {
+      // Filter out vouchers that already exist
+      const newVouchers = uploadedVouchers.filter((v) => !v.exists);
+
+      if (newVouchers.length === 0) {
+        setUploadStatus(
+          "No new vouchers to upload. All vouchers already exist in the database.",
+        );
+        setIsSavingVouchers(false);
+        return;
+      }
+
       setUploadStatus(`Saving ${newVouchers.length} vouchers...`);
 
       // Call the server action to save the vouchers
@@ -236,12 +311,14 @@ const VoucherUploadModal: React.FC<VoucherUploadModalProps> = ({
 
       if (result.error) {
         setUploadStatus(`Error saving vouchers: ${result.error}`);
+        setIsStatusError(true);
       } else if (!result.success) {
         // All vouchers were duplicates
         setUploadStatus(
           result.message ||
             "No new vouchers were uploaded. All vouchers already exist in the database.",
         );
+        setIsStatusError(true);
       } else {
         // Show success message with duplicate info if any
         if (result.duplicates && result.duplicates > 0) {
@@ -262,8 +339,18 @@ const VoucherUploadModal: React.FC<VoucherUploadModalProps> = ({
     } catch (error) {
       console.error("Error saving vouchers:", error);
       setUploadStatus("Error saving vouchers. Please try again.");
+      setIsStatusError(true);
+    } finally {
+      setIsSavingVouchers(false);
     }
   };
+
+  // Determine if the save button should be disabled
+  const isSaveDisabled =
+    uploadedVouchers.length === 0 ||
+    uploadedVouchers.every((v) => v.exists) ||
+    isCheckingDuplicates ||
+    isSavingVouchers;
 
   if (!isOpen) return null;
 
@@ -296,7 +383,29 @@ const VoucherUploadModal: React.FC<VoucherUploadModalProps> = ({
           handleFileChange={handleFileChange}
         />
 
-        {uploadStatus && <StatusMessage message={uploadStatus} />}
+        {/* Loading indicator for file processing */}
+        {isProcessingFile && (
+          <div className="mb-6 flex items-center justify-center">
+            <Loader className="mr-2 h-5 w-5 animate-spin text-blue-600" />
+            <span className="text-sm text-gray-600 dark:text-gray-300">
+              Processing file, please wait...
+            </span>
+          </div>
+        )}
+
+        {/* Loading indicator for saving vouchers */}
+        {isSavingVouchers && (
+          <div className="mb-6 flex items-center justify-center">
+            <Loader className="mr-2 h-5 w-5 animate-spin text-blue-600" />
+            <span className="text-sm text-gray-600 dark:text-gray-300">
+              Saving vouchers to database...
+            </span>
+          </div>
+        )}
+
+        {uploadStatus && (
+          <StatusMessage message={uploadStatus} isError={isStatusError} />
+        )}
 
         {/* Detailed Voucher Entries Table */}
         {voucherEntries.length > 0 && (
@@ -311,10 +420,7 @@ const VoucherUploadModal: React.FC<VoucherUploadModalProps> = ({
       <ModalFooter
         onClose={() => onClose(false)}
         handleSaveVouchers={handleSaveVouchers}
-        isDisabled={
-          uploadedVouchers.length === 0 ||
-          uploadedVouchers.every((v) => v.exists)
-        }
+        isDisabled={isSaveDisabled}
       />
     </Dialog>
   );

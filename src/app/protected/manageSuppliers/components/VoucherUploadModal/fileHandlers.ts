@@ -13,78 +13,123 @@ export const handleRingaFileUpload = async (
 ) => {
   try {
     const text = await file.text();
-    const lines = text.split("\n");
 
-    const voucherLines = lines.filter((line) => line.startsWith("D"));
+    // Log the first few lines to help with debugging
+    console.log("First few lines of file:", text.split("\n").slice(0, 5));
+
+    // Handle different line endings
+    const lines = text.replace(/\r\n/g, "\n").replace(/\r/g, "\n").split("\n");
+
+    // Only keep lines that start with 'D'
+    const voucherLines = lines.filter((line) => line.trim().startsWith("D"));
+
+    console.log(`Found ${voucherLines.length} voucher lines starting with D`);
 
     if (voucherLines.length === 0) {
-      setUploadStatus("No valid voucher entries found in file");
-      return;
-    }
-
-    // Validate that this is a Ringa file
-    const firstLine = voucherLines[0].split("|");
-    if (!firstLine[1] || !firstLine[1].includes("RINGA")) {
       setUploadStatus(
-        "This doesn't seem to be a Ringa file. Please upload the correct file for Ringa supplier.",
+        "No valid Ringa voucher entries found in file. Voucher lines should start with 'D'.",
       );
       return;
     }
 
-    const [_, voucherType, amount] = firstLine;
+    // Validate that this is a Ringa file by checking the first voucher line
+    const firstLine = voucherLines[0].split("|");
+    if (firstLine.length < 2 || !firstLine[1].includes("RINGA")) {
+      setUploadStatus(
+        "This doesn't seem to be a Ringa file. Voucher names should contain 'RINGA'.",
+      );
+      return;
+    }
 
-    // Extract individual voucher entries with serial numbers and pins
-    const entries: VoucherEntry[] = voucherLines.map((line, index) => {
-      const columns = line.split("|");
-      const columnsCount = columns.length;
+    // Extract individual voucher entries
+    const entries: VoucherEntry[] = [];
+    const uploadedVouchers: UploadedVoucher[] = [];
 
-      // For Ringa, the last column is the pin and second-to-last is the serial number
-      const pin = columns[columnsCount - 1]?.trim() || "";
-      const serialNumber = columns[columnsCount - 2]?.trim() || "";
+    for (const line of voucherLines) {
+      // Split by pipe character
+      const parts = line.split("|");
 
-      // Extract expiry date if available (usually in column 5)
-      const expiryDate = columns[5] || "";
+      if (parts.length >= 7) {
+        // Ensure we have enough columns
+        // Format based on your specification:
+        // D|RINGA0100|100.00|0|100.00|01/06/2026|127465|RT09C1044798F43|2691290788475827
+        const voucherType = parts[1]?.trim() || ""; // 2nd column is voucher name
 
-      return {
-        id: `ringa-entry-${index}-${Date.now()}`,
-        type: voucherType,
-        amount: parseFloat(amount),
-        serialNumber,
-        pin,
-        expiryDate,
-      };
-    });
+        // Skip this voucher if it doesn't contain "RINGA" in the name
+        if (!voucherType.includes("RINGA")) {
+          console.log(`Skipping non-Ringa voucher: ${voucherType}`);
+          continue;
+        }
+
+        const amountStr = parts[2]?.trim() || "0"; // 3rd column is amount
+        const amount = parseFloat(amountStr);
+        const expiryDate = parts[5]?.trim() || ""; // 6th column is expiry date
+
+        // For Ringa, the last column is the pin and second-to-last is the serial number
+        const columnsCount = parts.length;
+        const pin = parts[columnsCount - 1]?.trim() || "";
+        const serialNumber = parts[columnsCount - 2]?.trim() || "";
+
+        console.log(
+          `Processing Ringa line: Type=${voucherType}, Amount=${amount}, SN=${serialNumber}, PIN=${pin}, Expiry=${expiryDate}`,
+        );
+
+        if (!isNaN(amount) && serialNumber && pin) {
+          // Add to individual entries
+          entries.push({
+            id: `ringa-entry-${entries.length}-${Date.now()}`,
+            type: `${voucherType} R${amount.toFixed(2)}`,
+            amount,
+            serialNumber,
+            pin,
+            expiryDate,
+          });
+
+          // Create individual voucher entry
+          uploadedVouchers.push({
+            id: `ringa-${entries.length}-${Date.now()}`,
+            name: `${voucherType} R${amount.toFixed(2)}`,
+            vendorId: "RINGA",
+            amount,
+            supplier_id: supplier.id,
+            supplier_name: supplier.supplier_name,
+            total_comm: 0,
+            retailer_comm: 0,
+            sales_agent_comm: 0,
+            profit: 0,
+            networkProvider: "CELLC",
+            voucher_serial_number: serialNumber,
+            voucher_pin: pin,
+            expiry_date: expiryDate,
+            category: "data",
+            status: "active",
+            source: "manual_upload",
+          });
+        }
+      }
+    }
+
+    if (entries.length === 0) {
+      setUploadStatus(
+        "Could not parse any valid Ringa vouchers from the file. Please check the format or ensure the file contains Ringa vouchers.",
+      );
+      return;
+    }
 
     setVoucherEntries(entries);
-
-    // Create individual voucher entries for each serial number/pin
-    const uploadedVouchers: UploadedVoucher[] = entries.map((entry, index) => ({
-      id: `ringa-${index}-${Date.now()}`,
-      name: voucherType,
-      vendorId: "RINGA",
-      amount: parseFloat(amount),
-      supplier_id: supplier.id,
-      supplier_name: supplier.supplier_name,
-      total_comm: 0,
-      retailer_comm: 0,
-      sales_agent_comm: 0,
-      profit: 0,
-      networkProvider: "CELLC",
-      voucher_serial_number: entry.serialNumber,
-      voucher_pin: entry.pin || "",
-      expiry_date: entry.expiryDate || "",
-      category: "data",
-      status: "active",
-      source: "manual_upload",
-    }));
-
     setUploadedVouchers(uploadedVouchers);
-    // Just set the first voucher as current for display purposes
-    setCurrentVoucher(uploadedVouchers[0]);
+
+    // Set the first voucher as current for display purposes
+    if (uploadedVouchers.length > 0) {
+      setCurrentVoucher(uploadedVouchers[0]);
+    }
+
     setUploadStatus(`Successfully processed ${entries.length} Ringa vouchers`);
   } catch (error) {
     console.error("Error processing Ringa file:", error);
-    setUploadStatus("Error processing file. Please check the file format.");
+    setUploadStatus(
+      `Error processing file: ${error instanceof Error ? error.message : "Unknown error"}. Please check the file format.`,
+    );
   }
 };
 
