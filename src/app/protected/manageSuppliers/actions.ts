@@ -211,3 +211,31 @@ export const checkExistingVouchersAction = async (
     };
   }
 };
+
+// Update the deleteVoucherAction to use the correct table name
+export const deleteVoucherAction = async (voucherId: string) => {
+  try {
+    const supabase = await createClient();
+
+    // Delete the voucher from the mobile_data_vouchers table (not vouchers)
+    const { error } = await supabase
+      .from("mobile_data_vouchers")
+      .delete()
+      .eq("id", voucherId);
+
+    if (error) {
+      console.error("Error deleting voucher:", error);
+      return { error: error.message };
+    }
+
+    return { success: "Voucher deleted successfully" };
+  } catch (error) {
+    console.error("Error in deleteVoucherAction:", error);
+    return {
+      error:
+        error instanceof Error
+          ? error.message
+          : "An unknown error occurred while deleting the voucher",
+    };
+  }
+};
