@@ -26,6 +26,8 @@ interface VoucherType {
   supplier_name?: string;
   vendorId?: string;
   status?: string;
+  voucher_pin?: string;
+  voucher_serial_number?: string;
 }
 
 interface SaleModalProps {
@@ -50,25 +52,6 @@ const SaleModal: React.FC<SaleModalProps> = ({
   const [soldVoucher, setSoldVoucher] = useState<any>(null);
   const [copied, setCopied] = useState<string | null>(null);
 
-  // Helper function to generate a pin (since the database doesn't have them yet)
-  const generatePin = (length = 12) => {
-    const chars = "0123456789";
-    let result = "";
-    for (let i = 0; i < length; i++) {
-      result += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
-    return result;
-  };
-
-  // Helper function to generate a serial number
-  const generateSerialNumber = () => {
-    const timestamp = Date.now().toString().slice(-8);
-    const random = Math.floor(Math.random() * 1000000)
-      .toString()
-      .padStart(6, "0");
-    return `${timestamp}${random}`;
-  };
-
   // Function to handle the sale process
   const handleSale = async () => {
     if (!voucher) return;
@@ -79,7 +62,7 @@ const SaleModal: React.FC<SaleModalProps> = ({
     try {
       console.log(`Processing sale for voucher ID: ${voucher.id}`);
 
-      // 1. Check if the voucher is available
+      // 1. Check if the voucher is available and get its details
       const { data: voucherData, error: voucherError } = await supabase
         .from("mobile_data_vouchers")
         .select("*")
@@ -99,11 +82,10 @@ const SaleModal: React.FC<SaleModalProps> = ({
         throw new Error("This voucher has already been sold");
       }
 
-      // Generate pin and serial number (as they're currently not in the database)
-      const voucherPin = generatePin();
-      const vendorPrefix =
-        voucherData.vendorId?.toUpperCase().substring(0, 3) || "GEN";
-      const serialNumber = generateSerialNumber();
+      // Check if voucher has required pin and serial number
+      if (!voucherData.voucher_pin || !voucherData.voucher_serial_number) {
+        throw new Error("Voucher is missing PIN or serial number");
+      }
 
       // 2. Update the voucher status to 'sold'
       const currentTime = new Date().toISOString();
@@ -111,8 +93,6 @@ const SaleModal: React.FC<SaleModalProps> = ({
         .from("mobile_data_vouchers")
         .update({
           status: "sold",
-          voucher_pin: voucherPin,
-          voucher_serial_number: serialNumber,
         })
         .eq("id", voucher.id);
 
@@ -134,7 +114,7 @@ const SaleModal: React.FC<SaleModalProps> = ({
         voucher_amount: amountInRand.toString(),
         voucher_group_id: voucherData.comm_group_id || 1,
         voucher_name: voucherData.name || "",
-        voucher_pin: voucherPin,
+        voucher_pin: voucherData.voucher_pin,
         total_comm: voucherData.total_comm || "0",
         retailer_comm: voucherData.retailer_comm || "0",
         sales_agent_comm: voucherData.sales_agent_comm || "0",
@@ -166,8 +146,6 @@ const SaleModal: React.FC<SaleModalProps> = ({
       // 4. Set the sold voucher data to display
       setSoldVoucher({
         ...voucherData,
-        voucher_pin: voucherPin,
-        voucher_serial_number: serialNumber,
         sale_time: currentTime,
         formattedAmount: `R${amountInRand.toFixed(2)}`,
       });
