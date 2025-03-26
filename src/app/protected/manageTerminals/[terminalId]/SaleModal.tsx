@@ -93,6 +93,7 @@ const SaleModal: React.FC<SaleModalProps> = ({
         .from("mobile_data_vouchers")
         .update({
           status: "sold",
+          sold_datetime: currentTime,
         })
         .eq("id", voucher.id);
 
@@ -235,6 +236,16 @@ const SaleModal: React.FC<SaleModalProps> = ({
         sx: {
           bgcolor: isDark ? "rgb(18, 18, 18)" : "background.paper",
           borderTop: voucher ? `5px solid ${getProviderColor()}` : "none",
+          color: isDark ? "#ffffff" : "text.primary",
+          "& .MuiDialogTitle-root": {
+            color: isDark ? "#ffffff" : "text.primary",
+          },
+          "& .MuiDialogContent-root": {
+            color: isDark ? "#ffffff" : "text.primary",
+          },
+          "& .MuiDialogActions-root": {
+            borderTop: `1px solid ${isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)"}`,
+          },
         },
       }}
     >
@@ -244,16 +255,22 @@ const SaleModal: React.FC<SaleModalProps> = ({
           textAlign: "center",
           fontWeight: 600,
           pb: 1,
+          borderBottom: `1px solid ${isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)"}`,
         }}
       >
         {completed ? "Voucher Sale Completed" : "Confirm Voucher Sale"}
       </DialogTitle>
 
-      <Divider />
-
       <DialogContent sx={{ py: 3 }}>
         {error && (
-          <Alert severity="error" sx={{ mb: 2 }}>
+          <Alert
+            severity="error"
+            sx={{
+              mb: 2,
+              bgcolor: isDark ? "rgba(211, 47, 47, 0.1)" : undefined,
+              color: isDark ? "#ffffff" : "text.primary",
+            }}
+          >
             {error}
           </Alert>
         )}
@@ -266,7 +283,10 @@ const SaleModal: React.FC<SaleModalProps> = ({
             justifyContent="center"
             py={4}
           >
-            <CircularProgress size={60} sx={{ mb: 2 }} />
+            <CircularProgress
+              size={60}
+              sx={{ mb: 2, color: isDark ? "#ffffff" : undefined }}
+            />
             <Typography
               variant="body1"
               sx={{ color: isDark ? "#ffffff" : "text.primary" }}
@@ -587,7 +607,14 @@ const SaleModal: React.FC<SaleModalProps> = ({
               </Typography>
             </Paper>
 
-            <Alert severity="info" sx={{ mb: 2 }}>
+            <Alert
+              severity="info"
+              sx={{
+                mb: 2,
+                bgcolor: isDark ? "rgba(33, 150, 243, 0.1)" : undefined,
+                color: isDark ? "#ffffff" : "text.primary",
+              }}
+            >
               You may need to print or save this information. You won't be able
               to retrieve it once you close this window.
             </Alert>
@@ -601,8 +628,11 @@ const SaleModal: React.FC<SaleModalProps> = ({
             <Button
               onClick={handleClose}
               sx={{
-                color: isDark ? "#ffffff" : null,
+                color: isDark ? "#ffffff" : "text.primary",
                 opacity: 0.7,
+                "&:hover": {
+                  opacity: 1,
+                },
               }}
             >
               Cancel
@@ -629,16 +659,31 @@ const SaleModal: React.FC<SaleModalProps> = ({
             <Button
               variant="outlined"
               onClick={() => {
-                // Here you could add printing functionality
                 alert("Print functionality would be implemented here.");
               }}
               sx={{
-                color: isDark ? "#ffffff" : null,
+                color: isDark ? "#ffffff" : "text.primary",
+                borderColor: isDark
+                  ? "rgba(255,255,255,0.3)"
+                  : "rgba(0,0,0,0.3)",
+                "&:hover": {
+                  borderColor: isDark ? "#ffffff" : "text.primary",
+                },
               }}
             >
               Print Receipt
             </Button>
-            <Button variant="contained" onClick={handleClose} color="primary">
+            <Button
+              variant="contained"
+              onClick={handleClose}
+              color="primary"
+              sx={{
+                bgcolor: isDark ? "rgba(25, 118, 210, 0.9)" : undefined,
+                "&:hover": {
+                  bgcolor: isDark ? "rgba(25, 118, 210, 1)" : undefined,
+                },
+              }}
+            >
               Done
             </Button>
           </>
