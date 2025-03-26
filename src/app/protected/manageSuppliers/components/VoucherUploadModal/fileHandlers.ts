@@ -100,14 +100,22 @@ export const handleHollywoodbetsFileUpload = async (
     const text = await file.text();
     const lines = text.split("\n");
 
-    // Filter out empty lines and headers
+    // Filter out empty lines and keep only lines that start with "D|"
     const voucherLines = lines.filter(
-      (line) =>
-        line.trim() && !line.includes("VOUCHER") && !line.includes("PIN"),
+      (line) => line.trim() && line.startsWith("D|"),
     );
 
     if (voucherLines.length === 0) {
       setUploadStatus("No valid voucher entries found in file");
+      return;
+    }
+
+    // Validate that this is a Hollywoodbets file
+    const firstLine = voucherLines[0].split("|");
+    if (!firstLine[1] || !firstLine[1].includes("HWB")) {
+      setUploadStatus(
+        "This doesn't seem to be a Hollywoodbets file. Please upload the correct file for Hollywoodbets supplier.",
+      );
       return;
     }
 
@@ -116,28 +124,38 @@ export const handleHollywoodbetsFileUpload = async (
     const uploadedVouchers: UploadedVoucher[] = [];
 
     for (const line of voucherLines) {
-      const parts = line.split(/\s+/);
-      if (parts.length >= 3) {
-        // Format: VOUCHER_NUMBER PIN AMOUNT
-        const serialNumber = parts[0].trim();
-        const pin = parts[1].trim();
-        const amountStr = parts[2].replace("R", "").trim();
+      const columns = line.split("|");
+
+      // Ensure we have enough columns
+      if (columns.length >= 7) {
+        // Format based on the sample: D|HWB000010|10.00|1095|10|02/05/2027|39942|1359713349|00186831686370119
+        const voucherType = columns[1].trim();
+        const amountStr = columns[2].trim();
         const amount = parseFloat(amountStr);
+
+        // Get expiry date from column 6
+        const expiryDate = columns[5].trim();
+
+        // For Hollywoodbets, the last column is the pin and second-to-last is the serial number
+        const columnsCount = columns.length;
+        const pin = columns[columnsCount - 1]?.trim() || "";
+        const serialNumber = columns[columnsCount - 2]?.trim() || "";
 
         if (!isNaN(amount) && serialNumber && pin) {
           // Add to individual entries
           entries.push({
             id: `hwb-entry-${entries.length}-${Date.now()}`,
-            type: `Hollywoodbets R${amount.toFixed(2)}`,
+            type: `${voucherType} R${amount.toFixed(2)}`,
             amount,
             serialNumber,
             pin,
+            expiryDate: formatExpiryDate(expiryDate),
           });
 
           // Create individual voucher entry
           uploadedVouchers.push({
             id: `hwb-${entries.length}-${Date.now()}`,
-            name: `Hollywoodbets R${amount.toFixed(2)}`,
+            name: `${voucherType} R${amount.toFixed(2)}`,
             vendorId: "HOLLYWOODBETS",
             amount,
             supplier_id: supplier.id,
@@ -149,6 +167,7 @@ export const handleHollywoodbetsFileUpload = async (
             networkProvider: "CELLC",
             voucher_serial_number: serialNumber,
             voucher_pin: pin,
+            expiry_date: formatExpiryDate(expiryDate),
             category: "data",
             status: "active",
             source: "manual_upload",
@@ -174,6 +193,20 @@ export const handleHollywoodbetsFileUpload = async (
   }
 };
 
+// Helper function to format expiry date from DD/MM/YYYY to YYYY-MM-DD
+const formatExpiryDate = (dateString: string): string => {
+  if (!dateString || !dateString.includes("/")) return "";
+
+  const parts = dateString.split("/");
+  if (parts.length !== 3) return "";
+
+  const day = parts[0].padStart(2, "0");
+  const month = parts[1].padStart(2, "0");
+  const year = parts[2];
+
+  return `${year}-${month}-${day}`;
+};
+
 export const handleEasyloadFileUpload = async (
   file: File,
   supplier: Supplier,
@@ -186,14 +219,22 @@ export const handleEasyloadFileUpload = async (
     const text = await file.text();
     const lines = text.split("\n");
 
-    // Filter out empty lines and headers
+    // Filter for valid Easyload voucher lines
     const voucherLines = lines.filter(
-      (line) =>
-        line.trim() && !line.includes("VOUCHER") && !line.includes("PIN"),
+      (line) => line.trim() && line.trim().startsWith("Easyload"),
     );
 
     if (voucherLines.length === 0) {
-      setUploadStatus("No valid voucher entries found in file");
+      setUploadStatus("No valid Easyload voucher entries found in file");
+      return;
+    }
+
+    // Validate that this is an Easyload file
+    const firstLine = voucherLines[0].split(",");
+    if (!firstLine[0] || !firstLine[0].includes("Easyload")) {
+      setUploadStatus(
+        "This doesn't seem to be an Easyload file. Please upload the correct file for Easyload supplier.",
+      );
       return;
     }
 
@@ -201,26 +242,39 @@ export const handleEasyloadFileUpload = async (
     const uploadedVouchers: UploadedVoucher[] = [];
 
     for (const line of voucherLines) {
-      const columns = line.split(",");
-      if (columns.length >= 4) {
-        const amount = parseFloat(columns[1]);
-        const serialNumber = columns[2]?.trim() || "";
-        const pin = columns[3]?.trim() || "";
+      // Split by comma but handle cases where there might be extra commas
+      const parts = line.split(",");
 
-        if (!isNaN(amount) && serialNumber) {
+      if (parts.length >= 4) {
+        // Format based on sample: Easyload,5,25357070837651,00100050000096969531,20270822
+        const voucherType = parts[0]?.trim() || "Easyload";
+        const amountStr = parts[1]?.trim() || "0";
+        const amount = parseFloat(amountStr);
+        const pin = parts[3]?.trim() || "";
+        const serialNumber = parts[2]?.trim() || "";
+
+        // Get expiry date from the last column
+        const expiryDate = parts[parts.length - 1]?.trim() || "";
+
+        // Format expiry date (YYYYMMDD to YYYY-MM-DD)
+        const formattedExpiryDate = formatEasyloadExpiryDate(expiryDate);
+
+        if (!isNaN(amount) && serialNumber && pin) {
           // Add to individual entries
           allEntries.push({
             id: `easyload-entry-${allEntries.length}-${Date.now()}`,
-            type: `Easyload R${amount.toFixed(2)}`,
+            type: `${voucherType} R${amount.toFixed(2)}`,
             amount: amount,
             serialNumber,
             pin,
+            expiryDate: formattedExpiryDate,
+            exists: false, // Initialize as not existing
           });
 
           // Create individual voucher entry
           uploadedVouchers.push({
             id: `easyload-${allEntries.length}-${Date.now()}`,
-            name: `Easyload R${amount.toFixed(2)}`,
+            name: `${voucherType} R${amount.toFixed(2)}`,
             vendorId: "EASYLOAD",
             amount: amount,
             supplier_id: supplier.id,
@@ -231,13 +285,22 @@ export const handleEasyloadFileUpload = async (
             profit: 0,
             networkProvider: "CELLC",
             voucher_serial_number: serialNumber,
-            voucher_pin: pin || "",
+            voucher_pin: pin,
+            expiry_date: formattedExpiryDate,
             category: "data",
             status: "active",
             source: "manual_upload",
+            exists: false, // Initialize as not existing
           });
         }
       }
+    }
+
+    if (allEntries.length === 0) {
+      setUploadStatus(
+        "No valid voucher entries found in the file. Please check the file format.",
+      );
+      return;
     }
 
     setVoucherEntries(allEntries);
@@ -249,10 +312,28 @@ export const handleEasyloadFileUpload = async (
     }
 
     setUploadStatus(
-      `Successfully processed ${voucherLines.length} Easyload vouchers`,
+      `Successfully processed ${allEntries.length} Easyload vouchers`,
     );
   } catch (error) {
     console.error("Error processing Easyload file:", error);
-    setUploadStatus("Error processing file. Please check the file format.");
+    setUploadStatus(
+      `Error processing file: ${error instanceof Error ? error.message : "Unknown error"}. Please check the file format.`,
+    );
+  }
+};
+
+// Helper function to format Easyload expiry date from YYYYMMDD to YYYY-MM-DD
+const formatEasyloadExpiryDate = (dateString: string): string => {
+  if (!dateString || dateString.length !== 8) return "";
+
+  try {
+    const year = dateString.substring(0, 4);
+    const month = dateString.substring(4, 6);
+    const day = dateString.substring(6, 8);
+
+    return `${year}-${month}-${day}`;
+  } catch (error) {
+    console.error("Error formatting expiry date:", error);
+    return "";
   }
 };

@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Dialog } from "@mui/material";
+import { Eye, EyeOff } from "lucide-react";
 
 interface VoucherListModalProps {
   isOpen: boolean;
@@ -12,10 +13,9 @@ interface VoucherListModalProps {
 type SortField =
   | "name"
   | "amount"
-  | "total_comm"
-  | "retailer_comm"
-  | "sales_agent_comm"
-  | "profit"
+  | "voucher_pin"
+  | "voucher_serial_number"
+  | "expiry_date"
   | "created_at";
 type SortDirection = "asc" | "desc";
 
@@ -29,13 +29,21 @@ const VoucherListModal: React.FC<VoucherListModalProps> = ({
   // Add sorting state
   const [sortField, setSortField] = useState<SortField>("created_at");
   const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
+  // Track revealed PINs
+  const [revealedPins, setRevealedPins] = useState<Record<string, boolean>>({});
 
-  // Format commission value to 2 decimal places
-  const formatCommission = (value: number | string): string => {
-    if (typeof value === "string") {
-      value = parseFloat(value);
-    }
-    return value.toFixed(2) + "%";
+  // Toggle PIN visibility
+  const togglePinVisibility = (voucherId: string) => {
+    setRevealedPins((prev) => ({
+      ...prev,
+      [voucherId]: !prev[voucherId],
+    }));
+  };
+
+  // Mask PIN with asterisks
+  const maskPin = (pin: string) => {
+    if (!pin) return "N/A";
+    return "•".repeat(pin.length);
   };
 
   // Format amount based on supplier
@@ -54,21 +62,23 @@ const VoucherListModal: React.FC<VoucherListModalProps> = ({
     return `R${numAmount.toFixed(2)}`;
   };
 
-  // Format profit value
-  const formatProfit = (value: number | string): string => {
-    if (typeof value === "string") {
-      value = parseFloat(value);
-    }
-    return `R${value.toFixed(2)}`;
-  };
-
   // Format date
-  const formatDate = (dateString: string): string => {
+  const formatDate = (dateString: string, isExpiryDate = false): string => {
     if (!dateString) return "N/A";
 
     const date = new Date(dateString);
     if (isNaN(date.getTime())) return "Invalid date";
 
+    // For expiry dates, only show the date without time
+    if (isExpiryDate) {
+      return new Intl.DateTimeFormat("en-ZA", {
+        year: "numeric",
+        month: "short",
+        day: "2-digit",
+      }).format(date);
+    }
+
+    // For other dates (like created_at), show date and time
     return new Intl.DateTimeFormat("en-ZA", {
       year: "numeric",
       month: "short",
@@ -96,7 +106,7 @@ const VoucherListModal: React.FC<VoucherListModalProps> = ({
     let valueB = b[sortField];
 
     // Handle special cases
-    if (sortField === "created_at") {
+    if (sortField === "created_at" || sortField === "expiry_date") {
       valueA = new Date(valueA || 0).getTime();
       valueB = new Date(valueB || 0).getTime();
     } else if (typeof valueA === "string" && typeof valueB === "string") {
@@ -217,7 +227,7 @@ const VoucherListModal: React.FC<VoucherListModalProps> = ({
               <thead className="sticky top-0 z-10 bg-gray-50 dark:bg-gray-800">
                 <tr>
                   <th
-                    className="w-1/5 cursor-pointer whitespace-nowrap px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
+                    className="w-1/6 cursor-pointer whitespace-nowrap px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
                     onClick={() => handleSort("name")}
                   >
                     <span className="flex items-center">
@@ -226,7 +236,7 @@ const VoucherListModal: React.FC<VoucherListModalProps> = ({
                     </span>
                   </th>
                   <th
-                    className="w-1/8 cursor-pointer whitespace-nowrap px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
+                    className="w-1/6 cursor-pointer whitespace-nowrap px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
                     onClick={() => handleSort("amount")}
                   >
                     <span className="flex items-center">
@@ -235,43 +245,34 @@ const VoucherListModal: React.FC<VoucherListModalProps> = ({
                     </span>
                   </th>
                   <th
-                    className="w-1/8 cursor-pointer whitespace-nowrap px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
-                    onClick={() => handleSort("total_comm")}
+                    className="w-1/6 cursor-pointer whitespace-nowrap px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
+                    onClick={() => handleSort("voucher_serial_number")}
                   >
                     <span className="flex items-center">
-                      Supplier Com
-                      {renderSortIndicator("total_comm")}
+                      Serial Number
+                      {renderSortIndicator("voucher_serial_number")}
                     </span>
                   </th>
                   <th
-                    className="w-1/8 cursor-pointer whitespace-nowrap px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
-                    onClick={() => handleSort("retailer_comm")}
+                    className="w-1/6 cursor-pointer whitespace-nowrap px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
+                    onClick={() => handleSort("voucher_pin")}
                   >
                     <span className="flex items-center">
-                      Retailer Com
-                      {renderSortIndicator("retailer_comm")}
+                      PIN
+                      {renderSortIndicator("voucher_pin")}
                     </span>
                   </th>
                   <th
-                    className="w-1/8 cursor-pointer whitespace-nowrap px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
-                    onClick={() => handleSort("sales_agent_comm")}
+                    className="w-1/6 cursor-pointer whitespace-nowrap px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
+                    onClick={() => handleSort("expiry_date")}
                   >
                     <span className="flex items-center">
-                      Agent Com
-                      {renderSortIndicator("sales_agent_comm")}
+                      Expiry Date
+                      {renderSortIndicator("expiry_date")}
                     </span>
                   </th>
                   <th
-                    className="w-1/8 cursor-pointer whitespace-nowrap px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
-                    onClick={() => handleSort("profit")}
-                  >
-                    <span className="flex items-center">
-                      Profit
-                      {renderSortIndicator("profit")}
-                    </span>
-                  </th>
-                  <th
-                    className="w-1/5 cursor-pointer whitespace-nowrap px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
+                    className="w-1/6 cursor-pointer whitespace-nowrap px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
                     onClick={() => handleSort("created_at")}
                   >
                     <span className="flex items-center">
@@ -293,18 +294,41 @@ const VoucherListModal: React.FC<VoucherListModalProps> = ({
                     <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-900 dark:text-white">
                       R {voucher.amount.toFixed(2)}
                     </td>
-                    <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-900 dark:text-white">
-                      {formatCommission(voucher.total_comm)}
+                    <td className="font-mono whitespace-nowrap px-6 py-4 text-sm text-gray-900 dark:text-white">
+                      {voucher.voucher_serial_number || "N/A"}
+                    </td>
+                    <td className="font-mono whitespace-nowrap px-6 py-4 text-sm text-gray-900 dark:text-white">
+                      <div className="flex items-center">
+                        <span className="mr-2">
+                          {revealedPins[voucher.id]
+                            ? voucher.voucher_pin || "N/A"
+                            : voucher.voucher_pin
+                              ? maskPin(voucher.voucher_pin)
+                              : "N/A"}
+                        </span>
+                        {voucher.voucher_pin && (
+                          <button
+                            onClick={() => togglePinVisibility(voucher.id)}
+                            className="ml-2 rounded-full p-1 text-gray-500 hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-300"
+                            aria-label={
+                              revealedPins[voucher.id] ? "Hide PIN" : "Show PIN"
+                            }
+                            title={
+                              revealedPins[voucher.id] ? "Hide PIN" : "Show PIN"
+                            }
+                          >
+                            {revealedPins[voucher.id] ? (
+                              <EyeOff className="h-4 w-4" />
+                            ) : (
+                              <Eye className="h-4 w-4" />
+                            )}
+                          </button>
+                        )}
+                      </div>
                     </td>
                     <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-900 dark:text-white">
-                      {formatCommission(voucher.retailer_comm)}
-                    </td>
-                    <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-900 dark:text-white">
-                      {formatCommission(voucher.sales_agent_comm)}
-                    </td>
-                    <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-900 dark:text-white">
-                      {voucher.profit !== undefined && voucher.profit !== null
-                        ? formatProfit(voucher.profit)
+                      {voucher.expiry_date
+                        ? formatDate(voucher.expiry_date, true)
                         : "N/A"}
                     </td>
                     <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-900 dark:text-white">
