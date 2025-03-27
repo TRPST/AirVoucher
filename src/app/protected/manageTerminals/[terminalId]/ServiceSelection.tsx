@@ -1,205 +1,57 @@
-// import React from "react";
-// import { Button } from "@mui/material";
-
-// const services = ["Airtime", "Data", "SMS", "Top-up"];
-
-// const ServiceSelection = ({ selectedService, onSelect }) => (
-//   <div className="mt-4 grid grid-cols-3 gap-4">
-//     {services.map((service) => (
-//       <Button
-//         key={service}
-//         variant={selectedService === service ? "contained" : "outlined"}
-//         onClick={() => onSelect(service)}
-//         fullWidth
-//       >
-//         {service}
-//       </Button>
-//     ))}
-//   </div>
-// );
-
-// export default ServiceSelection;
-
-// import React, { useState } from "react";
-// import {
-//   Button,
-//   Grid,
-//   Typography,
-//   CircularProgress,
-//   Card,
-//   CardContent,
-// } from "@mui/material";
-
-// const services = ["Airtime", "Data", "SMS", "Top-up"];
-
-// const ServiceSelection = ({ selectedProvider, selectedService, onSelect }) => {
-//   const [vouchers, setVouchers] = useState([]);
-//   const [loading, setLoading] = useState(false);
-//   const [error, setError] = useState(null);
-
-//   // Handle service selection
-//   const selectService = async (service) => {
-//     onSelect(service);
-//     await fetchVouchers(service);
-//   };
-
-//   // Fetch vouchers when a service is selected
-//   const fetchVouchers = async (service) => {
-//     if (!selectedProvider) {
-//       setError("Please select a provider before choosing a service.");
-//       return;
-//     }
-
-//     setLoading(true);
-//     setError(null);
-//     setVouchers([]);
-
-//     const url =
-//       service === "Airtime"
-//         ? "https://api.qa.bltelecoms.net/v2/trade/mobile/airtime/products"
-//         : "https://api.qa.bltelecoms.net/v2/trade/mobile/bundle/products";
-
-//     const username = "bld";
-//     const password = "ornuk3i9vseei125s8qea71kub";
-//     const apiKey = "b97ac3ea-da33-11ef-9cd2-0242ac120002";
-
-//     const authHeader = "Basic " + btoa(`${username}:${password}`);
-
-//     try {
-//       const response = await fetch(url, {
-//         method: "GET",
-//         headers: {
-//           Accept: "application/json",
-//           Authorization: authHeader,
-//           apikey: apiKey,
-//         },
-//       });
-
-//       if (!response.ok) {
-//         throw new Error(`Failed to fetch vouchers. Status: ${response.status}`);
-//       }
-
-//       const data = await response.json();
-
-//       if (!data || !Array.isArray(data)) {
-//         throw new Error("Invalid API response: No vouchers found.");
-//       }
-
-//       // Filter vouchers based on provider
-//       const filteredVouchers = data.filter((v) =>
-//         v.vendorId?.toLowerCase().includes(selectedProvider.toLowerCase()),
-//       );
-
-//       if (filteredVouchers.length === 0) {
-//         throw new Error(`No vouchers available for ${selectedProvider}.`);
-//       }
-
-//       setVouchers(filteredVouchers);
-//     } catch (error) {
-//       console.error("Error fetching vouchers:", error);
-//       setError(error.message);
-//     } finally {
-//       setLoading(false);
-//     }
-//   };
-
-//   return (
-//     <div>
-//       {selectedProvider ? (
-//         <>
-//           <Typography variant="h5">
-//             Select a Service for {selectedProvider}
-//           </Typography>
-//           <Grid container spacing={2} sx={{ mt: 2, justifyContent: "center" }}>
-//             {services.map((service) => (
-//               <Grid item xs={6} sm={3} key={service}>
-//                 <Button
-//                   variant={
-//                     selectedService === service ? "contained" : "outlined"
-//                   }
-//                   color="secondary"
-//                   fullWidth
-//                   onClick={() => selectService(service)}
-//                   sx={{
-//                     height: 50,
-//                     fontSize: 16,
-//                     fontWeight: selectedService === service ? "bold" : "normal",
-//                     borderRadius: 2,
-//                   }}
-//                 >
-//                   {service}
-//                 </Button>
-//               </Grid>
-//             ))}
-//           </Grid>
-
-//           {loading && (
-//             <div className="mt-4 flex justify-center">
-//               <CircularProgress />
-//             </div>
-//           )}
-
-//           {error && (
-//             <div className="mt-4 rounded-lg bg-red-100 p-4 text-red-700">
-//               <Typography>{error}</Typography>
-//             </div>
-//           )}
-
-//           {selectedService && vouchers.length > 0 && (
-//             <div className="mt-6">
-//               <Typography variant="h5">Available Vouchers</Typography>
-//               <Grid container spacing={2} sx={{ mt: 2 }}>
-//                 {vouchers.map((voucher) => (
-//                   <Grid item xs={6} sm={3} key={voucher.id}>
-//                     <Card
-//                       sx={{
-//                         minWidth: 200,
-//                         textAlign: "center",
-//                         cursor: "pointer",
-//                       }}
-//                     >
-//                       <CardContent>
-//                         <Typography variant="h6">{voucher.name}</Typography>
-//                         <Typography>Mobile {voucher.category}</Typography>
-//                         <Typography variant="body2" color="text.secondary">
-//                           R{(voucher.amount / 100).toFixed(2)}
-//                         </Typography>
-//                       </CardContent>
-//                     </Card>
-//                   </Grid>
-//                 ))}
-//               </Grid>
-//             </div>
-//           )}
-//         </>
-//       ) : (
-//         <Typography
-//           variant="h6"
-//           sx={{ mt: 4, textAlign: "center", color: "red" }}
-//         >
-//           Please select a provider first.
-//         </Typography>
-//       )}
-//     </div>
-//   );
-// };
-
-// export default ServiceSelection;
-
 "use client";
 
-import React, { useState } from "react";
-import {
-  Button,
-  Grid,
-  Typography,
-  CircularProgress,
-  Card,
-  CardContent,
-} from "@mui/material";
-import { supabase } from "../../../../../utils/supabase/client"; // Ensure correct import
+import React from "react";
+import { Grid, Typography, Card, CardContent, useTheme } from "@mui/material";
 
-const services = ["Airtime", "Data", "SMS", "Top-up"]; // Services remain hardcoded
+const services = [
+  { name: "Airtime", icon: "📱" },
+  { name: "Data", icon: "🌐" },
+  { name: "SMS", icon: "✉️" },
+  { name: "Top-up", icon: "💰" },
+];
+
+const getProviderColors = (isDark: boolean) => ({
+  MTN: {
+    light: "rgba(255, 204, 0, 0.15)",
+    dark: "rgba(255, 204, 0, 0.12)",
+    border: "rgb(255, 204, 0)",
+  },
+  Vodacom: {
+    light: "rgba(255, 0, 0, 0.15)",
+    dark: "rgba(255, 0, 0, 0.12)",
+    border: "rgb(255, 0, 0)",
+  },
+  CellC: {
+    light: "rgba(0, 0, 0, 0.15)",
+    dark: "rgba(255, 255, 255, 0.12)",
+    border: isDark ? "rgb(255, 255, 255)" : "rgb(0, 0, 0)",
+  },
+  Telkom: {
+    light: "rgba(0, 102, 204, 0.15)",
+    dark: "rgba(0, 102, 204, 0.12)",
+    border: "rgb(0, 102, 204)",
+  },
+  OTT: {
+    light: "rgba(0, 128, 0, 0.15)",
+    dark: "rgba(0, 128, 0, 0.12)",
+    border: "rgb(0, 128, 0)",
+  },
+  Hollywoodbets: {
+    light: "rgba(128, 0, 128, 0.15)",
+    dark: "rgba(128, 0, 128, 0.12)",
+    border: "rgb(128, 0, 128)", // Purple
+  },
+  Ringa: {
+    light: "rgba(255, 165, 0, 0.15)",
+    dark: "rgba(255, 165, 0, 0.12)",
+    border: "rgb(255, 165, 0)", // Orange
+  },
+  Easyload: {
+    light: "rgba(218, 165, 32, 0.15)",
+    dark: "rgba(218, 165, 32, 0.12)",
+    border: "rgb(218, 165, 32)", // Golden
+  },
+});
 
 interface ServiceSelectionProps {
   selectedProvider: string;
@@ -213,168 +65,83 @@ const ServiceSelection: React.FC<ServiceSelectionProps> = ({
   selectedProvider,
   selectedService,
   onSelect,
-  terminalId,
-  commGroupId,
 }) => {
-  interface Voucher {
-    id: string;
-    name: string;
-    category: string;
-    amount: number;
-    vendorId: string;
-  }
-
-  const [vouchers, setVouchers] = useState<Voucher[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const fetchVouchers = async (service: string) => {
-    setLoading(true);
-    setError(null);
-    setVouchers([]);
-
-    try {
-      console.log(
-        `🔍 Fetching vouchers for Provider: ${selectedProvider}, Service: ${service}, CommGroupId: ${commGroupId}`,
-      );
-
-      if (!commGroupId) {
-        throw new Error("Error: comm_group_id is missing!");
-      }
-
-      // 🔹 Generate `voucher_group_name` (e.g., "MTN Data", "Vodacom Airtime")
-      const voucherGroupName = `${selectedProvider} ${service}`;
-
-      // ✅ Fetch the `voucher_group_id`
-      const { data: voucherGroup, error: groupError } = await supabase
-        .from("voucher_groups")
-        .select("id")
-        .eq("voucher_group_name", voucherGroupName)
-        .single();
-
-      // 🔥 **Fix: Handle missing groups** 🔥
-      if (groupError || !voucherGroup) {
-        console.warn(
-          `⚠️ No voucher group found for "${voucherGroupName}". Skipping request.`,
-        );
-        setVouchers([]); // ✅ Set empty list instead of crashing
-        return;
-      }
-
-      console.log(`✅ Voucher Group ID: ${voucherGroup.id}`);
-
-      // ✅ Fetch vouchers from `mobile_data_vouchers`
-      const { data: fetchedVouchers, error: vouchersError } = await supabase
-        .from("mobile_data_vouchers")
-        .select("*")
-        .eq("comm_group_id", commGroupId)
-        .eq("vendorId", selectedProvider.toLowerCase());
-
-      if (vouchersError) {
-        console.error("❌ Error fetching vouchers:", vouchersError);
-        throw new Error("Error fetching vouchers.");
-      }
-
-      console.log("✅ Vouchers Fetched:", fetchedVouchers);
-
-      // ✅ No vouchers found → Display a message instead of crashing
-      if (!fetchedVouchers || fetchedVouchers.length === 0) {
-        console.warn(`⚠️ No vouchers available for "${voucherGroupName}".`);
-        setVouchers([]);
-      } else {
-        setVouchers(fetchedVouchers);
-      }
-    } catch (err) {
-      console.error("❌ Error:", err);
-      if (err instanceof Error) {
-        setError(err.message);
-      } else {
-        setError(String(err));
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
+  const theme = useTheme();
+  const isDark = theme.palette.mode === "dark";
+  const providerColors = getProviderColors(isDark);
+  const colors =
+    providerColors[selectedProvider as keyof typeof providerColors] ||
+    providerColors.MTN;
 
   return (
-    <div>
+    <div className="mt-6">
       {selectedProvider ? (
         <>
-          <Typography variant="h5" style={{ marginTop: 30 }}>
+          <Typography
+            variant="h6"
+            sx={{
+              mb: 3,
+              textAlign: "center",
+              color: isDark ? "#ffffff" : "#333333",
+              fontWeight: 600,
+              background: isDark ? "rgba(0, 0, 0, 0.3)" : "rgba(0, 0, 0, 0.05)",
+              py: 1,
+              borderRadius: 1,
+              boxShadow: isDark ? "0 2px 8px rgba(0,0,0,0.2)" : "none",
+            }}
+          >
             Select a Service for {selectedProvider}
           </Typography>
 
-          <Grid container spacing={2} sx={{ mt: 2, justifyContent: "center" }}>
+          <Grid container spacing={2} sx={{ justifyContent: "center" }}>
             {services.map((service) => (
-              <Grid item xs={6} sm={3} key={service}>
-                <Button
-                  variant={
-                    selectedService === service ? "contained" : "outlined"
-                  }
-                  color="secondary"
-                  fullWidth
-                  onClick={() => {
-                    onSelect(service);
-                    fetchVouchers(service);
-                  }}
+              <Grid item xs={6} sm={3} key={service.name}>
+                <Card
+                  onClick={() => onSelect(service.name)}
                   sx={{
-                    height: 50,
-                    fontSize: 16,
-                    fontWeight: selectedService === service ? "bold" : "normal",
-                    borderRadius: 2,
+                    cursor: "pointer",
+                    background: isDark ? "rgba(30, 30, 30, 0.8)" : "#fff",
+                    border:
+                      selectedService === service.name
+                        ? `3px solid ${colors.border}`
+                        : `2px solid ${colors.border}`,
+                    borderRadius: 1,
+                    transition: "all 0.2s ease-in-out",
+                    "&:hover": {
+                      transform: "translateY(-2px)",
+                      boxShadow: `0px 4px 12px ${colors.border}50`,
+                    },
                   }}
                 >
-                  {service}
-                </Button>
+                  <CardContent sx={{ textAlign: "center", py: 2 }}>
+                    <Typography
+                      variant="h5"
+                      sx={{ mb: 1, color: colors.border }}
+                    >
+                      {service.icon}
+                    </Typography>
+                    <Typography
+                      variant="subtitle1"
+                      sx={{
+                        color: isDark ? "#ffffff" : "#333333",
+                        fontWeight: isDark ? 700 : 500,
+                        textShadow: isDark
+                          ? "0 1px 2px rgba(0,0,0,0.8)"
+                          : "none",
+                      }}
+                    >
+                      {service.name}
+                    </Typography>
+                  </CardContent>
+                </Card>
               </Grid>
             ))}
           </Grid>
-
-          {loading && (
-            <div className="mt-4 flex justify-center">
-              <CircularProgress />
-            </div>
-          )}
-
-          {error && (
-            <div className="mt-4 rounded-lg bg-red-100 p-4 text-red-700">
-              <Typography>{error}</Typography>
-            </div>
-          )}
-
-          {selectedService && vouchers.length > 0 && (
-            <div className="mt-6">
-              <Typography variant="h5">Available Vouchers</Typography>
-              <Grid container spacing={2} sx={{ mt: 2 }}>
-                {vouchers.map((voucher) => (
-                  <Grid item xs={6} sm={3} key={voucher.id}>
-                    <Card
-                      sx={{
-                        minWidth: 200,
-                        textAlign: "center",
-                        cursor: "pointer",
-                      }}
-                    >
-                      <CardContent>
-                        <Typography variant="h6">{voucher.name}</Typography>
-                        <Typography>
-                          Mobile {voucher.category || "Data"}
-                        </Typography>
-                        <Typography variant="body2" color="text.secondary">
-                          R{(voucher.amount / 100).toFixed(2)}
-                        </Typography>
-                      </CardContent>
-                    </Card>
-                  </Grid>
-                ))}
-              </Grid>
-            </div>
-          )}
         </>
       ) : (
         <Typography
-          variant="h6"
-          sx={{ mt: 4, textAlign: "center", color: "red" }}
+          variant="subtitle1"
+          sx={{ mt: 4, textAlign: "center", color: "error.main" }}
         >
           Please select a provider first.
         </Typography>
