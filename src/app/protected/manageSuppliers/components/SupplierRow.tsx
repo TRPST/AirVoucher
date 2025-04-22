@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Supplier } from "../../../types/supplier";
-import { getSupplierVouchersAction } from "../actions";
+import { getSupplierVouchersAction, deleteVoucherAction } from "../actions";
 import VoucherListModal from "./VoucherListModal";
 
 interface SupplierRowProps {
@@ -23,31 +23,35 @@ const SupplierRow: React.FC<SupplierRowProps> = ({
   const [voucherCount, setVoucherCount] = useState<number>(
     supplier.voucherCount || 0,
   );
+  const [refreshVouchers, setRefreshVouchers] = useState(false);
 
-  // Fetch vouchers when component mounts
-  useEffect(() => {
-    const fetchVouchers = async () => {
-      try {
-        const result = await getSupplierVouchersAction(supplier.supplier_name);
+  // Define fetchVouchers as a useCallback function so it can be used in multiple places
+  const fetchVouchers = useCallback(async () => {
+    setLoading(true);
+    try {
+      const result = await getSupplierVouchersAction(supplier.supplier_name);
 
-        if (result.error) {
-          setError(result.error);
-        } else {
-          setVouchers(result.vouchers);
-          setVoucherCount(result.vouchers.length);
-          console.log("Vouchers: ", result.vouchers);
-        }
-      } catch (err) {
-        setError(
-          err instanceof Error ? err.message : "An unexpected error occurred",
-        );
-      } finally {
-        setLoading(false);
+      if (result.error) {
+        setError(result.error);
+      } else {
+        setVouchers(result.vouchers || []);
+        setVoucherCount(result.vouchers ? result.vouchers.length : 0);
+        console.log("Vouchers: ", result.vouchers);
       }
-    };
-
-    fetchVouchers();
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "An unexpected error occurred",
+      );
+    } finally {
+      setLoading(false);
+      setRefreshVouchers(false);
+    }
   }, [supplier.supplier_name]);
+
+  // Fetch vouchers when component mounts or when refreshVouchers changes
+  useEffect(() => {
+    fetchVouchers();
+  }, [fetchVouchers, refreshVouchers]);
 
   const handleVoucherClick = () => {
     setShowVouchers(true);
@@ -55,6 +59,14 @@ const SupplierRow: React.FC<SupplierRowProps> = ({
 
   const handleCloseModal = () => {
     setShowVouchers(false);
+  };
+
+  const handleDeleteVoucher = async (voucherId: string) => {
+    return await deleteVoucherAction(voucherId);
+  };
+
+  const handleVoucherDeleted = () => {
+    setRefreshVouchers(true);
   };
 
   return (
@@ -116,6 +128,8 @@ const SupplierRow: React.FC<SupplierRowProps> = ({
         supplierName={supplier.supplier_name}
         vouchers={vouchers}
         error={error}
+        deleteVoucher={handleDeleteVoucher}
+        onVoucherDeleted={handleVoucherDeleted}
       />
     </>
   );
