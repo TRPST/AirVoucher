@@ -53,6 +53,17 @@ const getProviderColors = (isDark: boolean) => ({
     dark: "rgba(218, 165, 32, 0.12)",
     border: "rgb(218, 165, 32)",
   },
+
+  Electricity: {
+    light: "rgba(218, 165, 32, 0.15)",
+    dark: "rgba(218, 165, 32, 0.12)",
+    border: "rgb(32, 44, 218)",
+  },
+  Dstv: {
+    light: "rgba(218, 165, 32, 0.15)",
+    dark: "rgba(218, 165, 32, 0.12)",
+    border: "rgb(32, 44, 218)",
+  },
   // Default fallback for any new providers from the database
   DEFAULT: {
     light: "rgba(100, 100, 100, 0.15)",
@@ -133,6 +144,18 @@ const ProviderSelection: React.FC<ProviderSelectionProps> = ({
       id: "8",
       name: "Easyload",
       image_url: "/images/easyload.png",
+      requires_service_selection: false,
+    },
+    {
+      id: "9",
+      name: "Electricity",
+      image_url: "/images/electricity.png",
+      requires_service_selection: false,
+    },
+    {
+      id: "10",
+      name: "Dstv",
+      image_url: "/images/dstv.png",
       requires_service_selection: false,
     },
   ];

@@ -4,11 +4,26 @@ import React from "react";
 import { Grid, Typography, Card, CardContent, useTheme } from "@mui/material";
 
 const services = [
-  { name: "Airtime", icon: "📱" },
-  { name: "Data", icon: "🌐" },
-  { name: "SMS", icon: "✉️" },
-  { name: "Top-up", icon: "💰" },
+  { name: "Airtime" },
+  { name: "Data" },
+  { name: "SMS" },
+  { name: "Top-up" },
 ];
+
+const getProviderImageUrl = (provider: string) => {
+  switch (provider.toLowerCase()) {
+    case "vodacom":
+      return "/images/vodacom.png";
+    case "mtn":
+      return "/images/mtn.png";
+    case "cellc":
+      return "/images/cellc.png";
+    case "telkom":
+      return "/images/telkom.jpeg";
+    default:
+      return "";
+  }
+};
 
 const getProviderColors = (isDark: boolean) => ({
   MTN: {
@@ -74,65 +89,95 @@ const ServiceSelection: React.FC<ServiceSelectionProps> = ({
     providerColors.MTN;
 
   return (
-    <div className="mt-6">
+    <div className="mt-4">
       {selectedProvider ? (
         <>
           <Typography
             variant="h6"
             sx={{
-              mb: 3,
+              mb: 2,
               textAlign: "center",
               color: isDark ? "#ffffff" : "#333333",
               fontWeight: 600,
-              background: isDark ? "rgba(0, 0, 0, 0.3)" : "rgba(0, 0, 0, 0.05)",
-              py: 1,
+              background: isDark
+                ? "rgba(24, 24, 27, 0.95)"
+                : "rgba(0, 0, 0, 0.03)",
+              py: 0.75,
               borderRadius: 1,
-              boxShadow: isDark ? "0 2px 8px rgba(0,0,0,0.2)" : "none",
+              fontSize: "1rem",
             }}
           >
             Select a Service for {selectedProvider}
           </Typography>
 
-          <Grid container spacing={2} sx={{ justifyContent: "center" }}>
+          <Grid
+            container
+            spacing={1}
+            sx={{
+              justifyContent: "center",
+              width: "100%",
+              margin: 0,
+              padding: "4px",
+            }}
+          >
             {services.map((service) => (
-              <Grid item xs={6} sm={3} key={service.name}>
+              <Grid
+                item
+                xs={6}
+                sm={3}
+                key={service.name}
+                sx={{
+                  p: "4px !important",
+                }}
+              >
                 <Card
                   onClick={() => onSelect(service.name)}
                   sx={{
                     cursor: "pointer",
-                    background: isDark ? "rgba(30, 30, 30, 0.8)" : "#fff",
+                    background: "#fff",
                     border:
                       selectedService === service.name
-                        ? `3px solid ${colors.border}`
-                        : `2px solid ${colors.border}`,
-                    borderRadius: 1,
+                        ? `1px solid ${colors.border}`
+                        : `1px solid #e0e0e0`,
+                    borderRadius: 2,
                     transition: "all 0.2s ease-in-out",
+                    height: "90px",
+                    margin: "0",
+                    position: "relative",
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    padding: "16px 8px",
                     "&:hover": {
                       transform: "translateY(-2px)",
-                      boxShadow: `0px 4px 12px ${colors.border}50`,
+                      boxShadow: `0px 2px 4px rgba(0, 0, 0, 0.1)`,
+                      borderColor: colors.border,
                     },
                   }}
                 >
-                  <CardContent sx={{ textAlign: "center", py: 2 }}>
-                    <Typography
-                      variant="h5"
-                      sx={{ mb: 1, color: colors.border }}
-                    >
-                      {service.icon}
-                    </Typography>
-                    <Typography
-                      variant="subtitle1"
-                      sx={{
-                        color: isDark ? "#ffffff" : "#333333",
-                        fontWeight: isDark ? 700 : 500,
-                        textShadow: isDark
-                          ? "0 1px 2px rgba(0,0,0,0.8)"
-                          : "none",
-                      }}
-                    >
-                      {service.name}
-                    </Typography>
-                  </CardContent>
+                  <div
+                    style={{
+                      width: "60px",
+                      height: "60px",
+                      backgroundImage: `url(${getProviderImageUrl(selectedProvider)})`,
+                      backgroundSize: "contain",
+                      backgroundPosition: "center",
+                      backgroundRepeat: "no-repeat",
+                      marginBottom: "8px",
+                    }}
+                  />
+                  <Typography
+                    variant="subtitle2"
+                    sx={{
+                      color: "#666666",
+                      fontWeight: selectedService === service.name ? 600 : 500,
+                      fontSize: "0.875rem",
+                      textTransform: "uppercase",
+                    }}
+                  >
+                    {service.name}
+                  </Typography>
                 </Card>
               </Grid>
             ))}
@@ -141,7 +186,12 @@ const ServiceSelection: React.FC<ServiceSelectionProps> = ({
       ) : (
         <Typography
           variant="subtitle1"
-          sx={{ mt: 4, textAlign: "center", color: "error.main" }}
+          sx={{
+            mt: 2,
+            textAlign: "center",
+            color: "error.main",
+            fontSize: "0.875rem",
+          }}
         >
           Please select a provider first.
         </Typography>

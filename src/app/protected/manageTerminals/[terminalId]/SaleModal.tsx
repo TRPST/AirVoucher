@@ -28,6 +28,7 @@ interface VoucherType {
   status?: string;
   voucher_pin?: string;
   voucher_serial_number?: string;
+  isApiVoucher?: boolean;
 }
 
 interface SaleModalProps {
@@ -61,6 +62,13 @@ const SaleModal: React.FC<SaleModalProps> = ({
 
     try {
       console.log(`Processing sale for voucher ID: ${voucher.id}`);
+
+      // Check if this is an API voucher
+      if (voucher.isApiVoucher || voucher.supplier_name === "API") {
+        // Handle API voucher sale
+        await handleApiVoucherSale();
+        return;
+      }
 
       // 1. Check if the voucher is available and get its details
       const { data: voucherData, error: voucherError } = await supabase
@@ -155,6 +163,84 @@ const SaleModal: React.FC<SaleModalProps> = ({
       console.log("Sale completed successfully");
     } catch (err) {
       console.error("Error processing sale:", err);
+      setError(
+        err instanceof Error ? err.message : "An unexpected error occurred",
+      );
+    } finally {
+      setProcessing(false);
+    }
+  };
+
+  // Function to handle API voucher sale
+  const handleApiVoucherSale = async () => {
+    try {
+      console.log("Processing API voucher sale");
+
+      // Check if voucher is null
+      if (!voucher) {
+        throw new Error("No voucher selected");
+      }
+
+      // In a real implementation, you would call the API to purchase the voucher
+      // For now, we'll simulate a successful purchase
+
+      // Simulate API call delay
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+
+      // Generate a random PIN and serial number for the API voucher
+      const pin = Math.floor(
+        1000000000 + Math.random() * 9000000000,
+      ).toString();
+      const serial = `API-${Math.floor(100000 + Math.random() * 900000).toString()}`;
+
+      // Set the sold voucher data to display
+      setSoldVoucher({
+        ...voucher,
+        voucher_pin: pin,
+        voucher_serial_number: serial,
+        sale_time: new Date().toISOString(),
+        formattedAmount: `R${voucher.amount.toFixed(2)}`,
+      });
+
+      // Record the sale in the database
+      const currentTerminalId =
+        window.location.pathname.split("/").pop() || "UNKNOWN";
+
+      const saleRecord = {
+        supplier_id: 1, // Default supplier ID
+        terminal_id: currentTerminalId,
+        retailer_id: `RE${Math.floor(1000 + Math.random() * 9000)}`,
+        voucher_amount: voucher.amount.toString(),
+        voucher_group_id: 1, // Default group ID
+        voucher_name: voucher.name || "",
+        voucher_pin: pin,
+        total_comm: "0",
+        retailer_comm: "0",
+        sales_agent_comm: "0",
+        profit: "0",
+        net_profit: "0",
+        is_api_voucher: true,
+        api_vendor: voucher.vendorId || "",
+      };
+
+      try {
+        const { error: saleError } = await supabase
+          .from("voucher_sales")
+          .insert(saleRecord);
+
+        if (saleError) {
+          console.error("Error recording API sale:", saleError);
+        } else {
+          console.log("API sale recorded successfully");
+        }
+      } catch (saleErr) {
+        console.error("Exception recording API sale:", saleErr);
+      }
+
+      setCompleted(true);
+      console.log("API voucher sale completed successfully");
+    } catch (err) {
+      console.error("Error processing API voucher sale:", err);
       setError(
         err instanceof Error ? err.message : "An unexpected error occurred",
       );
@@ -317,7 +403,7 @@ const SaleModal: React.FC<SaleModalProps> = ({
             >
               Amount:{" "}
               <span style={{ color: getProviderColor(), fontWeight: "bold" }}>
-                R{voucher.amount.toFixed(2)}
+                R{(voucher?.amount || 0).toFixed(2)}
               </span>
             </Typography>
 

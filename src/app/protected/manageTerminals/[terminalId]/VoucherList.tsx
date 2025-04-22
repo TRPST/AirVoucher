@@ -69,6 +69,16 @@ const getProviderColors = (isDark: boolean) => ({
     dark: "rgba(218, 165, 32, 0.12)",
     border: "rgb(218, 165, 32)", // Golden
   },
+  Dstv: {
+    light: "rgba(218, 165, 32, 0.15)",
+    dark: "rgba(218, 165, 32, 0.12)",
+    border: "rgb(32, 66, 218)", // Golden
+  },
+  Eskom: {
+    light: "rgba(218, 165, 32, 0.15)",
+    dark: "rgba(218, 165, 32, 0.12)",
+    border: "rgb(32, 94, 218)", // Golden
+  },
 });
 
 const VoucherList: React.FC<VoucherListProps> = ({
@@ -84,54 +94,89 @@ const VoucherList: React.FC<VoucherListProps> = ({
     providerColors.MTN;
 
   return (
-    <Grid container spacing={2}>
+    <Grid
+      container
+      spacing={1}
+      sx={{
+        mt: 0.5,
+        width: "100%",
+        margin: 0,
+        padding: "4px",
+      }}
+    >
       {vouchers.map((voucher) => (
-        <Grid item xs={12} sm={6} md={4} key={voucher.id}>
+        <Grid
+          item
+          xs={12}
+          sm={6}
+          md={4}
+          lg={3}
+          key={voucher.id}
+          sx={{
+            p: "4px !important",
+          }}
+        >
           <Card
             sx={{
               height: "100%",
+              minHeight: "120px",
               display: "flex",
               flexDirection: "column",
               background: isDark ? "rgba(30, 30, 30, 0.8)" : "#fff",
-              border: `2px solid ${colors.border}`,
+              border: `1px solid ${colors.border}`,
               borderRadius: 1,
               transition: "all 0.2s ease-in-out",
+              m: 0,
               "&:hover": {
                 transform: "translateY(-2px)",
-                boxShadow: `0px 4px 12px ${colors.border}50`,
-                borderWidth: "2px",
+                boxShadow: `0px 2px 4px ${colors.border}40`,
+                borderWidth: "1px",
               },
             }}
           >
-            <CardContent sx={{ p: 2, pb: "12px" }}>
+            <CardContent
+              sx={{
+                p: "8px !important",
+                display: "flex",
+                flexDirection: "column",
+                height: "100%",
+                "&:last-child": {
+                  pb: "8px !important",
+                },
+              }}
+            >
               <Typography
-                variant="subtitle1"
-                gutterBottom
+                variant="subtitle2"
                 sx={{
                   color: isDark ? "#ffffff" : "#333333",
                   fontWeight: 500,
                   borderBottom: `1px solid ${colors.border}40`,
-                  pb: 1,
+                  pb: 0.5,
+                  fontSize: "0.875rem",
+                  mb: 0.5,
                 }}
               >
                 {voucher.name}
               </Typography>
               <Typography
-                variant="body2"
+                variant="caption"
                 sx={{
-                  mb: 1,
+                  display: "block",
                   opacity: 0.7,
                   color: isDark ? "rgba(255,255,255,0.9)" : "#666666",
+                  mb: 0.5,
+                  fontSize: "0.75rem",
                 }}
               >
                 {voucher.category}
               </Typography>
               <Typography
-                variant="h6"
+                variant="subtitle1"
                 sx={{
                   color: colors.border,
                   fontWeight: "bold",
-                  mb: 2,
+                  fontSize: "0.875rem",
+                  mb: 0.5,
                 }}
               >
                 R{(voucher.amount || 0).toFixed(2)}
@@ -141,18 +186,21 @@ const VoucherList: React.FC<VoucherListProps> = ({
                 fullWidth
                 size="small"
                 onClick={() => onSelect(voucher)}
-                startIcon={<ShoppingCartIcon />}
+                startIcon={<ShoppingCartIcon sx={{ fontSize: "0.875rem" }} />}
                 sx={{
                   mt: "auto",
                   color: colors.border,
                   borderColor: colors.border,
+                  fontSize: "0.75rem",
+                  minHeight: "24px",
+                  padding: "2px 8px",
                   "&:hover": {
                     background: `${colors.border}10`,
                     borderColor: colors.border,
                   },
                 }}
               >
-                Sell
+                SELL
               </Button>
             </CardContent>
           </Card>
