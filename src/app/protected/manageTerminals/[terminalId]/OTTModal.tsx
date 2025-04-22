@@ -260,30 +260,43 @@ const OTTModal: React.FC<OTTModalProps> = ({ open, onClose }) => {
       PaperProps={{
         sx: {
           borderRadius: 1,
-          background: isDark
-            ? "rgba(0, 0, 0, 0.9)"
-            : "rgba(255, 255, 255, 0.98)",
+          background: isDark ? "rgb(18, 18, 18)" : "background.paper",
+          color: isDark ? "#ffffff" : "text.primary",
+          "& .MuiDialogTitle-root": {
+            color: isDark ? "#ffffff" : "text.primary",
+          },
+          "& .MuiDialogContent-root": {
+            color: isDark ? "#ffffff" : "text.primary",
+          },
+          "& .MuiDialogActions-root": {
+            borderTop: `1px solid ${isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)"}`,
+          },
         },
       }}
     >
-      <DialogTitle sx={{ textAlign: "center", pb: 2 }}>
+      <DialogTitle
+        sx={{
+          textAlign: "center",
+          pb: 2,
+          borderBottom: `1px solid ${isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)"}`,
+        }}
+      >
         <Typography
           variant="h5"
           sx={{ color: ottBorder, fontWeight: "bold", mb: 1 }}
         >
           AirVoucher OTT Service
         </Typography>
-        <Typography variant="subtitle2" sx={{ color: textColor, opacity: 0.7 }}>
+        <Typography
+          variant="subtitle2"
+          sx={{
+            color: isDark ? "rgba(255,255,255,0.7)" : "text.secondary",
+            opacity: 0.7,
+          }}
+        >
           Retailer: AirVoucher Solutions
         </Typography>
       </DialogTitle>
-
-      <Divider
-        sx={{
-          mx: 2,
-          borderColor: isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)",
-        }}
-      />
 
       <DialogContent>
         {loading ? (
@@ -295,12 +308,18 @@ const OTTModal: React.FC<OTTModalProps> = ({ open, onClose }) => {
             <Card
               sx={{
                 mb: 4,
-                background: ottColor,
+                background: isDark
+                  ? "rgba(0, 128, 0, 0.1)"
+                  : "rgba(0, 128, 0, 0.15)",
                 border: `1px solid ${isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)"}`,
               }}
             >
               <CardContent sx={{ textAlign: "center", py: 2 }}>
-                <Typography variant="subtitle1" gutterBottom>
+                <Typography
+                  variant="subtitle1"
+                  gutterBottom
+                  sx={{ color: isDark ? "#ffffff" : "text.primary" }}
+                >
                   Current Balance
                 </Typography>
                 <Typography
@@ -396,6 +415,25 @@ const OTTModal: React.FC<OTTModalProps> = ({ open, onClose }) => {
                       sx={{
                         "& .MuiOutlinedInput-root": {
                           background: isDark ? "rgba(0,0,0,0.2)" : "white",
+                          color: isDark ? "#ffffff" : "text.primary",
+                          "& fieldset": {
+                            borderColor: isDark
+                              ? "rgba(255,255,255,0.3)"
+                              : "rgba(0,0,0,0.3)",
+                          },
+                          "&:hover fieldset": {
+                            borderColor: isDark
+                              ? "rgba(255,255,255,0.5)"
+                              : "rgba(0,0,0,0.5)",
+                          },
+                          "&.Mui-focused fieldset": {
+                            borderColor: ottBorder,
+                          },
+                        },
+                        "& .MuiInputLabel-root": {
+                          color: isDark
+                            ? "rgba(255,255,255,0.7)"
+                            : "text.secondary",
                         },
                       }}
                     />
@@ -439,7 +477,7 @@ const OTTModal: React.FC<OTTModalProps> = ({ open, onClose }) => {
                 >
                   <CardContent sx={{ p: 2 }}>
                     <Typography variant="subtitle1" gutterBottom>
-                      Validate Voucher
+                      Voucher Management
                     </Typography>
                     <TextField
                       fullWidth
@@ -449,28 +487,77 @@ const OTTModal: React.FC<OTTModalProps> = ({ open, onClose }) => {
                       value={validationPin}
                       onChange={(e) => setValidationPin(e.target.value)}
                       sx={{
+                        mb: 2,
                         "& .MuiOutlinedInput-root": {
                           background: isDark ? "rgba(0,0,0,0.2)" : "white",
+                          color: isDark ? "#ffffff" : "text.primary",
+                          "& fieldset": {
+                            borderColor: isDark
+                              ? "rgba(255,255,255,0.3)"
+                              : "rgba(0,0,0,0.3)",
+                          },
+                          "&:hover fieldset": {
+                            borderColor: isDark
+                              ? "rgba(255,255,255,0.5)"
+                              : "rgba(0,0,0,0.5)",
+                          },
+                          "&.Mui-focused fieldset": {
+                            borderColor: ottBorder,
+                          },
                         },
                       }}
                     />
-                    <Button
-                      variant="contained"
-                      fullWidth
-                      size="small"
-                      sx={{
-                        mt: 2,
-                        background: buttonBg,
-                        color: "#fff",
-                        border: `1px solid ${ottBorder}`,
-                        "&:hover": {
-                          background: buttonHoverBg,
-                        },
-                      }}
-                      onClick={() => validateVoucher(validationPin)}
-                    >
-                      Validate
-                    </Button>
+                    <Grid container spacing={1}>
+                      <Grid item xs={6}>
+                        <Button
+                          variant="contained"
+                          fullWidth
+                          size="small"
+                          color="error"
+                          onClick={() => {
+                            if (validationPin) {
+                              setVoucherResponse({
+                                success: false,
+                                message: "Voucher rejected",
+                              });
+                              setValidationPin("");
+                            }
+                          }}
+                          sx={{
+                            background: isDark
+                              ? "rgba(255,0,0,0.2)"
+                              : "error.main",
+                            color: isDark ? "#ff4444" : "error.contrastText",
+                            border: `1px solid ${isDark ? "rgba(255,0,0,0.5)" : "error.main"}`,
+                            "&:hover": {
+                              background: isDark
+                                ? "rgba(255,0,0,0.3)"
+                                : "error.dark",
+                            },
+                          }}
+                        >
+                          Reject
+                        </Button>
+                      </Grid>
+                      <Grid item xs={6}>
+                        <Button
+                          variant="contained"
+                          fullWidth
+                          size="small"
+                          onClick={() => validateVoucher(validationPin)}
+                          sx={{
+                            background: buttonBg,
+                            color: "#fff",
+                            border: `1px solid ${ottBorder}`,
+                            "&:hover": {
+                              background: buttonHoverBg,
+                            },
+                          }}
+                        >
+                          Validate
+                        </Button>
+                      </Grid>
+                    </Grid>
                   </CardContent>
                 </Card>
               </Grid>
@@ -479,6 +566,8 @@ const OTTModal: React.FC<OTTModalProps> = ({ open, onClose }) => {
             {voucherResponse && (
               <Card
                 sx={{
+                  maxWidth: 400,
+                  mx: "auto",
                   background: voucherResponse.success
                     ? isDark
                       ? "rgba(0, 180, 0, 0.1)"
@@ -530,18 +619,6 @@ const OTTModal: React.FC<OTTModalProps> = ({ open, onClose }) => {
                             display="block"
                             sx={{ color: textColor, opacity: 0.7 }}
                           >
-                            Voucher ID
-                          </Typography>
-                          <Typography variant="body2" sx={{ mb: 1 }}>
-                            {voucherResponse.voucher.voucherID}
-                          </Typography>
-                        </Grid>
-                        <Grid item xs={12} sm={6}>
-                          <Typography
-                            variant="caption"
-                            display="block"
-                            sx={{ color: textColor, opacity: 0.7 }}
-                          >
                             PIN
                           </Typography>
                           <Typography
@@ -561,18 +638,6 @@ const OTTModal: React.FC<OTTModalProps> = ({ open, onClose }) => {
                           </Typography>
                           <Typography variant="body2" sx={{ mb: 1 }}>
                             {voucherResponse.voucher.serialNumber}
-                          </Typography>
-                        </Grid>
-                        <Grid item xs={12} sm={6}>
-                          <Typography
-                            variant="caption"
-                            display="block"
-                            sx={{ color: textColor, opacity: 0.7 }}
-                          >
-                            Sale ID
-                          </Typography>
-                          <Typography variant="body2" sx={{ mb: 1 }}>
-                            {voucherResponse.voucher.saleID}
                           </Typography>
                         </Grid>
                         <Grid item xs={12}>
@@ -603,7 +668,7 @@ const OTTModal: React.FC<OTTModalProps> = ({ open, onClose }) => {
                       </Grid>
                     </>
                   ) : (
-                    <Typography color="error" variant="body2">
+                    <Typography color="error" variant="body2" align="center">
                       {voucherResponse.message}
                     </Typography>
                   )}
@@ -624,7 +689,9 @@ const OTTModal: React.FC<OTTModalProps> = ({ open, onClose }) => {
             color: ottBorder,
             "&:hover": {
               borderColor: ottBorder,
-              background: ottColor,
+              background: isDark
+                ? "rgba(0, 128, 0, 0.1)"
+                : "rgba(0, 128, 0, 0.15)",
             },
           }}
         >

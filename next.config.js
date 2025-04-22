@@ -77,6 +77,14 @@ const nextConfig = {
           "https://api.qa.bltelecoms.net/v2/trade/mobile/bundle/sales",
       },
 
+      // BL Telecoms API for Vouchers Production
+      {
+        source: "/api/vouchers",
+        destination:
+          process.env.BL_TELECOMS_VOUCHER_URL ||
+          "https://api.live.bltelecoms.net/v2/trade/voucher/products",
+      },
+
       // OTT Mobile API (Handles all paths under /api/ott/)
       {
         source: "/api/ott/:path*",

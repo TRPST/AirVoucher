@@ -8,6 +8,8 @@ import {
   Button,
   CircularProgress,
   useTheme,
+  ToggleButtonGroup,
+  ToggleButton,
 } from "@mui/material";
 import WestIcon from "@mui/icons-material/West";
 import ProviderSelection from "./ProviderSelection";
@@ -19,6 +21,7 @@ import ConfirmationDialog from "./ConfirmationDialog";
 import { supabase } from "../../../../../utils/supabase/client"; // ✅ Use shared Supabase client
 import issueVoucher from "./OTTModal"; // ✅ Import fetchVouchers and issueVoucher from ./api
 import TerminalBalances from "./components/TerminalBalances";
+import APIVoucherList from "./APIVoucherList";
 
 // Add global style for dark mode text
 const globalStyle = `
@@ -33,23 +36,27 @@ const globalStyle = `
 const getProviderColors = (isDark: boolean) => ({
   MTN: {
     light: "rgba(255, 204, 0, 0.15)",
-    dark: "rgba(255, 204, 0, 0.12)",
+    dark: "rgba(255, 204, 0, 0.25)",
     border: "rgb(255, 204, 0)",
+    text: isDark ? "rgb(255, 255, 255)" : "rgb(0, 0, 0)",
   },
   Vodacom: {
     light: "rgba(255, 0, 0, 0.15)",
-    dark: "rgba(255, 0, 0, 0.12)",
+    dark: "rgba(255, 0, 0, 0.25)",
     border: "rgb(255, 0, 0)",
+    text: isDark ? "rgb(255, 255, 255)" : "rgb(0, 0, 0)",
   },
   CellC: {
     light: "rgba(0, 0, 0, 0.15)",
-    dark: "rgba(255, 255, 255, 0.12)",
+    dark: "rgba(255, 255, 255, 0.25)",
     border: isDark ? "rgb(255, 255, 255)" : "rgb(0, 0, 0)",
+    text: isDark ? "rgb(255, 255, 255)" : "rgb(0, 0, 0)",
   },
   Telkom: {
     light: "rgba(0, 102, 204, 0.15)",
-    dark: "rgba(0, 102, 204, 0.12)",
+    dark: "rgba(0, 102, 204, 0.25)",
     border: "rgb(0, 102, 204)",
+    text: isDark ? "rgb(255, 255, 255)" : "rgb(0, 0, 0)",
   },
   OTT: {
     light: "rgba(0, 128, 0, 0.15)",
@@ -58,18 +65,21 @@ const getProviderColors = (isDark: boolean) => ({
   },
   Hollywoodbets: {
     light: "rgba(128, 0, 128, 0.15)",
-    dark: "rgba(128, 0, 128, 0.12)",
-    border: "rgb(128, 0, 128)", // Purple
+    dark: "rgba(128, 0, 128, 0.25)",
+    border: "rgb(128, 0, 128)",
+    text: isDark ? "rgb(255, 255, 255)" : "rgb(0, 0, 0)",
   },
   Ringa: {
     light: "rgba(255, 165, 0, 0.15)",
-    dark: "rgba(255, 165, 0, 0.12)",
-    border: "rgb(255, 165, 0)", // Orange
+    dark: "rgba(255, 165, 0, 0.25)",
+    border: "rgb(255, 165, 0)",
+    text: isDark ? "rgb(255, 255, 255)" : "rgb(0, 0, 0)",
   },
   Easyload: {
     light: "rgba(218, 165, 32, 0.15)",
-    dark: "rgba(218, 165, 32, 0.12)",
-    border: "rgb(218, 165, 32)", // Golden
+    dark: "rgba(218, 165, 32, 0.25)",
+    border: "rgb(218, 165, 32)",
+    text: isDark ? "rgb(255, 255, 255)" : "rgb(0, 0, 0)",
   },
 });
 
@@ -95,6 +105,9 @@ const TerminalDashboard = () => {
   >(null);
   const [commGroupId, setCommGroupId] = useState(null);
   const [lastSync, setLastSync] = useState(new Date());
+  const [voucherSource, setVoucherSource] = useState<"manual" | "api">(
+    "manual",
+  );
 
   // Fetch the commission group ID for the terminal
   useEffect(() => {
@@ -266,7 +279,7 @@ const TerminalDashboard = () => {
         err,
       );
       setError("An unexpected error occurred while fetching vouchers.");
-    setVouchers([]);
+      setVouchers([]);
     } finally {
       setLoading(false);
     }
@@ -492,7 +505,7 @@ const TerminalDashboard = () => {
     setSelectedVoucher(null);
 
     // Refresh vouchers based on current filters
-    if (selectedProvider && selectedService) {
+    if (selectedProvider && selectedService && voucherSource === "manual") {
       setLoading(true);
 
       if (requiresServiceSelection) {
@@ -503,13 +516,26 @@ const TerminalDashboard = () => {
     }
   };
 
+  const handleVoucherSourceChange = (
+    event: React.MouseEvent<HTMLElement>,
+    newSource: "manual" | "api",
+  ) => {
+    if (newSource !== null) {
+      setVoucherSource(newSource);
+      // Reset selected service when switching to API vouchers
+      if (newSource === "api") {
+        setSelectedService(null);
+      }
+    }
+  };
+
   return (
     <div className="container mx-auto p-6">
       {isDark && <style dangerouslySetInnerHTML={{ __html: globalStyle }} />}
       <div className="mb-6 flex items-center justify-between">
         <div className="flex items-center space-x-4">
           <IconButton color="primary" onClick={navigateToTerminalManagement}>
-            <WestIcon sx={{ fontSize: 30 }} />
+            <WestIcon sx={{ fontSize: 30, color: isDark ? "#fff" : "#000" }} />
           </IconButton>
           <h2 className="text-3xl font-bold text-gray-900 dark:text-white">
             Terminal {terminalId}
@@ -537,119 +563,162 @@ const TerminalDashboard = () => {
         onSelect={handleProviderSelection}
       />
 
-      {/* Service Selection - only show for providers that need service categorization */}
+      {/* Voucher Source Toggle - Show for all providers except DSTV and Electricity */}
       {selectedProvider &&
         selectedProvider !== "OTT" &&
-        requiresServiceSelection && (
-        <ServiceSelection
-          selectedProvider={selectedProvider}
-            selectedService={selectedService || ""}
-          onSelect={handleServiceSelection}
-            terminalId={
-              typeof terminalId === "string"
-                ? terminalId
-                : Array.isArray(terminalId)
-                  ? terminalId[0]
-                  : ""
-            }
-            commGroupId={commGroupId || ""}
-        />
-      )}
+        selectedProvider !== "Dstv" &&
+        selectedProvider !== "Electricity" && (
+          <div className="mt-4">
+            <ToggleButtonGroup
+              value={voucherSource}
+              exclusive
+              onChange={handleVoucherSourceChange}
+              sx={{
+                mb: 3,
+                "& .MuiToggleButton-root": {
+                  color: isDark ? "#fff" : "#666",
+                  borderColor: isDark
+                    ? "rgba(255,255,255,0.3)"
+                    : "rgba(0,0,0,0.2)",
+                  backgroundColor: isDark
+                    ? "rgba(45, 45, 45, 0.95)"
+                    : "transparent",
+                  "&:hover": {
+                    backgroundColor: isDark
+                      ? "rgba(70, 70, 70, 0.95)"
+                      : "rgba(0,0,0,0.05)",
+                    color: isDark ? "#9ecef8" : "#444",
+                  },
+                  "&.Mui-selected": {
+                    backgroundColor: isDark
+                      ? "rgba(100, 100, 100, 0.95)"
+                      : "rgba(0,0,0,0.08)",
+                    color: isDark ? "#fff" : "#444",
+                    "&:hover": {
+                      backgroundColor: isDark
+                        ? "rgba(120, 120, 120, 0.95)"
+                        : "rgba(0,0,0,0.12)",
+                      color: isDark ? "#9ecef8" : "#333",
+                    },
+                  },
+                },
+              }}
+            >
+              <ToggleButton value="manual" sx={{ mr: 1 }}>
+                Manualy Uploaded Vouchers
+              </ToggleButton>
+              <ToggleButton value="api">Fixed Amount Vouchers</ToggleButton>
+            </ToggleButtonGroup>
 
-      {/* Loading and Error Handling */}
-      {loading && (
-        <div className="mt-6 flex flex-col items-center justify-center space-y-2">
-          <CircularProgress />
-          <Typography variant="body2" color="textSecondary">
-            {selectedProvider && selectedService
-              ? `Loading ${selectedProvider} ${selectedService} vouchers...`
-              : "Loading..."}
-          </Typography>
-        </div>
-      )}
-      {error && (
-        <Typography
-          color="error"
-          sx={{
-            backgroundColor: isDark
-              ? "rgba(211, 47, 47, 0.1)"
-              : "rgba(211, 47, 47, 0.05)",
-            p: 2,
-            borderRadius: 1,
-            color: isDark ? "#ff6b6b" : "error.main",
-          }}
-        >
-          {error}
-        </Typography>
-      )}
+            {voucherSource === "manual" ? (
+              <>
+                {/* Show Service Selection for telecom providers */}
+                {["MTN", "Vodacom", "CellC", "Telkom"].includes(
+                  selectedProvider,
+                ) && (
+                  <ServiceSelection
+                    selectedProvider={selectedProvider}
+                    selectedService={selectedService || ""}
+                    onSelect={handleServiceSelection}
+                    terminalId={
+                      typeof terminalId === "string"
+                        ? terminalId
+                        : Array.isArray(terminalId)
+                          ? terminalId[0]
+                          : ""
+                    }
+                    commGroupId={commGroupId || ""}
+                  />
+                )}
 
-      {/* Display Voucher List (only when service is selected and vouchers exist) */}
-      {selectedService && vouchers && vouchers.length > 0 && (
-        <div className="mt-6">
-          <Typography
-            variant="h6"
-            sx={{
-              mb: 3,
-              textAlign: "center",
-              color: isDark ? "#ffffff" : "#333333",
-              fontWeight: 600,
-              background: isDark ? "rgba(0, 0, 0, 0.2)" : "rgba(0, 0, 0, 0.02)",
-              py: 1,
-              borderRadius: 1,
-              borderLeft: selectedProvider
-                ? `4px solid ${providerColors[selectedProvider as keyof typeof providerColors]?.border || "#ccc"}`
-                : "none",
-              borderRight: selectedProvider
-                ? `4px solid ${providerColors[selectedProvider as keyof typeof providerColors]?.border || "#ccc"}`
-                : "none",
-              boxShadow: isDark ? "0 2px 8px rgba(0,0,0,0.2)" : "none",
-            }}
-          >
-            Available Vouchers ({vouchers.length})
-          </Typography>
-        <VoucherList
-          vouchers={vouchers}
-          onSelect={(voucher: any) => {
-              console.log("Selected voucher:", voucher);
-            setSelectedVoucher(voucher);
-            setShowSaleModal(true);
-          }}
-            selectedProvider={selectedProvider || "MTN"}
-          />
-        </div>
-      )}
+                {/* Show VoucherList only after service is selected for telecom providers, or immediately for others */}
+                {(!["MTN", "Vodacom", "CellC", "Telkom"].includes(
+                  selectedProvider,
+                ) ||
+                  (["MTN", "Vodacom", "CellC", "Telkom"].includes(
+                    selectedProvider,
+                  ) &&
+                    selectedService)) && (
+                  <VoucherList
+                    vouchers={vouchers}
+                    onSelect={(voucher: any) => {
+                      console.log("Selected voucher:", voucher);
+                      setSelectedVoucher(voucher);
+                      setShowSaleModal(true);
+                    }}
+                    selectedProvider={selectedProvider}
+                  />
+                )}
+              </>
+            ) : (
+              <APIVoucherList
+                selectedProvider={selectedProvider}
+                selectedService={selectedService || ""}
+                terminalId={terminalId as string}
+                commGroupId={commGroupId || ""}
+                onSelect={(voucher: any) => {
+                  console.log("Selected API voucher:", voucher);
+                  setSelectedVoucher(voucher);
+                  setShowSaleModal(true);
+                }}
+              />
+            )}
+          </div>
+        )}
+
+      {/* For DSTV and Electricity, always show API voucher list */}
+      {selectedProvider &&
+        (selectedProvider === "Dstv" || selectedProvider === "Electricity") && (
+          <div className="mt-4">
+            <APIVoucherList
+              selectedProvider={selectedProvider}
+              selectedService={selectedService || ""}
+              terminalId={terminalId as string}
+              commGroupId={commGroupId || ""}
+              onSelect={(voucher: any) => {
+                console.log("Selected API voucher:", voucher);
+                setSelectedVoucher(voucher);
+                setShowSaleModal(true);
+              }}
+            />
+          </div>
+        )}
 
       {/* Show message when no vouchers are found - this should only appear when loading is complete */}
-      {!loading && selectedService && (!vouchers || vouchers.length === 0) && (
-        <div
-          className="mt-6 rounded-lg border-2 p-4"
-          style={{
-            borderColor: selectedProvider
-              ? providerColors[selectedProvider as keyof typeof providerColors]
-                  ?.border || "#ccc"
-              : "#ccc",
-            background: isDark ? "rgba(30, 30, 30, 0.8)" : "#fff",
-          }}
-        >
-          <Typography
-            variant="body1"
-            sx={{
-              textAlign: "center",
-              color: selectedProvider
+      {!loading &&
+        selectedService &&
+        voucherSource === "manual" &&
+        (!vouchers || vouchers.length === 0) && (
+          <div
+            className="mt-6 rounded-lg border-2 p-4"
+            style={{
+              borderColor: selectedProvider
                 ? providerColors[
                     selectedProvider as keyof typeof providerColors
-                  ]?.border || (isDark ? "#9ecef8" : "#0066cc")
-                : isDark
-                  ? "#9ecef8"
-                  : "#0066cc",
+                  ]?.border || "#ccc"
+                : "#ccc",
+              background: isDark ? "rgba(30, 30, 30, 0.8)" : "#fff",
             }}
           >
-            {requiresServiceSelection
-              ? `No vouchers found for ${selectedProvider} ${selectedService}. Please try another service or provider.`
-              : `No vouchers available for ${selectedProvider}. Please contact the administrator to add vouchers.`}
-          </Typography>
-        </div>
-      )}
+            <Typography
+              variant="body1"
+              sx={{
+                textAlign: "center",
+                color: selectedProvider
+                  ? providerColors[
+                      selectedProvider as keyof typeof providerColors
+                    ]?.border || (isDark ? "#9ecef8" : "#0066cc")
+                  : isDark
+                    ? "#9ecef8"
+                    : "#0066cc",
+              }}
+            >
+              {requiresServiceSelection
+                ? `No vouchers found for ${selectedProvider} ${selectedService}. Please try another service or provider.`
+                : `No vouchers available for ${selectedProvider}. Please contact the administrator to add vouchers.`}
+            </Typography>
+          </div>
+        )}
 
       {/* Modals */}
       <SaleModal
@@ -663,6 +732,9 @@ const TerminalDashboard = () => {
         open={Boolean(confirmationAction)}
         onConfirm={confirmationAction || (() => {})}
         onClose={() => setConfirmationAction(null)}
+        title="Confirm Action"
+        subtitle="Please confirm you want to proceed"
+        message="Are you sure you want to perform this action?"
       />
     </div>
   );
