@@ -17,13 +17,25 @@ import {
   useTheme,
   Divider,
 } from "@mui/material";
+import { getRetailerByIdAction } from "../actions";
 
 interface OTTModalProps {
   open: boolean;
   onClose: () => void;
+  provider: string | null;
+  service: string | null;
+  terminalId: string;
+  assignedRetailerId: string | null;
 }
 
-const OTTModal: React.FC<OTTModalProps> = ({ open, onClose }) => {
+const OTTModal: React.FC<OTTModalProps> = ({
+  open,
+  onClose,
+  provider,
+  service,
+  terminalId,
+  assignedRetailerId,
+}) => {
   const theme = useTheme();
   const isDark = theme.palette.mode === "dark";
   const [balance, setBalance] = useState<string | null>(null);
@@ -31,6 +43,10 @@ const OTTModal: React.FC<OTTModalProps> = ({ open, onClose }) => {
   const [selectedAmount, setSelectedAmount] = useState<number | null>(null);
   const [customAmount, setCustomAmount] = useState("");
   const [validationPin, setValidationPin] = useState("");
+  const [retailer, setRetailer] = useState<{ id: string; name: string } | null>(
+    null,
+  );
+  const [uniqueRef, setUniqueRef] = useState<string>("");
 
   interface VoucherResponse {
     success: boolean;
@@ -125,10 +141,18 @@ const OTTModal: React.FC<OTTModalProps> = ({ open, onClose }) => {
   };
 
   useEffect(() => {
-    if (open) {
-      fetchBalance();
+    if (assignedRetailerId) {
+      getRetailerByIdAction(assignedRetailerId).then((res: any) => {
+        if (res && res.retailer) {
+          setRetailer({ id: res.retailer.id, name: res.retailer.name });
+        }
+      });
     }
-  }, [open]);
+    // Generate unique reference on open
+    if (open) {
+      setUniqueRef(`REF-${Date.now()}-${Math.floor(Math.random() * 10000)}`);
+    }
+  }, [assignedRetailerId, open]);
 
   const validateVoucher = async (pin: string) => {
     setLoading(true);
@@ -249,6 +273,13 @@ const OTTModal: React.FC<OTTModalProps> = ({ open, onClose }) => {
       setLoading(false);
       setSelectedAmount(null);
     }
+  };
+
+  // Helper for provider instructions
+  const getLoadInstructions = (provider: string | undefined) => {
+    if (!provider) return "";
+    if (provider.toLowerCase() === "mtn") return "Dial *136*(voucher number)#";
+    return "See voucher for instructions";
   };
 
   return (
@@ -582,90 +613,69 @@ const OTTModal: React.FC<OTTModalProps> = ({ open, onClose }) => {
                 <CardContent sx={{ p: 2 }}>
                   {voucherResponse.success && voucherResponse.voucher ? (
                     <>
+                      {/* Retailer info at top, centered */}
                       <Typography
-                        variant="subtitle1"
+                        variant="h6"
+                        align="center"
+                        sx={{ fontWeight: 700, mb: 0.5 }}
+                      >
+                        {retailer?.name || "Retailer"}
+                      </Typography>
+                      <Typography variant="body2" align="center" sx={{ mb: 2 }}>
+                        {retailer?.id ? `ID: ${retailer.id}` : ""}
+                      </Typography>
+
+                      {/* Voucher name and amount */}
+                      <Typography
+                        variant="h6"
+                        align="center"
                         gutterBottom
-                        sx={{ textAlign: "center", mb: 2 }}
+                        sx={{ color: ottBorder }}
                       >
-                        AirVoucher Solutions
+                        {provider}
                       </Typography>
                       <Typography
-                        variant="caption"
-                        display="block"
-                        sx={{ textAlign: "center", mb: 2 }}
+                        variant="body1"
+                        align="center"
+                        sx={{
+                          mb: 2,
+                          color: isDark ? "#ffffff" : "text.primary",
+                        }}
                       >
-                        OTT Voucher Receipt
+                        Amount: R{voucherResponse.voucher.amount}
                       </Typography>
-                      <Divider sx={{ mb: 2 }} />
-                      <Grid container spacing={2}>
-                        <Grid item xs={12}>
-                          <Typography
-                            variant="caption"
-                            display="block"
-                            sx={{ color: textColor, opacity: 0.7 }}
-                          >
-                            ARV Reference
-                          </Typography>
-                          <Typography
-                            variant="body2"
-                            sx={{ mb: 1, fontWeight: "bold" }}
-                          >
-                            {voucherResponse.voucher.arvReference}
-                          </Typography>
-                        </Grid>
-                        <Grid item xs={12} sm={6}>
-                          <Typography
-                            variant="caption"
-                            display="block"
-                            sx={{ color: textColor, opacity: 0.7 }}
-                          >
-                            PIN
-                          </Typography>
-                          <Typography
-                            variant="body2"
-                            sx={{ mb: 1, fontFamily: "monospace" }}
-                          >
-                            {voucherResponse.voucher.pin}
-                          </Typography>
-                        </Grid>
-                        <Grid item xs={12} sm={6}>
-                          <Typography
-                            variant="caption"
-                            display="block"
-                            sx={{ color: textColor, opacity: 0.7 }}
-                          >
-                            Serial Number
-                          </Typography>
-                          <Typography variant="body2" sx={{ mb: 1 }}>
-                            {voucherResponse.voucher.serialNumber}
-                          </Typography>
-                        </Grid>
-                        <Grid item xs={12}>
-                          <Divider sx={{ my: 1 }} />
-                          <Typography
-                            variant="h6"
-                            sx={{ color: ottBorder, textAlign: "center" }}
-                          >
-                            Amount: R{voucherResponse.voucher.amount}
-                          </Typography>
-                        </Grid>
-                        <Grid item xs={12}>
-                          <Typography
-                            variant="caption"
-                            display="block"
-                            sx={{
-                              textAlign: "center",
-                              mt: 1,
-                              color: textColor,
-                              opacity: 0.7,
-                            }}
-                          >
-                            {new Date(
-                              voucherResponse.voucher.timestamp || "",
-                            ).toLocaleString()}
-                          </Typography>
-                        </Grid>
-                      </Grid>
+
+                      {/* Loading instructions */}
+                      <Typography variant="body2" align="center" sx={{ mb: 2 }}>
+                        {getLoadInstructions(provider || undefined)}
+                      </Typography>
+
+                      {/* Voucher PIN, Serial, Reference, Date/Time */}
+                      <Typography
+                        variant="h5"
+                        align="center"
+                        sx={{
+                          fontFamily: "monospace",
+                          letterSpacing: 2,
+                          mb: 2,
+                        }}
+                      >
+                        {voucherResponse.voucher.pin}
+                      </Typography>
+                      <Typography variant="body2" align="center" sx={{ mb: 1 }}>
+                        Serial Number: {voucherResponse.voucher.serialNumber}
+                      </Typography>
+                      <Typography variant="body2" align="center" sx={{ mb: 1 }}>
+                        Ref: {uniqueRef}
+                      </Typography>
+                      <Typography variant="body2" align="center" sx={{ mb: 1 }}>
+                        Date:{" "}
+                        {voucherResponse.voucher.timestamp
+                          ? new Date(
+                              voucherResponse.voucher.timestamp,
+                            ).toLocaleString()
+                          : "-"}
+                      </Typography>
                     </>
                   ) : (
                     <Typography color="error" variant="body2" align="center">

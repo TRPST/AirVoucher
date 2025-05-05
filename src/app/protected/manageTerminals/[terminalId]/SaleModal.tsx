@@ -1,5 +1,5 @@
 // app/protected/manageTerminals/[terminalID]/SaleModal.tsx
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Dialog,
   DialogTitle,
@@ -17,11 +17,13 @@ import {
 import { supabase } from "../../../../../utils/supabase/client";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
+import { getRetailerByIdAction } from "../actions";
 
 interface VoucherType {
   id: string;
   name: string;
-  amount: number;
+  amount: string | number;
+  formattedAmount?: string;
   category?: string;
   supplier_name?: string;
   vendorId?: string;
@@ -36,6 +38,7 @@ interface SaleModalProps {
   onClose: () => void;
   voucher: VoucherType | null;
   onVoucherSold?: () => void;
+  assignedRetailerId: string | null;
 }
 
 const SaleModal: React.FC<SaleModalProps> = ({
@@ -43,6 +46,7 @@ const SaleModal: React.FC<SaleModalProps> = ({
   onClose,
   voucher,
   onVoucherSold,
+  assignedRetailerId,
 }) => {
   const theme = useTheme();
   const isDark = theme.palette.mode === "dark";
@@ -52,6 +56,24 @@ const SaleModal: React.FC<SaleModalProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [soldVoucher, setSoldVoucher] = useState<any>(null);
   const [copied, setCopied] = useState<string | null>(null);
+  const [retailer, setRetailer] = useState<{ id: string; name: string } | null>(
+    null,
+  );
+  const [uniqueRef, setUniqueRef] = useState<string>("");
+
+  useEffect(() => {
+    if (assignedRetailerId) {
+      getRetailerByIdAction(assignedRetailerId).then((res: any) => {
+        if (res && res.retailer) {
+          setRetailer({ id: res.retailer.id, name: res.retailer.name });
+        }
+      });
+    }
+    // Generate unique reference on open
+    if (open) {
+      setUniqueRef(`REF-${Date.now()}-${Math.floor(Math.random() * 10000)}`);
+    }
+  }, [assignedRetailerId, open]);
 
   // Function to handle the sale process
   const handleSale = async () => {
@@ -152,12 +174,12 @@ const SaleModal: React.FC<SaleModalProps> = ({
         // We'll continue even if sale recording fails, but log the error
       }
 
-      // 4. Set the sold voucher data to display
-      setSoldVoucher({
+      // 4. Set the sold voucher with formatted amount
+      const formattedVoucher = {
         ...voucherData,
-        sale_time: currentTime,
-        formattedAmount: `R${amountInRand.toFixed(2)}`,
-      });
+        formattedAmount: formatAmount(voucherData.amount),
+      };
+      setSoldVoucher(formattedVoucher);
 
       setCompleted(true);
       console.log("Sale completed successfully");
@@ -199,7 +221,7 @@ const SaleModal: React.FC<SaleModalProps> = ({
         voucher_pin: pin,
         voucher_serial_number: serial,
         sale_time: new Date().toISOString(),
-        formattedAmount: `R${voucher.amount.toFixed(2)}`,
+        formattedAmount: formatAmount(voucher.amount),
       });
 
       // Record the sale in the database
@@ -278,6 +300,23 @@ const SaleModal: React.FC<SaleModalProps> = ({
     onClose();
   };
 
+  // Helper function to format amount properly
+  const formatAmount = (amount: string | number | undefined): string => {
+    if (!amount) return "R0.00";
+
+    const amountNumber = parseFloat(String(amount));
+    if (isNaN(amountNumber)) return `R${amount}`;
+
+    // Check if amount is in cents (large number) or in rand (small number)
+    if (amountNumber > 100) {
+      // Amount is in cents, convert to rand
+      return `R${(amountNumber / 100).toFixed(2)}`;
+    } else {
+      // Amount is already in rand
+      return `R${amountNumber.toFixed(2)}`;
+    }
+  };
+
   // Get provider color for styling based on the voucher
   const getProviderColor = () => {
     if (!voucher) return "#666666";
@@ -310,6 +349,13 @@ const SaleModal: React.FC<SaleModalProps> = ({
     if (voucher.supplier_name === "OTT") return providerMap.OTT;
 
     return "#666666";
+  };
+
+  // Helper for provider instructions
+  const getLoadInstructions = (provider: string | undefined) => {
+    if (!provider) return "";
+    if (provider.toLowerCase() === "mtn") return "Dial *136*(voucher number)#";
+    return "See voucher for instructions";
   };
 
   return (
@@ -403,7 +449,7 @@ const SaleModal: React.FC<SaleModalProps> = ({
             >
               Amount:{" "}
               <span style={{ color: getProviderColor(), fontWeight: "bold" }}>
-                R{(voucher?.amount || 0).toFixed(2)}
+                {voucher?.formattedAmount || formatAmount(voucher?.amount)}
               </span>
             </Typography>
 
@@ -435,17 +481,19 @@ const SaleModal: React.FC<SaleModalProps> = ({
                 border: `1px solid ${getProviderColor()}30`,
               }}
             >
-              <Box
-                display="flex"
-                alignItems="center"
-                justifyContent="center"
-                mb={2}
+              {/* Retailer info at top, centered */}
+              <Typography
+                variant="h6"
+                align="center"
+                sx={{ fontWeight: 700, mb: 0.5 }}
               >
-                <CheckCircleIcon
-                  sx={{ color: "success.main", fontSize: 40, mb: 1 }}
-                />
-              </Box>
+                {retailer?.name || "Retailer"}
+              </Typography>
+              <Typography variant="body2" align="center" sx={{ mb: 2 }}>
+                {retailer?.id ? `ID: ${retailer.id}` : ""}
+              </Typography>
 
+              {/* Voucher name and amount */}
               <Typography
                 variant="h6"
                 align="center"
@@ -454,242 +502,42 @@ const SaleModal: React.FC<SaleModalProps> = ({
               >
                 {soldVoucher.name}
               </Typography>
-
               <Typography
                 variant="body1"
                 align="center"
-                sx={{ mb: 3, color: isDark ? "#ffffff" : "text.primary" }}
+                sx={{ mb: 2, color: isDark ? "#ffffff" : "text.primary" }}
               >
-                {soldVoucher.formattedAmount}
+                {soldVoucher.formattedAmount ||
+                  formatAmount(soldVoucher.amount)}
               </Typography>
 
-              <Divider sx={{ my: 2 }} />
+              {/* Loading instructions */}
+              <Typography variant="body2" align="center" sx={{ mb: 2 }}>
+                {getLoadInstructions(
+                  soldVoucher.vendorId || soldVoucher.supplier_name,
+                )}
+              </Typography>
 
-              <Box sx={{ p: 1 }}>
-                <Box
-                  display="flex"
-                  justifyContent="space-between"
-                  alignItems="center"
-                  mb={2}
-                >
-                  <Typography
-                    variant="subtitle2"
-                    sx={{
-                      color: isDark
-                        ? "rgba(255,255,255,0.7)"
-                        : "text.secondary",
-                    }}
-                  >
-                    Voucher PIN
-                  </Typography>
-                  <Box display="flex" alignItems="center">
-                    <Typography
-                      variant="subtitle1"
-                      sx={{
-                        fontWeight: "bold",
-                        color: isDark ? "#ffffff" : "text.primary",
-                        fontFamily: "monospace",
-                        letterSpacing: "0.5px",
-                        mr: 1,
-                      }}
-                    >
-                      {soldVoucher.voucher_pin || "PIN not available"}
-                    </Typography>
-                    {soldVoucher.voucher_pin && (
-                      <Button
-                        size="small"
-                        onClick={() =>
-                          copyToClipboard(soldVoucher.voucher_pin, "pin")
-                        }
-                        sx={{ minWidth: 0, p: 0.5 }}
-                      >
-                        {copied === "pin" ? (
-                          <CheckCircleIcon
-                            fontSize="small"
-                            sx={{ color: "success.main" }}
-                          />
-                        ) : (
-                          <ContentCopyIcon fontSize="small" />
-                        )}
-                      </Button>
-                    )}
-                  </Box>
-                </Box>
-
-                <Box
-                  display="flex"
-                  justifyContent="space-between"
-                  alignItems="center"
-                  mb={2}
-                >
-                  <Typography
-                    variant="subtitle2"
-                    sx={{
-                      color: isDark
-                        ? "rgba(255,255,255,0.7)"
-                        : "text.secondary",
-                    }}
-                  >
-                    Serial Number
-                  </Typography>
-                  <Box display="flex" alignItems="center">
-                    <Typography
-                      variant="subtitle1"
-                      sx={{
-                        fontWeight: "bold",
-                        color: isDark ? "#ffffff" : "text.primary",
-                        fontFamily: "monospace",
-                        letterSpacing: "0.5px",
-                        mr: 1,
-                      }}
-                    >
-                      {soldVoucher.voucher_serial_number || "S/N not available"}
-                    </Typography>
-                    {soldVoucher.voucher_serial_number && (
-                      <Button
-                        size="small"
-                        onClick={() =>
-                          copyToClipboard(
-                            soldVoucher.voucher_serial_number,
-                            "serial",
-                          )
-                        }
-                        sx={{ minWidth: 0, p: 0.5 }}
-                      >
-                        {copied === "serial" ? (
-                          <CheckCircleIcon
-                            fontSize="small"
-                            sx={{ color: "success.main" }}
-                          />
-                        ) : (
-                          <ContentCopyIcon fontSize="small" />
-                        )}
-                      </Button>
-                    )}
-                  </Box>
-                </Box>
-
-                <Box
-                  display="flex"
-                  justifyContent="space-between"
-                  alignItems="center"
-                  mb={2}
-                >
-                  <Typography
-                    variant="subtitle2"
-                    sx={{
-                      color: isDark
-                        ? "rgba(255,255,255,0.7)"
-                        : "text.secondary",
-                    }}
-                  >
-                    Provider
-                  </Typography>
-                  <Typography
-                    variant="subtitle1"
-                    sx={{
-                      fontWeight: "bold",
-                      color: getProviderColor(),
-                    }}
-                  >
-                    {/* {soldVoucher.supplier_name} */}
-                    {soldVoucher.supplier_name === "Glocell" &&
-                      soldVoucher.vendorId &&
-                      ` ${soldVoucher.vendorId.toUpperCase()}`}
-                  </Typography>
-                </Box>
-
-                <Box
-                  display="flex"
-                  justifyContent="space-between"
-                  alignItems="center"
-                  mb={2}
-                >
-                  <Typography
-                    variant="subtitle2"
-                    sx={{
-                      color: isDark
-                        ? "rgba(255,255,255,0.7)"
-                        : "text.secondary",
-                    }}
-                  >
-                    Category
-                  </Typography>
-                  <Typography
-                    variant="subtitle1"
-                    sx={{
-                      fontWeight: "bold",
-                      color: isDark ? "#ffffff" : "text.primary",
-                    }}
-                  >
-                    {soldVoucher.category || "-"}
-                  </Typography>
-                </Box>
-
-                <Box
-                  display="flex"
-                  justifyContent="space-between"
-                  alignItems="center"
-                  mb={2}
-                >
-                  <Typography
-                    variant="subtitle2"
-                    sx={{
-                      color: isDark
-                        ? "rgba(255,255,255,0.7)"
-                        : "text.secondary",
-                    }}
-                  >
-                    Terminal ID
-                  </Typography>
-                  <Typography
-                    variant="subtitle1"
-                    sx={{
-                      fontWeight: "bold",
-                      color: isDark ? "#ffffff" : "text.primary",
-                    }}
-                  >
-                    {window.location.pathname.split("/").pop() || "Unknown"}
-                  </Typography>
-                </Box>
-
-                <Box
-                  display="flex"
-                  justifyContent="space-between"
-                  alignItems="center"
-                >
-                  <Typography
-                    variant="subtitle2"
-                    sx={{
-                      color: isDark
-                        ? "rgba(255,255,255,0.7)"
-                        : "text.secondary",
-                    }}
-                  >
-                    Sale Time
-                  </Typography>
-                  <Typography
-                    variant="subtitle1"
-                    sx={{
-                      color: isDark ? "#ffffff" : "text.primary",
-                    }}
-                  >
-                    {new Date(soldVoucher.sale_time).toLocaleString()}
-                  </Typography>
-                </Box>
-              </Box>
-
-              <Divider sx={{ my: 2 }} />
-
+              {/* Voucher PIN, Serial, Reference, Date/Time */}
               <Typography
-                variant="body2"
+                variant="h5"
                 align="center"
-                sx={{
-                  mt: 2,
-                  color: isDark ? "rgba(255,255,255,0.7)" : "text.secondary",
-                }}
+                sx={{ fontFamily: "monospace", letterSpacing: 2, mb: 2 }}
               >
-                Please provide the above PIN and serial number to your customer.
+                {soldVoucher.voucher_pin || "PIN not available"}
+              </Typography>
+              <Typography variant="body2" align="center" sx={{ mb: 1 }}>
+                Serial Number:{" "}
+                {soldVoucher.voucher_serial_number || "S/N not available"}
+              </Typography>
+              <Typography variant="body2" align="center" sx={{ mb: 1 }}>
+                Ref: {uniqueRef}
+              </Typography>
+              <Typography variant="body2" align="center" sx={{ mb: 1 }}>
+                Date:{" "}
+                {soldVoucher.sale_time
+                  ? new Date(soldVoucher.sale_time).toLocaleString()
+                  : "-"}
               </Typography>
             </Paper>
 
