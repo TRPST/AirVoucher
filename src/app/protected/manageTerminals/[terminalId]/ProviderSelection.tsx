@@ -149,7 +149,7 @@ const ProviderSelection: React.FC<ProviderSelectionProps> = ({
     {
       id: "9",
       name: "Electricity",
-      image_url: "/images/electricity.png",
+      image_url: "/images/electricity.jpg",
       requires_service_selection: false,
     },
     {
@@ -161,40 +161,9 @@ const ProviderSelection: React.FC<ProviderSelectionProps> = ({
   ];
 
   useEffect(() => {
-    const fetchProviders = async () => {
-      try {
-        setLoading(true);
-        console.log("🔍 Fetching providers from database");
-
-        // Try to fetch providers from the database
-        const { data, error } = await supabase
-          .from("providers") // Change this to match your actual providers table name
-          .select("*")
-          .order("name");
-
-        if (error) {
-          console.error("❌ Error fetching providers:", error);
-          setError("Failed to load providers. Using fallback data.");
-          setProviders(fallbackProviders);
-        } else if (data && data.length > 0) {
-          console.log("✅ Successfully fetched providers:", data);
-          setProviders(data);
-        } else {
-          console.log(
-            "⚠️ No providers found in database. Using fallback data.",
-          );
-          setProviders(fallbackProviders);
-        }
-      } catch (err) {
-        console.error("❌ Unexpected error:", err);
-        setError("An unexpected error occurred. Using fallback data.");
-        setProviders(fallbackProviders);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchProviders();
+    // Remove the database query and just use fallback providers
+    setProviders(fallbackProviders);
+    setLoading(false);
   }, []);
 
   // Helper function to get provider color
@@ -252,7 +221,7 @@ const ProviderSelection: React.FC<ProviderSelectionProps> = ({
                   image={provider.image_url || "/images/default_provider.png"}
                   alt={provider.name}
                   sx={{
-                    height: 50,
+                    height: 60,
                     objectFit: "contain",
                     mx: "auto",
                     filter:
